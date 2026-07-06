@@ -29,6 +29,9 @@ URL = ("https://kabutan.jp/warning/trading_value_ranking"
        "?market=0&capitalization=-1&dispmode=normal&stc=&stm=0&page={page}")
 PAGES = 4  # 50件 x 4ページ = 上位200銘柄
 
+# ページ上部の「YYYY年MM月DD日 / HH:MM現在」表記(データ時点)
+AS_OF_RE = re.compile(r'(\d{4})年(\d{2})月(\d{2})日</li>\s*<li>(\d{2}:\d{2})現在')
+
 ROW_RE = re.compile(
     r'<tr>\s*'
     r'<td class="tac"><a href="/stock/\?code=(?P<code>[0-9A-Z]+)">[0-9A-Z]+</a></td>\s*'
@@ -68,8 +71,13 @@ def parse(html: str):
 def main():
     today = date.today().isoformat()
     stocks = []
+    as_of = None
     for page in range(1, PAGES + 1):
         html = fetch(page)
+        if as_of is None:
+            m = AS_OF_RE.search(html)
+            if m:
+                as_of = f"{m.group(1)}-{m.group(2)}-{m.group(3)} {m.group(4)}"
         rows = parse(html)
         if not rows:
             print(f"ERROR: page {page} から行を抽出できませんでした(ページ構造の変更の可能性)",
@@ -154,6 +162,7 @@ def main():
     # 公開サイト(GitHub Pages)用データを保存
     site_payload = {
         "date": today,
+        "as_of": as_of,
         "prev_date": prev_date,
         "count": len(stocks),
         "stocks": stocks,

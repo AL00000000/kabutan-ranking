@@ -35,7 +35,7 @@ header.site .sub { color: var(--muted); font-size: .85rem; }
 .toolbar {
   display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
   background: var(--panel); border: 1px solid var(--border);
-  border-radius: 12px; padding: 14px 16px; margin-bottom: 14px;
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
 }
 .toolbar label { color: var(--muted); font-size: .82rem; margin-right: 6px; }
 .toolbar select, .toolbar input {
@@ -46,8 +46,30 @@ header.site .sub { color: var(--muted); font-size: .85rem; }
 .toolbar select:focus, .toolbar input:focus { border-color: var(--accent); }
 .toolbar input { width: 220px; }
 .toolbar .spacer { flex: 1; }
+button.refresh {
+  background: linear-gradient(135deg, #1d8f98, #39c5cf);
+  color: #04121a; font-weight: 700; font-size: .9rem;
+  border: none; border-radius: 8px; padding: 9px 18px;
+  cursor: pointer; letter-spacing: .02em;
+}
+button.refresh:hover { filter: brightness(1.12); }
+button.refresh:disabled { opacity: .55; cursor: wait; filter: none; }
 .stat { color: var(--muted); font-size: .82rem; }
 .stat b { color: var(--text); font-weight: 600; }
+.banner {
+  display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center;
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--panel2); padding: 9px 14px; margin-bottom: 10px;
+  font-size: .84rem; color: var(--muted);
+}
+.banner .live-dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); margin-right: 7px;
+  box-shadow: 0 0 6px var(--accent);
+}
+.banner b { color: var(--text); }
+.banner.is-live { border-color: #1d8f98; }
+.banner .err { color: var(--up); }
 .hint { color: var(--muted); font-size: .78rem; padding: 0 4px 10px; }
 .tablecard {
   background: var(--panel); border: 1px solid var(--border);
@@ -99,13 +121,17 @@ footer a { color: var(--accent); }
   </header>
 
   <div class="toolbar">
+    <button class="refresh" id="refreshBtn">🔄 最新データを取得</button>
     <span><label>日付</label><select id="dateSel"></select></span>
     <span><label>市場</label><select id="marketSel"><option value="">すべて</option></select></span>
     <input id="q" type="search" placeholder="銘柄名・コードで絞り込み">
     <span class="spacer"></span>
     <span class="stat" id="stat"></span>
   </div>
-  <div class="hint">列見出しをクリックで並び替え(もう一度クリックで昇順/降順切替)。「変動」= 前営業日からの順位変動、「代金変動%」= 売買代金の前営業日比。</div>
+
+  <div class="banner" id="banner">読み込み中…</div>
+
+  <div class="hint">列見出しをクリックで並び替え(もう一度クリックで昇順/降順切替)。「変動」= 前営業日からの順位変動、「代金変動%」= 売買代金の前営業日比。「最新データを取得」で場中の途中データも表示できます(表示のみ・保存はされません)。</div>
 
   <div class="tablecard">
     <table id="tbl">
@@ -115,7 +141,7 @@ footer a { color: var(--accent); }
   </div>
 
   <footer>
-    データ取得元: <a href="https://kabutan.jp/warning/trading_value_ranking" target="_blank" rel="noopener">株探(kabutan.jp)</a> / 売買代金の単位: 百万円 / 市場休場日は更新されません。<br>
+    データ取得元: <a href="https://kabutan.jp/warning/trading_value_ranking" target="_blank" rel="noopener">株探(kabutan.jp)</a> / 売買代金の単位: 百万円 / 株価は15分ディレイ / 市場休場日は更新されません。<br>
     本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
   </footer>
 </div>
@@ -139,9 +165,18 @@ const COLS = [
   { key: "pbr",                label: "PBR",         num: s => pnum2(s.pbr) },
   { key: "yld",                label: "利回り",      num: s => pnum2(s.yld) },
 ];
-let all = [];          // current day's stocks
+let all = [];          // currently displayed stocks
+let allDates = [];     // stored dates (desc)
 let sortKey = "rank";
 let sortAsc = true;
+
+// ---- kabutan live fetch settings ----
+const PROXY = u => "https://corsproxy.io/?url=" + encodeURIComponent(u);
+const KAB_URL = p => `https://kabutan.jp/warning/trading_value_ranking?market=0&capitalization=-1&dispmode=normal&stc=&stm=0&page=${p}`;
+const LIVE_PAGES = 14;         // 15件/頁 x 14 = 210 -> 200位まで
+const LIVE_CONCURRENCY = 5;
+const ROW_RE = /<tr>\s*<td class="tac"><a href="\/stock\/\?code=(?<code>[0-9A-Z]+)">[0-9A-Z]+<\/a><\/td>\s*<th scope="row" class="tal">(?<name>[^<]+)<\/th>\s*<td class="tac">(?<market>[^<]*)<\/td>\s*<td class="gaiyou_icon">[\s\S]*?<\/td>\s*<td class="chart_icon">[\s\S]*?<\/td>\s*<td>(?<price>[^<]*)<\/td>\s*<td>[^<]*<\/td>\s*<td class="w61">(?:<span[^>]*>)?(?<change>[^<]*)(?:<\/span>)?<\/td>\s*<td class="w50">(?:<span[^>]*>)?(?<change_pct>[^<]*)(?:<\/span>)?%?<\/td>\s*<td>(?<value>[^<]*)<\/td>\s*<td>(?<per>[^<]*)<\/td>\s*<td>(?<pbr>[^<]*)<\/td>\s*<td>(?<yld>[^<]*)<\/td>/g;
+const AS_OF_RE = /(\d{4})年(\d{2})月(\d{2})日<\/li>\s*<li>(\d{2}:\d{2})現在/;
 
 function pnum(v) {
   if (v == null || v === "" || v === "－") return -Infinity;
@@ -179,7 +214,6 @@ function buildHead() {
       if (sortKey === c.key) { sortAsc = !sortAsc; }
       else {
         sortKey = c.key;
-        // 数値列の初回クリックは「大きい順」が自然(順位のみ小さい順)
         sortAsc = c.num ? (c.key === "rank" || c.key === "prev_rank") : true;
       }
       render();
@@ -248,26 +282,147 @@ function render() {
     "表示 <b>" + rows.length + "</b> / " + all.length + " 銘柄";
 }
 
-async function loadDate(d) {
-  const res = await fetch("data/" + d + ".json", { cache: "no-cache" });
-  const data = await res.json();
-  all = data.stocks;
+function setBanner(html, live) {
+  const b = document.getElementById("banner");
+  b.innerHTML = html;
+  b.classList.toggle("is-live", !!live);
+}
+
+function updateMarketSel() {
   const mktSel = document.getElementById("marketSel");
   const markets = [...new Set(all.map(s => s.market))];
   mktSel.innerHTML = '<option value="">すべて</option>' +
     markets.map(m => '<option value="' + m + '">' + m + "</option>").join("");
+}
+
+async function loadDate(d) {
+  const res = await fetch("data/" + d + ".json", { cache: "no-cache" });
+  const data = await res.json();
+  all = data.stocks;
+  updateMarketSel();
+  const asof = data.as_of
+    ? data.as_of + " 時点"
+    : d + "(大引け後 16:30頃取得)";
+  setBanner("保存データ: <b>" + asof + "</b> / 比較対象: <b>" +
+    (data.prev_date || "なし(初回)") + "</b>", false);
   render();
+}
+
+// ---- live refresh ----
+async function fetchLivePage(p) {
+  const res = await fetch(PROXY(KAB_URL(p)));
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return await res.text();
+}
+
+function parseLive(html) {
+  const body = html.split("<tbody>").slice(1).join("<tbody>");
+  const rows = [];
+  ROW_RE.lastIndex = 0;
+  let m;
+  while ((m = ROW_RE.exec(body)) !== null) {
+    const d = {};
+    for (const [k, v] of Object.entries(m.groups)) d[k] = (v || "").trim();
+    rows.push(d);
+  }
+  return rows;
+}
+
+async function refreshLive() {
+  const btn = document.getElementById("refreshBtn");
+  btn.disabled = true;
+  const orig = btn.textContent;
+  try {
+    let done = 0;
+    const htmls = new Array(LIVE_PAGES);
+    const queue = Array.from({ length: LIVE_PAGES }, (_, i) => i + 1);
+    btn.textContent = "取得中… 0/" + LIVE_PAGES;
+    const workers = Array.from({ length: LIVE_CONCURRENCY }, async () => {
+      while (queue.length) {
+        const p = queue.shift();
+        htmls[p - 1] = await fetchLivePage(p);
+        done++;
+        btn.textContent = "取得中… " + done + "/" + LIVE_PAGES;
+      }
+    });
+    await Promise.all(workers);
+
+    // データ時点
+    let asOf = null, dataDate = null;
+    const am = htmls[0].match(AS_OF_RE);
+    if (am) {
+      dataDate = am[1] + "-" + am[2] + "-" + am[3];
+      asOf = dataDate + " " + am[4];
+    }
+
+    // 行の結合・重複除去・200位まで
+    let stocks = htmls.flatMap(parseLive);
+    if (!stocks.length) throw new Error("行を抽出できませんでした(ページ構造変更の可能性)");
+    const seen = new Set();
+    stocks = stocks.filter(s => !seen.has(s.code) && seen.add(s.code)).slice(0, 200);
+    stocks.forEach((s, i) => { s.rank = i + 1; });
+
+    // 比較対象: データ日付より前の直近保存日
+    let baseDate = allDates.find(d => !dataDate || d < dataDate) || null;
+    let base = {};
+    if (baseDate) {
+      const res = await fetch("data/" + baseDate + ".json", { cache: "no-cache" });
+      const bd = await res.json();
+      base = Object.fromEntries(bd.stocks.map(s => [s.code, { rank: s.rank, value: s.value }]));
+    }
+
+    const pn = v => { const n = parseFloat(String(v).replace(/,/g, "").replace("+", "")); return isNaN(n) ? 0 : n; };
+    for (const s of stocks) {
+      const prev = base[s.code];
+      if (prev) {
+        const diff = prev.rank - s.rank;
+        s.move = diff > 0 ? "↑" + diff : diff < 0 ? "↓" + (-diff) : "→";
+        s.prev_rank = prev.rank;
+        s.move_num = diff;
+        s.is_new = false;
+        const cv = pn(s.value), pv = pn(prev.value);
+        if (pv > 0) {
+          const vd = cv - pv, vp = vd / pv * 100;
+          s.value_move = (vd > 0 ? "+" : "") + Math.round(vd).toLocaleString("en-US");
+          s.value_move_pct = (vp > 0 ? "+" : "") + vp.toFixed(1) + "%";
+          s.value_move_pct_num = Math.round(vp * 10) / 10;
+        } else { s.value_move = ""; s.value_move_pct = ""; s.value_move_pct_num = null; }
+      } else {
+        s.move = baseDate ? "NEW" : "";
+        s.prev_rank = "";
+        s.move_num = null;
+        s.is_new = !!baseDate;
+        s.value_move = ""; s.value_move_pct = ""; s.value_move_pct_num = null;
+      }
+    }
+
+    all = stocks;
+    updateMarketSel();
+    setBanner('<span class="live-dot"></span>ライブデータ: <b>' +
+      (asOf ? asOf + " 時点" : "時刻不明") +
+      "</b>(株価15分ディレイ・保存されません) / 比較対象: <b>" +
+      (baseDate || "なし") + "</b>", true);
+    render();
+  } catch (e) {
+    setBanner('<span class="err">最新データの取得に失敗しました: ' + e +
+      " / 時間をおいて再試行してください。</span>", false);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
 }
 
 async function init() {
   const res = await fetch("data/index.json", { cache: "no-cache" });
   const idx = await res.json();
+  allDates = idx.dates;
   const sel = document.getElementById("dateSel");
-  sel.innerHTML = idx.dates.map(d => '<option value="' + d + '">' + d + "</option>").join("");
+  sel.innerHTML = allDates.map(d => '<option value="' + d + '">' + d + "</option>").join("");
   sel.onchange = () => loadDate(sel.value);
   document.getElementById("q").oninput = render;
   document.getElementById("marketSel").onchange = render;
-  if (idx.dates.length) await loadDate(idx.dates[0]);
+  document.getElementById("refreshBtn").onclick = refreshLive;
+  if (allDates.length) await loadDate(allDates[0]);
   else document.getElementById("body").innerHTML = '<tr><td class="loading" colspan="15">データがありません</td></tr>';
 }
 init().catch(e => {
