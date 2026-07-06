@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Kabutan 売買代金ランキング (1-4ページ, 上位60銘柄) を取得し、
-前営業日と比較した順位変動・売買代金変動付きで CSV に出力する。
+"""Kabutan 売買代金ランキング (1-4ページ, 50件/頁 = 上位200銘柄) を取得し、
+前営業日と比較した順位変動・売買代金変動付きで CSV と公開サイト用 JSON に出力する。
 
 出力:
-  history/YYYY-MM-DD.json  … 当日の生データ(翌日以降の比較用)
+  history/YYYY-MM-DD.json       … 当日の生データ(翌日以降の比較用)
   output/ranking_YYYY-MM-DD.csv … 当日のランキングCSV(UTF-8)
+  docs/data/YYYY-MM-DD.json     … GitHub Pages 用データ
+  docs/data/index.json          … 日付一覧(新しい順)
   標準出力に CSV のフルパスを表示する。
 """
 import json
@@ -18,10 +20,14 @@ from pathlib import Path
 BASE = Path(__file__).parent
 HISTORY = BASE / "history"
 OUTPUT = BASE / "output"
+DOCS_DATA = BASE / "docs" / "data"
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+# shared_perpage=50 Cookie で1ページ50件表示になる(サイトのsetPageCount実装より)
+COOKIE = "shared_perpage=50"
 URL = ("https://kabutan.jp/warning/trading_value_ranking"
        "?market=0&capitalization=-1&dispmode=normal&stc=&stm=0&page={page}")
+PAGES = 4  # 50件 x 4ページ = 上位200銘柄
 
 ROW_RE = re.compile(
     r'<tr>\s*'
@@ -42,7 +48,9 @@ ROW_RE = re.compile(
 
 
 def fetch(page: int) -> str:
-    req = urllib.request.Request(URL.format(page=page), headers={"User-Agent": UA})
+    req = urllib.request.Request(
+        URL.format(page=page),
+        headers={"User-Agent": UA, "Cookie": COOKIE})
     with urllib.request.urlopen(req, timeout=30) as res:
         return res.read().decode("utf-8", errors="replace")
 
@@ -60,7 +68,7 @@ def parse(html: str):
 def main():
     today = date.today().isoformat()
     stocks = []
-    for page in range(1, 5):
+    for page in range(1, PAGES + 1):
         html = fetch(page)
         rows = parse(html)
         if not rows:
@@ -70,12 +78,16 @@ def main():
         stocks.extend(rows)
         time.sleep(1.5)
 
+    # 念のため重複コードを除去(ページ跨ぎの重複対策)して順位を振り直す
+    seen = set()
+    stocks = [s for s in stocks if not (s["code"] in seen or seen.add(s["code"]))]
     for i, s in enumerate(stocks, 1):
         s["rank"] = i
 
     # 前回(直近の過去ファイル)のデータを読み込み
     HISTORY.mkdir(exist_ok=True)
     OUTPUT.mkdir(exist_ok=True)
+    DOCS_DATA.mkdir(parents=True, exist_ok=True)
     prev_files = sorted(p for p in HISTORY.glob("*.json") if p.stem < today)
     prev_data = {}  # code -> {rank, value}
     prev_date = None
@@ -103,6 +115,8 @@ def main():
             else:
                 s["move"] = "→"
             s["prev_rank"] = prev["rank"]
+            s["move_num"] = diff
+            s["is_new"] = False
 
             # 売買代金の変動
             curr_value = parse_number(s["value"])
@@ -110,6 +124,7 @@ def main():
             if prev_value > 0:
                 value_diff = curr_value - prev_value
                 value_pct = (value_diff / prev_value) * 100
+                s["value_move_pct_num"] = round(value_pct, 1)
                 if value_diff > 0:
                     s["value_move"] = f"+{value_diff:,.0f}"
                     s["value_move_pct"] = f"+{value_pct:.1f}%"
@@ -122,15 +137,33 @@ def main():
             else:
                 s["value_move"] = ""
                 s["value_move_pct"] = ""
+                s["value_move_pct_num"] = None
         else:
             s["move"] = "NEW" if prev_data else ""
             s["prev_rank"] = ""
+            s["move_num"] = None
+            s["is_new"] = bool(prev_data)
             s["value_move"] = ""
             s["value_move_pct"] = ""
+            s["value_move_pct_num"] = None
 
     # 当日データを保存(同日再実行時は上書き)
     (HISTORY / f"{today}.json").write_text(
         json.dumps(stocks, ensure_ascii=False, indent=1), encoding="utf-8")
+
+    # 公開サイト(GitHub Pages)用データを保存
+    site_payload = {
+        "date": today,
+        "prev_date": prev_date,
+        "count": len(stocks),
+        "stocks": stocks,
+    }
+    (DOCS_DATA / f"{today}.json").write_text(
+        json.dumps(site_payload, ensure_ascii=False, separators=(",", ":")),
+        encoding="utf-8")
+    dates = sorted((p.stem for p in DOCS_DATA.glob("????-??-??.json")), reverse=True)
+    (DOCS_DATA / "index.json").write_text(
+        json.dumps({"dates": dates}, ensure_ascii=False), encoding="utf-8")
 
     # CSV を保存
     csv_path = OUTPUT / f"ranking_{today}.csv"

@@ -1,9 +1,13 @@
 # 売買代金ランキング (東証)
 
-[Kabutan](https://kabutan.jp/warning/trading_value_ranking) の売買代金ランキング上位60銘柄を平日ごとに取得したデータです。
+[Kabutan](https://kabutan.jp/warning/trading_value_ranking) の売買代金ランキング上位200銘柄を平日ごとに取得したデータです。
+
+**📊 閲覧用サイト: https://al00000000.github.io/kabutan-ranking/**
+(日付切替・列ソート・銘柄検索ができます)
 
 ## データ
 
+- [docs/data/](docs/data/) … 閲覧用サイトが読み込む日次JSON
 - [output/](output/) … 日次のランキングCSV (`ranking_YYYY-MM-DD.csv`, UTF-8)
   - 順位 / 順位変動(前営業日比) / コード / 銘柄名 / 市場 / 株価 / 前日比 / 売買代金(百万円) / 売買代金前日比 / PER / PBR / 利回り
 - [history/](history/) … 比較計算用の生データ (JSON)
