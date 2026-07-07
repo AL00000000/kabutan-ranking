@@ -157,12 +157,12 @@ footer a { color: var(--accent); }
 
   <div class="banner" id="banner">読み込み中…</div>
 
-  <div class="hint">列見出しをクリックで並び替え(もう一度クリックで昇順/降順切替)。「変動」= 前営業日からの順位変動、「代金変動%」= 売買代金の前営業日比。「最新データを取得」で場中の途中データも表示できます(表示のみ・保存はされません)。データ群A = 株価が前日比プラスの銘柄のみ(列はデフォルトと同じ)。表示件数 = 売買代金順位の上位何位まで表示するか(既定は200位まで)。既定では前日順位・代金前日比・PBR・利回りの列は非表示です。「全項目を表示」でこれらを含む全15列を表示できます。</div>
+  <div class="hint">列見出しをクリックで並び替え(もう一度クリックで昇順/降順切替)。「変動」= 前営業日からの順位変動、「代金変動%」= 売買代金の前営業日比、「連騰日数」= それぞれ何日連続で改善(順位上昇/代金増加)しているか。「最新データを取得」で場中の途中データも表示できます(表示のみ・保存はされません)。データ群A = 株価が前日比プラスの銘柄のみ(列はデフォルトと同じ)。表示件数 = 売買代金順位の上位何位まで表示するか(既定は200位まで)。既定では前日比・前日順位・代金前日比・PBR・利回りの列は非表示です。「全項目を表示」でこれらを含む全17列を表示できます。</div>
 
   <div class="tablecard">
     <table id="tbl">
       <thead><tr id="headRow"></tr></thead>
-      <tbody id="body"><tr><td class="loading" colspan="15">読み込み中…</td></tr></tbody>
+      <tbody id="body"><tr><td class="loading" colspan="17">読み込み中…</td></tr></tbody>
     </table>
   </div>
 
@@ -177,6 +177,7 @@ footer a { color: var(--accent); }
 const COLS = [
   { key: "rank",           label: "順位",        num: s => s.rank },
   { key: "move",           label: "変動",        num: s => s.is_new ? Infinity : (s.move_num ?? -Infinity), color: true },
+  { key: "move_streak",    label: "連騰日数",    num: s => s.move_streak ?? -Infinity },
   { key: "prev_rank",      label: "前日順位",    num: s => s.prev_rank === "" ? Infinity : +s.prev_rank },
   { key: "code",           label: "コード",      num: null, left: true, code: true },
   { key: "name",           label: "銘柄名",      num: null, left: true, cls: "name tl" },
@@ -187,6 +188,7 @@ const COLS = [
   { key: "value",          label: "売買代金",    num: s => pnum(s.value), cls: "value-cell" },
   { key: "value_move",     label: "代金前日比",  num: s => s.value_move === "" ? -Infinity : pnum(s.value_move), color: true },
   { key: "value_move_pct", label: "代金変動%",   num: s => s.value_move_pct_num ?? -Infinity, color: true },
+  { key: "value_streak",   label: "連騰日数",    num: s => s.value_streak ?? -Infinity },
   { key: "per",            label: "PER",         num: s => pnum2(s.per) },
   { key: "pbr",            label: "PBR",         num: s => pnum2(s.pbr) },
   { key: "yld",            label: "利回り",      num: s => pnum2(s.yld) },
@@ -269,7 +271,7 @@ function cls(v) {
 }
 
 // 既定では非表示にする列(「全項目を表示」ボタンで表示)
-const HIDDEN_BY_DEFAULT = ["prev_rank", "value_move", "pbr", "yld"];
+const HIDDEN_BY_DEFAULT = ["prev_rank", "value_move", "pbr", "yld", "change"];
 let showAllCols = false;
 
 function activeCols() {
@@ -351,7 +353,7 @@ function render() {
         a.textContent = v;
         td.appendChild(a);
       } else {
-        td.textContent = v;
+        td.textContent = (v === undefined || v === null) ? "-" : v;
       }
       tr.appendChild(td);
     }
@@ -516,11 +518,11 @@ async function init() {
     render();
   };
   if (allDates.length) await loadDate(allDates[0]);
-  else document.getElementById("body").innerHTML = '<tr><td class="loading" colspan="15">データがありません</td></tr>';
+  else document.getElementById("body").innerHTML = '<tr><td class="loading" colspan="17">データがありません</td></tr>';
 }
 init().catch(e => {
   document.getElementById("body").innerHTML =
-    '<tr><td class="loading" colspan="15">読み込みエラー: ' + e + "</td></tr>";
+    '<tr><td class="loading" colspan="17">読み込みエラー: ' + e + "</td></tr>";
 });
 </script>
 </body>
