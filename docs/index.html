@@ -172,7 +172,8 @@ let sortAsc = true;
 
 // ---- kabutan live fetch settings ----
 const PROXY = u => "https://corsproxy.io/?url=" + encodeURIComponent(u);
-const KAB_URL = p => `https://kabutan.jp/warning/trading_value_ranking?market=0&capitalization=-1&dispmode=normal&stc=&stm=0&page=${p}`;
+// _cb: corsproxy.io が前回結果をキャッシュするため、取得毎にURLを変えて回避する(kabutan側は未知のパラメータを無視する)
+const KAB_URL = (p, cb) => `https://kabutan.jp/warning/trading_value_ranking?market=0&capitalization=-1&dispmode=normal&stc=&stm=0&page=${p}&_cb=${cb}`;
 const LIVE_PAGES = 14;         // 15件/頁 x 14 = 210 -> 200位まで
 const LIVE_CONCURRENCY = 5;
 const ROW_RE = /<tr>\s*<td class="tac"><a href="\/stock\/\?code=(?<code>[0-9A-Z]+)">[0-9A-Z]+<\/a><\/td>\s*<th scope="row" class="tal">(?<name>[^<]+)<\/th>\s*<td class="tac">(?<market>[^<]*)<\/td>\s*<td class="gaiyou_icon">[\s\S]*?<\/td>\s*<td class="chart_icon">[\s\S]*?<\/td>\s*<td>(?<price>[^<]*)<\/td>\s*<td>[^<]*<\/td>\s*<td class="w61">(?:<span[^>]*>)?(?<change>[^<]*)(?:<\/span>)?<\/td>\s*<td class="w50">(?:<span[^>]*>)?(?<change_pct>[^<]*)(?:<\/span>)?%?<\/td>\s*<td>(?<value>[^<]*)<\/td>\s*<td>(?<per>[^<]*)<\/td>\s*<td>(?<pbr>[^<]*)<\/td>\s*<td>(?<yld>[^<]*)<\/td>/g;
@@ -309,8 +310,8 @@ async function loadDate(d) {
 }
 
 // ---- live refresh ----
-async function fetchLivePage(p) {
-  const res = await fetch(PROXY(KAB_URL(p)));
+async function fetchLivePage(p, cb) {
+  const res = await fetch(PROXY(KAB_URL(p, cb)), { cache: "no-store" });
   if (!res.ok) throw new Error("HTTP " + res.status);
   return await res.text();
 }
@@ -334,13 +335,14 @@ async function refreshLive() {
   const orig = btn.textContent;
   try {
     let done = 0;
+    const cb = Date.now();  // 今回の取得共通のキャッシュバスタ
     const htmls = new Array(LIVE_PAGES);
     const queue = Array.from({ length: LIVE_PAGES }, (_, i) => i + 1);
     btn.textContent = "取得中… 0/" + LIVE_PAGES;
     const workers = Array.from({ length: LIVE_CONCURRENCY }, async () => {
       while (queue.length) {
         const p = queue.shift();
-        htmls[p - 1] = await fetchLivePage(p);
+        htmls[p - 1] = await fetchLivePage(p, cb);
         done++;
         btn.textContent = "取得中… " + done + "/" + LIVE_PAGES;
       }
