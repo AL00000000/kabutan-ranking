@@ -140,6 +140,7 @@ footer a { color: var(--accent); }
 
   <div class="toolbar">
     <button class="refresh" id="refreshBtn">🔄 最新データを取得</button>
+    <button class="colsToggle" id="colsToggleBtn">全項目を表示</button>
     <span><label>データ群</label><select id="viewSel">
       <option value="default">デフォルト</option>
       <option value="A">上昇銘柄のみ</option>
@@ -151,7 +152,6 @@ footer a { color: var(--accent); }
     </select></span>
     <span><label>市場</label><select id="marketSel"><option value="">すべて</option></select></span>
     <input id="q" type="search" placeholder="銘柄名・コードで絞り込み">
-    <button class="colsToggle" id="colsToggleBtn">全項目を表示</button>
     <span class="spacer"></span>
     <span class="stat" id="stat"></span>
   </div>
