@@ -92,12 +92,13 @@ button.colsToggle.active { border-color: var(--accent); color: var(--accent); }
 }
 .warn-detail { display: none; color: var(--new); flex-basis: 100%; }
 .warn-detail.open { display: block; }
+.warn-detail ol { margin: 4px 0 0 1.2em; }
+.warn-detail li { margin-bottom: 2px; }
 .hintRow {
   display: flex; align-items: flex-start; gap: 14px;
   padding: 0 4px 10px;
 }
-.hint { color: var(--muted); font-size: .78rem; flex: 1; padding: 0; margin: 0 0 0 1.1em; }
-.hint li { margin-bottom: 3px; }
+.hint { color: var(--muted); font-size: .78rem; flex: 1; }
 .tablecard {
   background: var(--panel); border: 1px solid var(--border);
   border-radius: 12px; overflow: auto; max-height: 78vh;
@@ -167,14 +168,7 @@ footer a { color: var(--accent); }
   <div class="banner" id="banner">読み込み中…</div>
 
   <div class="hintRow">
-    <ol class="hint">
-      <li>列見出しをクリックで並び替え(もう一度クリックで昇順/降順切替)。</li>
-      <li>「変動」= 前営業日からの順位変動、「代金変動%」= 売買代金の前営業日比、「連騰日数」= それぞれ何日連続で改善(順位上昇/代金増加)しているか。</li>
-      <li>「最新データを取得」で場中の途中データも表示できます(表示のみ・保存はされません)。</li>
-      <li>データ群A = 株価が前日比プラスの銘柄のみ(列はデフォルトと同じ)。</li>
-      <li>表示件数 = 売買代金順位の上位何位まで表示するか(既定は200位まで)。</li>
-      <li>既定では前日比・前日順位・代金前日比・PBR・利回りの列は非表示です。</li>
-    </ol>
+    <div class="hint">列見出しをクリックで並び替え(もう一度クリックで昇順/降順切替)。「変動」= 前営業日からの順位変動、「代金変動%」= 売買代金の前営業日比、「連騰日数」= それぞれ何日連続で改善(順位上昇/代金増加)しているか。「最新データを取得」で場中の途中データも表示できます(表示のみ・保存はされません)。データ群A = 株価が前日比プラスの銘柄のみ(列はデフォルトと同じ)。表示件数 = 売買代金順位の上位何位まで表示するか(既定は200位まで)。既定では前日比・前日順位・代金前日比・PBR・利回りの列は非表示です。</div>
     <button class="colsToggle" id="colsToggleBtn">全項目を表示</button>
   </div>
 
@@ -232,18 +226,23 @@ let allDates = [];     // stored dates (desc)
 let sortKey = "rank";
 let sortAsc = true;
 
-// 既知の不具合がある保存データ(日付 -> 説明)
+// 既知の不具合がある保存データ(日付 -> 説明を箇条書きの配列で)
 const DATA_NOTES = {
-  "2026-07-06": "上位500銘柄への拡張は7/7からのため、この日は上位200銘柄までしか取得していません。さらに取得プログラムの不具合により、そのうち4銘柄が欠落し196銘柄しか記録されていません。また記録された銘柄の一部は、株価・売買代金・PER等に別銘柄の数値が混ざっています(例: ソニーFG)。",
+  "2026-07-06": [
+    "上位500銘柄への拡張は7/7からのため、この日は上位200銘柄までしか取得していません。",
+    "さらに取得プログラムの不具合により、そのうち4銘柄が欠落し196銘柄しか記録されていません。",
+    "また記録された銘柄の一部は、株価・売買代金・PER等に別銘柄の数値が混ざっています(例: ソニーFG)。",
+  ],
 };
 function noteFor(d) { return d && DATA_NOTES[d] ? DATA_NOTES[d] : null; }
 function warnHtml(d, isBase) {
   const n = noteFor(d);
   if (!n) return "";
-  const msg = isBase
-    ? "比較対象(" + d + ")のデータに不具合があるため、「変動」「代金前日比」「代金変動%」は一部銘柄で不正確な可能性があります: " + n
-    : "この日のデータには不具合があります: " + n;
-  return '<span class="warn-toggle" title="クリックで詳細表示">⚠</span><span class="warn-detail">' + msg + "</span>";
+  const intro = isBase
+    ? "比較対象(" + d + ")のデータに不具合があるため、「変動」「代金前日比」「代金変動%」は一部銘柄で不正確な可能性があります。"
+    : "この日のデータには不具合があります。";
+  const list = "<ol>" + n.map(p => "<li>" + p + "</li>").join("") + "</ol>";
+  return '<span class="warn-toggle" title="クリックで詳細表示">⚠</span><span class="warn-detail">' + intro + list + "</span>";
 }
 
 // ---- kabutan live fetch settings ----
