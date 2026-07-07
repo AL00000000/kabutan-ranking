@@ -140,6 +140,11 @@ footer a { color: var(--accent); }
   .toolbar input { width: 100%; }
   .hintRow { flex-direction: column; }
   .colsToggle { width: 100%; }
+  table { font-size: .66rem; }
+  thead th { padding: 6px 2px; font-size: .6rem; }
+  tbody td { padding: 5px 2px; }
+  thead th .arw { margin-left: 1px; }
+  td.name { max-width: 62px; }
 }
 </style>
 </head>
@@ -192,18 +197,18 @@ footer a { color: var(--accent); }
 const COLS = [
   { key: "rank",           label: "順位",        num: s => s.rank },
   { key: "move",           label: "変動",        num: s => s.is_new ? Infinity : (s.move_num ?? -Infinity), color: true },
-  { key: "move_streak",    label: "連騰日数",    num: s => s.move_streak ?? -Infinity },
+  { key: "move_streak",    label: "連騰日数",    short: "連騰", num: s => s.move_streak ?? -Infinity },
   { key: "prev_rank",      label: "前日順位",    num: s => s.prev_rank === "" ? Infinity : +s.prev_rank },
   { key: "code",           label: "コード",      num: null, left: true, code: true },
   { key: "name",           label: "銘柄名",      num: null, left: true, cls: "name tl" },
   { key: "market",         label: "市場",        num: null, left: true, cls: "tl" },
   { key: "price",          label: "株価",        num: s => pnum(s.price) },
   { key: "change",         label: "前日比",      num: s => pnum(s.change), color: true },
-  { key: "change_pct",     label: "前日比%",     num: s => pnum(s.change_pct), color: true },
-  { key: "value",          label: "売買代金",    num: s => pnum(s.value), cls: "value-cell" },
+  { key: "change_pct",     label: "前日比%",     short: "前日%", num: s => pnum(s.change_pct), color: true },
+  { key: "value",          label: "売買代金",    short: "代金", num: s => pnum(s.value), cls: "value-cell" },
   { key: "value_move",     label: "代金前日比",  num: s => s.value_move === "" ? -Infinity : pnum(s.value_move), color: true },
-  { key: "value_move_pct", label: "代金変動%",   num: s => s.value_move_pct_num ?? -Infinity, color: true },
-  { key: "value_streak",   label: "連騰日数",    num: s => s.value_streak ?? -Infinity },
+  { key: "value_move_pct", label: "代金変動%",   short: "代金%", num: s => s.value_move_pct_num ?? -Infinity, color: true },
+  { key: "value_streak",   label: "連騰日数",    short: "連騰", num: s => s.value_streak ?? -Infinity },
   { key: "per",            label: "PER",         num: s => pnum2(s.per) },
   { key: "pbr",            label: "PBR",         num: s => pnum2(s.pbr) },
   { key: "yld",            label: "利回り",      num: s => pnum2(s.yld) },
@@ -314,7 +319,7 @@ function buildHead() {
   tr.innerHTML = "";
   for (const c of cols) {
     const th = document.createElement("th");
-    th.textContent = c.label;
+    th.textContent = (isMobile() && c.short) ? c.short : c.label;
     if (c.left) th.classList.add("tl");
     if (c.key === sortKey) {
       const a = document.createElement("span");
