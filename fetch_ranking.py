@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Kabutan 売買代金ランキング (1-4ページ, 50件/頁 = 上位200銘柄) を取得し、
+"""Kabutan 売買代金ランキング (1-10ページ, 50件/頁 = 上位500銘柄) を取得し、
 前営業日と比較した順位変動・売買代金変動付きで CSV と公開サイト用 JSON に出力する。
 
 出力:
@@ -27,27 +27,36 @@ UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
 COOKIE = "shared_perpage=50"
 URL = ("https://kabutan.jp/warning/trading_value_ranking"
        "?market=0&capitalization=-1&dispmode=normal&stc=&stm=0&page={page}")
-PAGES = 4  # 50件 x 4ページ = 上位200銘柄
+PAGES = 10  # 50件 x 10ページ = 上位500銘柄
 
 # ページ上部の「YYYY年MM月DD日 / HH:MM現在」表記(データ時点)
 AS_OF_RE = re.compile(r'(\d{4})年(\d{2})月(\d{2})日</li>\s*<li>(\d{2}:\d{2})現在')
+
+# 値セル: <td>151.1</td> / <td><span class="up">+2.1</span></td> /
+# <td><span class="rednodata">－</span></td> / <td><span>+1.41</span>%</td> をすべて許容。
+# [^<]* なのでセル境界(タグ)は越えられない。
+def _cell(group: str) -> str:
+    return rf'<td[^>]*>\s*(?:<span[^>]*>)?(?P<{group}>[^<]*)(?:</span>)?\s*%?\s*</td>'
+
+# アイコンセル: 中身は何でもよいが </td> を越えない(隣のセルを飲み込むと行がズレるため)
+_ICON = r'(?:(?!</td>)[\s\S])*</td>'
+_SKIP = r'<td[^>]*>\s*(?:<span[^>]*>)?[^<]*(?:</span>)?\s*</td>'  # 前日終値(未使用)
 
 ROW_RE = re.compile(
     r'<tr>\s*'
     r'<td class="tac"><a href="/stock/\?code=(?P<code>[0-9A-Z]+)">[0-9A-Z]+</a></td>\s*'
     r'<th scope="row" class="tal">(?P<name>[^<]+)</th>\s*'
     r'<td class="tac">(?P<market>[^<]*)</td>\s*'
-    r'<td class="gaiyou_icon">.*?</td>\s*'
-    r'<td class="chart_icon">.*?</td>\s*'
-    r'<td>(?P<price>[^<]*)</td>\s*'
-    r'<td>[^<]*</td>\s*'
-    r'<td class="w61">(?:<span[^>]*>)?(?P<change>[^<]*)(?:</span>)?</td>\s*'
-    r'<td class="w50">(?:<span[^>]*>)?(?P<change_pct>[^<]*)(?:</span>)?%?</td>\s*'
-    r'<td>(?P<value>[^<]*)</td>\s*'
-    r'<td>(?P<per>[^<]*)</td>\s*'
-    r'<td>(?P<pbr>[^<]*)</td>\s*'
-    r'<td>(?P<yld>[^<]*)</td>',
-    re.DOTALL)
+    r'<td class="gaiyou_icon">' + _ICON + r'\s*'
+    r'<td class="chart_icon">' + _ICON + r'\s*'
+    + _cell('price') + r'\s*'
+    + _SKIP + r'\s*'
+    + _cell('change') + r'\s*'
+    + _cell('change_pct') + r'\s*'
+    + _cell('value') + r'\s*'
+    + _cell('per') + r'\s*'
+    + _cell('pbr') + r'\s*'
+    + _cell('yld'))
 
 
 def fetch(page: int) -> str:

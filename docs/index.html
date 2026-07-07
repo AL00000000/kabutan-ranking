@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>売買代金ランキング | 東証 上位200銘柄</title>
+<title>売買代金ランキング | 東証 上位500銘柄</title>
 <style>
 :root {
   --bg: #0a0f1c;
@@ -125,7 +125,7 @@ footer a { color: var(--accent); }
 <div class="wrap">
   <header class="site">
     <h1>売買代金ランキング<span class="dot">.</span></h1>
-    <span class="sub">東証 上位200銘柄 / 平日更新 / 前営業日比の順位・売買代金変動付き</span>
+    <span class="sub">東証 上位500銘柄 / 平日更新 / 前営業日比の順位・売買代金変動付き</span>
     <a class="srcbtn" href="https://github.com/AL00000000/kabutan-ranking/archive/refs/heads/main.zip">⬇ ソースコード</a>
   </header>
 
@@ -202,9 +202,25 @@ let sortAsc = true;
 const PROXY = u => "https://corsproxy.io/?url=" + encodeURIComponent(u);
 // _cb: corsproxy.io が前回結果をキャッシュするため、取得毎にURLを変えて回避する(kabutan側は未知のパラメータを無視する)
 const KAB_URL = (p, cb) => `https://kabutan.jp/warning/trading_value_ranking?market=0&capitalization=-1&dispmode=normal&stc=&stm=0&page=${p}&_cb=${cb}`;
-const LIVE_PAGES = 14;         // 15件/頁 x 14 = 210 -> 200位まで
-const LIVE_CONCURRENCY = 5;
-const ROW_RE = /<tr>\s*<td class="tac"><a href="\/stock\/\?code=(?<code>[0-9A-Z]+)">[0-9A-Z]+<\/a><\/td>\s*<th scope="row" class="tal">(?<name>[^<]+)<\/th>\s*<td class="tac">(?<market>[^<]*)<\/td>\s*<td class="gaiyou_icon">[\s\S]*?<\/td>\s*<td class="chart_icon">[\s\S]*?<\/td>\s*<td>(?<price>[^<]*)<\/td>\s*<td>[^<]*<\/td>\s*<td class="w61">(?:<span[^>]*>)?(?<change>[^<]*)(?:<\/span>)?<\/td>\s*<td class="w50">(?:<span[^>]*>)?(?<change_pct>[^<]*)(?:<\/span>)?%?<\/td>\s*<td>(?<value>[^<]*)<\/td>\s*<td>(?<per>[^<]*)<\/td>\s*<td>(?<pbr>[^<]*)<\/td>\s*<td>(?<yld>[^<]*)<\/td>/g;
+const LIVE_PAGES = 34;         // 15件/頁 x 34 = 510 -> 500位まで
+const LIVE_CONCURRENCY = 6;
+const LIVE_MAX = 500;
+// 値セルは <td>151.1</td> / <td><span class="up">+2.1</span></td> /
+// <td><span class="rednodata">－</span></td> / <td><span>+1.41</span>%</td> をすべて許容。
+// アイコンセルは </td> を越えない(隣のセルを飲み込むと行がズレて別銘柄の数値が混ざるため)。
+const C = g => `<td[^>]*>\\s*(?:<span[^>]*>)?(?<${g}>[^<]*)(?:<\\/span>)?\\s*%?\\s*<\\/td>`;
+const CSKIP = `<td[^>]*>\\s*(?:<span[^>]*>)?[^<]*(?:<\\/span>)?\\s*<\\/td>`;
+const ICON = `(?:(?!<\\/td>)[\\s\\S])*<\\/td>`;
+const ROW_RE = new RegExp(
+  `<tr>\\s*<td class="tac"><a href="\\/stock\\/\\?code=(?<code>[0-9A-Z]+)">[0-9A-Z]+<\\/a><\\/td>\\s*` +
+  `<th scope="row" class="tal">(?<name>[^<]+)<\\/th>\\s*` +
+  `<td class="tac">(?<market>[^<]*)<\\/td>\\s*` +
+  `<td class="gaiyou_icon">${ICON}\\s*` +
+  `<td class="chart_icon">${ICON}\\s*` +
+  C("price") + `\\s*` + CSKIP + `\\s*` +
+  C("change") + `\\s*` + C("change_pct") + `\\s*` +
+  C("value") + `\\s*` + C("per") + `\\s*` + C("pbr") + `\\s*` + C("yld"),
+  "g");
 const AS_OF_RE = /(\d{4})年(\d{2})月(\d{2})日<\/li>\s*<li>(\d{2}:\d{2})現在/;
 
 function pnum(v) {
@@ -387,7 +403,7 @@ async function refreshLive() {
     let stocks = htmls.flatMap(parseLive);
     if (!stocks.length) throw new Error("行を抽出できませんでした(ページ構造変更の可能性)");
     const seen = new Set();
-    stocks = stocks.filter(s => !seen.has(s.code) && seen.add(s.code)).slice(0, 200);
+    stocks = stocks.filter(s => !seen.has(s.code) && seen.add(s.code)).slice(0, LIVE_MAX);
     stocks.forEach((s, i) => { s.rank = i + 1; });
 
     // 比較対象: データ日付より前の直近保存日
