@@ -137,6 +137,10 @@ footer a { color: var(--accent); }
       <option value="A">上昇銘柄のみ</option>
     </select></span>
     <span><label>日付</label><select id="dateSel"></select></span>
+    <span><label>表示件数</label><select id="limitSel">
+      <option value="200">200位まで</option>
+      <option value="500">500位まで</option>
+    </select></span>
     <span><label>市場</label><select id="marketSel"><option value="">すべて</option></select></span>
     <input id="q" type="search" placeholder="銘柄名・コードで絞り込み">
     <span class="spacer"></span>
@@ -145,7 +149,7 @@ footer a { color: var(--accent); }
 
   <div class="banner" id="banner">読み込み中…</div>
 
-  <div class="hint">列見出しをクリックで並び替え(もう一度クリックで昇順/降順切替)。「変動」= 前営業日からの順位変動、「代金変動%」= 売買代金の前営業日比。「最新データを取得」で場中の途中データも表示できます(表示のみ・保存はされません)。データ群A = 株価が前日比プラスの銘柄のみ・簡略列表示。</div>
+  <div class="hint">列見出しをクリックで並び替え(もう一度クリックで昇順/降順切替)。「変動」= 前営業日からの順位変動、「代金変動%」= 売買代金の前営業日比。「最新データを取得」で場中の途中データも表示できます(表示のみ・保存はされません)。データ群A = 株価が前日比プラスの銘柄のみ・簡略列表示。表示件数 = 売買代金順位の上位何位まで表示するか(既定は200位まで)。</div>
 
   <div class="tablecard">
     <table id="tbl">
@@ -194,6 +198,7 @@ const VIEWS = {
   },
 };
 let view = "default";
+let rankLimit = 200;   // 表示する順位の上限(200 or 500)
 let all = [];          // currently displayed stocks
 let allDates = [];     // stored dates (desc)
 let sortKey = "rank";
@@ -295,7 +300,8 @@ function render() {
   const q = document.getElementById("q").value.trim().toLowerCase();
   const mkt = document.getElementById("marketSel").value;
   const vf = VIEWS[view].filter;
-  let rows = all.filter(s =>
+  const scope = all.filter(s => s.rank <= rankLimit);
+  let rows = scope.filter(s =>
     (!q || s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)) &&
     (!mkt || s.market === mkt) &&
     (!vf || vf(s)));
@@ -334,7 +340,7 @@ function render() {
   }
   tb.appendChild(frag);
   document.getElementById("stat").innerHTML =
-    "表示 <b>" + rows.length + "</b> / " + all.length + " 銘柄";
+    "表示 <b>" + rows.length + "</b> / " + scope.length + " 銘柄";
 }
 
 function setBanner(html, live) {
@@ -482,6 +488,8 @@ async function init() {
   document.getElementById("marketSel").onchange = render;
   document.getElementById("refreshBtn").onclick = refreshLive;
   document.getElementById("viewSel").onchange = e => { view = e.target.value; render(); };
+  document.getElementById("limitSel").value = String(rankLimit);
+  document.getElementById("limitSel").onchange = e => { rankLimit = +e.target.value; render(); };
   if (allDates.length) await loadDate(allDates[0]);
   else document.getElementById("body").innerHTML = '<tr><td class="loading" colspan="15">データがありません</td></tr>';
 }
