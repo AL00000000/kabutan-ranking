@@ -138,6 +138,28 @@ footer a { color: var(--accent); }
 .loading { padding: 48px; text-align: center; color: var(--muted); }
 @media (max-width: 720px) {
   .toolbar input { width: 100%; }
+  .hintRow { flex-direction: column; }
+  .colsToggle { width: 100%; }
+  .tablecard { overflow: visible; max-height: none; border: none; background: none; }
+  table { white-space: normal; }
+  thead { display: none; }
+  tbody, tr, td { display: block; width: 100%; }
+  tbody tr {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 4px 12px; margin-bottom: 10px;
+  }
+  tbody td {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; padding: 8px 0; text-align: right;
+    border-bottom: 1px solid #141d36;
+  }
+  tbody tr td:last-child { border-bottom: none; }
+  tbody td::before {
+    content: attr(data-label);
+    color: var(--muted); font-size: .78rem; font-weight: 600;
+    text-align: left; flex: none;
+  }
+  td.name { max-width: none; overflow: visible; text-overflow: clip; }
 }
 </style>
 </head>
@@ -363,6 +385,7 @@ function render() {
     for (const c of cols) {
       const v = s[c.key];
       const td = document.createElement("td");
+      td.dataset.label = c.label;
       const klass = c.code ? "code tl" : (c.cls || (c.color ? cls(v) : ""));
       if (klass) td.className = c.color && !c.code && !c.cls ? cls(v) : klass;
       if (c.code) {
