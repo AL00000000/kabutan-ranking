@@ -309,6 +309,8 @@ function render() {
   const col = COLS.find(c => c.key === sortKey);
   rows.sort((a, b) => {
     let r;
+    // 「変動」列はソート方向によらずNEWを常に末尾にする
+    if (sortKey === "move" && a.is_new !== b.is_new) return a.is_new ? 1 : -1;
     if (col.num) { r = col.num(a) - col.num(b); }
     else { r = String(a[col.key]).localeCompare(String(b[col.key]), "ja"); }
     if (r === 0) r = a.rank - b.rank;
