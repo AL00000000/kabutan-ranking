@@ -32,6 +32,14 @@ header.site {
 header.site h1 { font-size: 1.45rem; font-weight: 700; letter-spacing: .02em; }
 header.site h1 .dot { color: var(--accent); }
 header.site .sub { color: var(--muted); font-size: .85rem; }
+a.srcbtn {
+  margin-left: auto; align-self: center;
+  color: var(--accent); text-decoration: none;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--panel2); padding: 7px 14px;
+  font-size: .82rem; white-space: nowrap;
+}
+a.srcbtn:hover { border-color: var(--accent); }
 .toolbar {
   display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
   background: var(--panel); border: 1px solid var(--border);
@@ -118,6 +126,7 @@ footer a { color: var(--accent); }
   <header class="site">
     <h1>売買代金ランキング<span class="dot">.</span></h1>
     <span class="sub">東証 上位200銘柄 / 平日更新 / 前営業日比の順位・売買代金変動付き</span>
+    <a class="srcbtn" href="https://github.com/AL00000000/kabutan-ranking/archive/refs/heads/main.zip">⬇ ソースコード</a>
   </header>
 
   <div class="toolbar">
