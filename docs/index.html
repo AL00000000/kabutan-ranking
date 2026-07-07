@@ -122,6 +122,10 @@ footer a { color: var(--accent); }
 
   <div class="toolbar">
     <button class="refresh" id="refreshBtn">🔄 最新データを取得</button>
+    <span><label>データ群</label><select id="viewSel">
+      <option value="default">デフォルト</option>
+      <option value="A">A(上昇銘柄のみ)</option>
+    </select></span>
     <span><label>日付</label><select id="dateSel"></select></span>
     <span><label>市場</label><select id="marketSel"><option value="">すべて</option></select></span>
     <input id="q" type="search" placeholder="銘柄名・コードで絞り込み">
@@ -131,7 +135,7 @@ footer a { color: var(--accent); }
 
   <div class="banner" id="banner">読み込み中…</div>
 
-  <div class="hint">列見出しをクリックで並び替え(もう一度クリックで昇順/降順切替)。「変動」= 前営業日からの順位変動、「代金変動%」= 売買代金の前営業日比。「最新データを取得」で場中の途中データも表示できます(表示のみ・保存はされません)。</div>
+  <div class="hint">列見出しをクリックで並び替え(もう一度クリックで昇順/降順切替)。「変動」= 前営業日からの順位変動、「代金変動%」= 売買代金の前営業日比。「最新データを取得」で場中の途中データも表示できます(表示のみ・保存はされません)。データ群A = 株価が前日比プラスの銘柄のみ・簡略列表示。</div>
 
   <div class="tablecard">
     <table id="tbl">
@@ -149,22 +153,37 @@ footer a { color: var(--accent); }
 <script>
 "use strict";
 const COLS = [
-  { key: "rank",               label: "順位",        num: s => s.rank },
-  { key: "move",               label: "変動",        num: s => s.is_new ? Infinity : (s.move_num ?? -Infinity) },
-  { key: "prev_rank",          label: "前日順位",    num: s => s.prev_rank === "" ? Infinity : +s.prev_rank },
-  { key: "code",               label: "コード",      num: null, left: true },
-  { key: "name",               label: "銘柄名",      num: null, left: true },
-  { key: "market",             label: "市場",        num: null, left: true },
-  { key: "price",              label: "株価",        num: s => pnum(s.price) },
-  { key: "change",             label: "前日比",      num: s => pnum(s.change) },
-  { key: "change_pct",         label: "前日比%",     num: s => pnum(s.change_pct) },
-  { key: "value",              label: "売買代金",    num: s => pnum(s.value) },
-  { key: "value_move",         label: "代金前日比",  num: s => s.value_move === "" ? -Infinity : pnum(s.value_move) },
-  { key: "value_move_pct",     label: "代金変動%",   num: s => s.value_move_pct_num ?? -Infinity },
-  { key: "per",                label: "PER",         num: s => pnum2(s.per) },
-  { key: "pbr",                label: "PBR",         num: s => pnum2(s.pbr) },
-  { key: "yld",                label: "利回り",      num: s => pnum2(s.yld) },
+  { key: "rank",           label: "順位",        num: s => s.rank },
+  { key: "move",           label: "変動",        num: s => s.is_new ? Infinity : (s.move_num ?? -Infinity), color: true },
+  { key: "prev_rank",      label: "前日順位",    num: s => s.prev_rank === "" ? Infinity : +s.prev_rank },
+  { key: "code",           label: "コード",      num: null, left: true, code: true },
+  { key: "name",           label: "銘柄名",      num: null, left: true, cls: "name tl" },
+  { key: "market",         label: "市場",        num: null, left: true, cls: "tl" },
+  { key: "price",          label: "株価",        num: s => pnum(s.price) },
+  { key: "change",         label: "前日比",      num: s => pnum(s.change), color: true },
+  { key: "change_pct",     label: "前日比%",     num: s => pnum(s.change_pct), color: true },
+  { key: "value",          label: "売買代金",    num: s => pnum(s.value), cls: "value-cell" },
+  { key: "value_move",     label: "代金前日比",  num: s => s.value_move === "" ? -Infinity : pnum(s.value_move), color: true },
+  { key: "value_move_pct", label: "代金変動%",   num: s => s.value_move_pct_num ?? -Infinity, color: true },
+  { key: "per",            label: "PER",         num: s => pnum2(s.per) },
+  { key: "pbr",            label: "PBR",         num: s => pnum2(s.pbr) },
+  { key: "yld",            label: "利回り",      num: s => pnum2(s.yld) },
 ];
+
+// データ群プリセット: cols = 表示列, filter = 行の絞り込み
+const VIEWS = {
+  default: {
+    cols: COLS.map(c => c.key),
+    filter: null,
+  },
+  A: {
+    // 前日順位・市場・前日比・代金前日比・PBR・利回りを除外
+    cols: ["rank", "move", "code", "name", "price", "change_pct", "value", "value_move_pct", "per"],
+    // 株価が前日比で上がっている銘柄のみ
+    filter: s => { const n = pnum(s.change); return n !== -Infinity && n > 0; },
+  },
+};
+let view = "default";
 let all = [];          // currently displayed stocks
 let allDates = [];     // stored dates (desc)
 let sortKey = "rank";
@@ -198,10 +217,16 @@ function cls(v) {
   return "";
 }
 
+function activeCols() {
+  const keys = VIEWS[view].cols;
+  return COLS.filter(c => keys.includes(c.key));
+}
+
 function buildHead() {
+  const cols = activeCols();
   const tr = document.getElementById("headRow");
   tr.innerHTML = "";
-  for (const c of COLS) {
+  for (const c of cols) {
     const th = document.createElement("th");
     th.textContent = c.label;
     if (c.left) th.classList.add("tl");
@@ -224,12 +249,17 @@ function buildHead() {
 }
 
 function render() {
+  // 表示中ビューに無い列でソートしていたら順位に戻す
+  if (!VIEWS[view].cols.includes(sortKey)) { sortKey = "rank"; sortAsc = true; }
   buildHead();
+  const cols = activeCols();
   const q = document.getElementById("q").value.trim().toLowerCase();
   const mkt = document.getElementById("marketSel").value;
+  const vf = VIEWS[view].filter;
   let rows = all.filter(s =>
     (!q || s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)) &&
-    (!mkt || s.market === mkt));
+    (!mkt || s.market === mkt) &&
+    (!vf || vf(s)));
 
   const col = COLS.find(c => c.key === sortKey);
   rows.sort((a, b) => {
@@ -245,27 +275,12 @@ function render() {
   const frag = document.createDocumentFragment();
   for (const s of rows) {
     const tr = document.createElement("tr");
-    const cells = [
-      [s.rank, ""],
-      [s.move, cls(s.move)],
-      [s.prev_rank, ""],
-      [s.code, "code tl"],
-      [s.name, "name tl"],
-      [s.market, "tl"],
-      [s.price, ""],
-      [s.change, cls(s.change)],
-      [s.change_pct, cls(s.change_pct)],
-      [s.value, "value-cell"],
-      [s.value_move, cls(s.value_move)],
-      [s.value_move_pct, cls(s.value_move_pct)],
-      [s.per, ""],
-      [s.pbr, ""],
-      [s.yld, ""],
-    ];
-    for (const [v, c] of cells) {
+    for (const c of cols) {
+      const v = s[c.key];
       const td = document.createElement("td");
-      if (c) td.className = c;
-      if (c.includes("code")) {
+      const klass = c.code ? "code tl" : (c.cls || (c.color ? cls(v) : ""));
+      if (klass) td.className = c.color && !c.code && !c.cls ? cls(v) : klass;
+      if (c.code) {
         const a = document.createElement("a");
         a.href = "https://kabutan.jp/stock/?code=" + encodeURIComponent(v);
         a.target = "_blank"; a.rel = "noopener";
@@ -291,9 +306,11 @@ function setBanner(html, live) {
 
 function updateMarketSel() {
   const mktSel = document.getElementById("marketSel");
+  const keep = mktSel.value;
   const markets = [...new Set(all.map(s => s.market))];
   mktSel.innerHTML = '<option value="">すべて</option>' +
     markets.map(m => '<option value="' + m + '">' + m + "</option>").join("");
+  if (markets.includes(keep)) mktSel.value = keep;
 }
 
 async function loadDate(d) {
@@ -424,6 +441,7 @@ async function init() {
   document.getElementById("q").oninput = render;
   document.getElementById("marketSel").onchange = render;
   document.getElementById("refreshBtn").onclick = refreshLive;
+  document.getElementById("viewSel").onchange = e => { view = e.target.value; render(); };
   if (allDates.length) await loadDate(allDates[0]);
   else document.getElementById("body").innerHTML = '<tr><td class="loading" colspan="15">データがありません</td></tr>';
 }
