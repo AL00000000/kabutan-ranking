@@ -78,6 +78,7 @@ button.refresh:disabled { opacity: .55; cursor: wait; filter: none; }
 .banner b { color: var(--text); }
 .banner.is-live { border-color: #1d8f98; }
 .banner .err { color: var(--up); }
+.banner .warn { color: var(--new); flex-basis: 100%; }
 .hint { color: var(--muted); font-size: .78rem; padding: 0 4px 10px; }
 .tablecard {
   background: var(--panel); border: 1px solid var(--border);
@@ -197,6 +198,19 @@ let all = [];          // currently displayed stocks
 let allDates = [];     // stored dates (desc)
 let sortKey = "rank";
 let sortAsc = true;
+
+// 既知の不具合がある保存データ(日付 -> 説明)
+const DATA_NOTES = {
+  "2026-07-06": "取得プログラムの不具合により、一部銘柄の株価・売買代金・PER等に別銘柄の数値が混ざっています(例: ソニーFG)。また実際は200銘柄中196銘柄しか記録されていません。",
+};
+function noteFor(d) { return d && DATA_NOTES[d] ? DATA_NOTES[d] : null; }
+function warnHtml(d, isBase) {
+  const n = noteFor(d);
+  if (!n) return "";
+  return '<span class="warn">⚠ ' + (isBase
+    ? "比較対象(" + d + ")のデータに不具合があるため、「変動」「代金前日比」「代金変動%」は一部銘柄で不正確です: " + n
+    : "この日のデータには不具合があります: " + n) + "</span>";
+}
 
 // ---- kabutan live fetch settings ----
 const PROXY = u => "https://corsproxy.io/?url=" + encodeURIComponent(u);
@@ -347,7 +361,8 @@ async function loadDate(d) {
     ? data.as_of + " 時点"
     : d + "(大引け後 16:30頃取得)";
   setBanner("保存データ: <b>" + asof + "</b> / 比較対象: <b>" +
-    (data.prev_date || "なし(初回)") + "</b>", false);
+    (data.prev_date || "なし(初回)") + "</b>" +
+    warnHtml(d, false) + warnHtml(data.prev_date, true), false);
   render();
 }
 
@@ -445,7 +460,7 @@ async function refreshLive() {
     setBanner('<span class="live-dot"></span>ライブデータ: <b>' +
       (asOf ? asOf + " 時点" : "時刻不明") +
       "</b>(株価15分ディレイ・保存されません) / 比較対象: <b>" +
-      (baseDate || "なし") + "</b>", true);
+      (baseDate || "なし") + "</b>" + warnHtml(baseDate, true), true);
     render();
   } catch (e) {
     setBanner('<span class="err">最新データの取得に失敗しました: ' + e +
