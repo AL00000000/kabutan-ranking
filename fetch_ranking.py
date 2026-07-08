@@ -60,9 +60,9 @@ ROW_RE = re.compile(
 
 
 def parse_number(s: str) -> float:
-    """売買代金や価格のようなカンマ区切りの数値文字列をfloatに変換"""
+    """売買代金・価格・前日比%のようなカンマ・%区切りの数値文字列をfloatに変換"""
     try:
-        return float(s.replace(",", "").replace("+", "").replace("－", "0"))
+        return float(s.replace(",", "").replace("+", "").replace("%", "").replace("－", "0"))
     except (ValueError, AttributeError):
         return 0.0
 
@@ -165,13 +165,15 @@ def main():
             s["value_move_pct"] = ""
             s["value_move_pct_num"] = None
 
-    # 連騰日数: 全履歴(当日含む)を日付昇順にたどり、順位/売買代金が前日比で
+    # 連騰日数: 全履歴(当日含む)を日付昇順にたどり、順位/売買代金/前日比%が前日比で
     # 連続して改善している日数を数える(前日データが無い/欠落した時点で打ち切り)
     day_chain = []
     for p in prev_files:
         hist = json.loads(p.read_text(encoding="utf-8"))
-        day_chain.append({h["code"]: {"rank": h["rank"], "value": parse_number(h["value"])} for h in hist})
-    day_chain.append({s["code"]: {"rank": s["rank"], "value": parse_number(s["value"])} for s in stocks})
+        day_chain.append({h["code"]: {"rank": h["rank"], "value": parse_number(h["value"]),
+                                       "change_pct": parse_number(h["change_pct"])} for h in hist})
+    day_chain.append({s["code"]: {"rank": s["rank"], "value": parse_number(s["value"]),
+                                   "change_pct": parse_number(s["change_pct"])} for s in stocks})
 
     def streak(code: str, key: str) -> int:
         count = 0
@@ -180,7 +182,7 @@ def main():
             prv = day_chain[i - 1].get(code)
             if cur is None or prv is None:
                 break
-            up = (prv["rank"] - cur["rank"] > 0) if key == "rank" else (cur["value"] - prv["value"] > 0)
+            up = (prv["rank"] - cur["rank"] > 0) if key == "rank" else (cur[key] - prv[key] > 0)
             if not up:
                 break
             count += 1
@@ -189,6 +191,7 @@ def main():
     for s in stocks:
         s["move_streak"] = streak(s["code"], "rank")
         s["value_streak"] = streak(s["code"], "value")
+        s["change_pct_streak"] = streak(s["code"], "change_pct")
 
     # 当日データを保存(同日再実行時は上書き)
     (HISTORY / f"{today}.json").write_text(
@@ -212,13 +215,13 @@ def main():
     # CSV を保存
     csv_path = OUTPUT / f"ranking_{today}.csv"
     header = ["順位", "順位変動", "順位連騰日数", "前日順位", "コード", "銘柄名", "市場",
-              "株価", "前日比", "前日比%", "売買代金(百万円)", "売買代金前日比(百万円)", "売買代金変動%",
+              "株価", "前日比", "前日比%", "前日比%連騰日数", "売買代金(百万円)", "売買代金前日比(百万円)", "売買代金変動%",
               "売買代金連騰日数", "PER", "PBR", "利回り"]
     lines = [",".join(header)]
     for s in stocks:
         cells = [str(s["rank"]), s["move"], str(s["move_streak"]), str(s["prev_rank"]), s["code"],
                  s["name"], s["market"], s["price"], s["change"],
-                 s["change_pct"], s["value"], s["value_move"], s["value_move_pct"],
+                 s["change_pct"], str(s["change_pct_streak"]), s["value"], s["value_move"], s["value_move_pct"],
                  str(s["value_streak"]), s["per"], s["pbr"], s["yld"]]
         lines.append(",".join('"' + c.replace('"', '""') + '"' for c in cells))
     csv_path.write_text("\n".join(lines), encoding="utf-8")

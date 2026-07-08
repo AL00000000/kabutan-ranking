@@ -238,14 +238,14 @@ footer a { color: var(--accent); }
   <div class="banner" id="banner">読み込み中…</div>
 
   <div class="hintRow">
-    <div class="hint">列見出しをクリックで並び替え(もう一度クリックで昇順/降順切替)。「変動」= 前営業日からの順位変動、「代金変動%」= 売買代金の前営業日比、「連騰日数」= それぞれ何日連続で改善(順位上昇/代金増加)しているか(2つの連騰日数はそれぞれ独立して列見出しクリックでソート可能)。「順位変動 連騰日数≧」「代金変動 連騰日数≧」= それぞれの連騰日数が指定日数以上の銘柄のみに絞り込み(空欄/0で絞り込みなし。ライブ取得データには連騰日数が無いため対象外)。「最新データを取得」で場中の途中データも表示できます(表示のみ・保存はされません)。データ群A = 株価が前日比プラスの銘柄のみ(列はデフォルトと同じ)。表示件数 = 売買代金順位の上位何位まで表示するか(既定は200位まで)。既定では前日比・前日順位・代金前日比・PBR・利回りの列は非表示です。</div>
+    <div class="hint">列見出しをクリックで並び替え(もう一度クリックで昇順/降順切替)。「変動」= 前営業日からの順位変動、「代金変動%」= 売買代金の前営業日比、「連騰日数」= それぞれ何日連続で改善(順位上昇/前日比%上昇/代金増加)しているか(3つの連騰日数はそれぞれ独立して列見出しクリックでソート可能)。「順位変動 連騰日数≧」「代金変動 連騰日数≧」= それぞれの連騰日数が指定日数以上の銘柄のみに絞り込み(空欄/0で絞り込みなし。ライブ取得データには連騰日数が無いため対象外)。「最新データを取得」で場中の途中データも表示できます(表示のみ・保存はされません)。データ群A = 株価が前日比プラスの銘柄のみ(列はデフォルトと同じ)。表示件数 = 売買代金順位の上位何位まで表示するか(既定は200位まで)。既定では前日比・前日順位・代金前日比・PBR・利回りの列は非表示です。</div>
     <button class="colsToggle" id="colsToggleBtn">全項目を表示</button>
   </div>
 
   <div class="tablecard">
     <table id="tbl">
       <thead><tr id="headRow"></tr></thead>
-      <tbody id="body"><tr><td class="loading" colspan="17">読み込み中…</td></tr></tbody>
+      <tbody id="body"><tr><td class="loading" colspan="18">読み込み中…</td></tr></tbody>
     </table>
   </div>
 
@@ -316,6 +316,7 @@ const COLS = [
   { key: "price",          label: "株価",        num: s => pnum(s.price) },
   { key: "change",         label: "前日比",      num: s => pnum(s.change), color: true },
   { key: "change_pct",     label: "前日比%",     short: "前日%", num: s => pnum(s.change_pct), color: true },
+  { key: "change_pct_streak", label: "連騰日数",  short: "連騰", num: s => s.change_pct_streak ?? -Infinity },
   { key: "value",          label: "売買代金",    short: "代金", num: s => pnum(s.value), cls: "value-cell", fmt: v => { const n = pnum(v); return n === -Infinity ? "-" : fmtOku(n); } },
   { key: "value_move",     label: "代金前日比",  num: s => s.value_move === "" ? -Infinity : pnum(s.value_move), color: true, fmt: v => { const n = pnum(v); return n === -Infinity ? "-" : fmtOkuSigned(n); } },
   { key: "value_move_pct", label: "代金変動%",   short: "代金%", num: s => s.value_move_pct_num ?? -Infinity, color: true },
@@ -674,11 +675,11 @@ async function init() {
     if (isMobile() !== mobileMatch) { mobileMatch = isMobile(); render(); }
   });
   if (allDates.length) await loadDate(allDates[0]);
-  else document.getElementById("body").innerHTML = '<tr><td class="loading" colspan="17">データがありません</td></tr>';
+  else document.getElementById("body").innerHTML = '<tr><td class="loading" colspan="18">データがありません</td></tr>';
 }
 init().catch(e => {
   document.getElementById("body").innerHTML =
-    '<tr><td class="loading" colspan="17">読み込みエラー: ' + e + "</td></tr>";
+    '<tr><td class="loading" colspan="18">読み込みエラー: ' + e + "</td></tr>";
 });
 
 // ===== 15:24→引け 分析タブ =====
