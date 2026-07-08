@@ -186,7 +186,7 @@ footer a { color: var(--accent); }
 <body>
 <div class="wrap">
   <header class="site">
-    <h1>売買代金ランキング<span class="dot">.</span></h1>
+    <h1>売買代金ランキング/その他<span class="dot">.</span></h1>
     <span class="sub">東証 上位500銘柄 / 平日更新 / 前営業日比の順位・売買代金変動付き</span>
     <a class="srcbtn" href="https://github.com/AL00000000/kabutan-ranking/archive/refs/heads/main.zip">⬇ ソースコード</a>
   </header>
@@ -228,7 +228,7 @@ footer a { color: var(--accent); }
   </div>
 
   <footer>
-    データ取得元: <a href="https://kabutan.jp/warning/trading_value_ranking" target="_blank" rel="noopener">株探(kabutan.jp)</a> / 売買代金の単位: 百万円 / 株価は15分ディレイ / 市場休場日は更新されません。<br>
+    データ取得元: <a href="https://kabutan.jp/warning/trading_value_ranking" target="_blank" rel="noopener">株探(kabutan.jp)</a> / 売買代金は兆・億円表記 / 株価は15分ディレイ / 市場休場日は更新されません。<br>
     本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
   </footer>
   </div><!-- /view-ranking -->
@@ -269,8 +269,8 @@ const COLS = [
   { key: "price",          label: "株価",        num: s => pnum(s.price) },
   { key: "change",         label: "前日比",      num: s => pnum(s.change), color: true },
   { key: "change_pct",     label: "前日比%",     short: "前日%", num: s => pnum(s.change_pct), color: true },
-  { key: "value",          label: "売買代金",    short: "代金", num: s => pnum(s.value), cls: "value-cell" },
-  { key: "value_move",     label: "代金前日比",  num: s => s.value_move === "" ? -Infinity : pnum(s.value_move), color: true },
+  { key: "value",          label: "売買代金",    short: "代金", num: s => pnum(s.value), cls: "value-cell", fmt: v => { const n = pnum(v); return n === -Infinity ? "-" : fmtOku(n); } },
+  { key: "value_move",     label: "代金前日比",  num: s => s.value_move === "" ? -Infinity : pnum(s.value_move), color: true, fmt: v => { const n = pnum(v); return n === -Infinity ? "-" : fmtOkuSigned(n); } },
   { key: "value_move_pct", label: "代金変動%",   short: "代金%", num: s => s.value_move_pct_num ?? -Infinity, color: true },
   { key: "value_streak",   label: "連騰日数",    short: "連騰", num: s => s.value_streak ?? -Infinity },
   { key: "per",            label: "PER",         num: s => pnum2(s.per) },
@@ -449,7 +449,7 @@ function render() {
         a.textContent = v;
         td.appendChild(a);
       } else {
-        td.textContent = (v === undefined || v === null) ? "-" : v;
+        td.textContent = c.fmt ? c.fmt(v) : ((v === undefined || v === null) ? "-" : v);
       }
       tr.appendChild(td);
     }
@@ -637,6 +637,12 @@ function fmtOku(hyakuman) {
   if (cho > 0) return cho + "兆" + String(oku).padStart(4, "0") + "億円";
   return okuInt + "億円";
 }
+function fmtOkuSigned(hyakuman) {  // 代金前日比など符号付きの百万円 → 億円
+  if (hyakuman == null) return "-";
+  const neg = hyakuman < 0;
+  const s = fmtOku(Math.abs(hyakuman));
+  return (neg ? "-" : "+") + s;
+}
 function fmtPrice(v) {
   if (v == null) return "-";
   return Number(v).toLocaleString("ja-JP", { maximumFractionDigits: 1 });
@@ -679,7 +685,7 @@ function iaRenderCards() {
       '<div class="card"><div class="ttl">上位' + c.n + '銘柄</div>' +
       '<div class="big ' + signCls(c.mean) + '">' + fmtPct(c.mean) + '</div>' +
       '<div class="sub">中央 <b>' + fmtPct(c.median) + '</b> ・ 上<span class="u">' + c.up +
-      '</span>/下<span class="d">' + c.down + '</span>/変' + c.flat + '<br>' +
+      '</span>/下<span class="d">' + c.down + '</span>/変無' + c.flat + '<br>' +
       'ボーダー: ' + c.border_name + ' <b>' + fmtOku(c.border_value) + '</b></div></div>'
     );
   }
