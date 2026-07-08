@@ -181,19 +181,38 @@ footer a { color: var(--accent); }
 .card .sub b { color: var(--text); font-weight: 600; }
 .card .sub .u { color: var(--up); }
 .card .sub .d { color: var(--down); }
+/* ---- 外部サイト埋め込み ---- */
+.embed {
+  display: block; width: 100%;
+  height: calc(100vh - 190px); min-height: 520px;
+  border: 1px solid var(--border); border-radius: 12px;
+  background: var(--panel2);
+}
+.embed-note {
+  color: var(--muted); font-size: .78rem; padding: 2px 4px 10px;
+}
+.embed-note a { color: var(--accent); }
+@media (max-width: 720px) {
+  .embed { height: calc(100vh - 210px); }
+}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="site">
     <h1>売買代金ランキング/その他<span class="dot">.</span></h1>
-    <span class="sub">東証 上位500銘柄 / 平日更新 / 前営業日比の順位・売買代金変動付き</span>
+    <span class="sub">東証の各種ランキング・チャートを1ページに集約 / 平日更新 / 上のタブで切替</span>
     <a class="srcbtn" href="https://github.com/AL00000000/kabutan-ranking/archive/refs/heads/main.zip">⬇ ソースコード</a>
   </header>
 
   <nav class="tabs">
     <button class="tab active" data-tab="ranking">売買代金ランキング</button>
     <button class="tab" data-tab="intraday">15:24→引け 分析</button>
+    <button class="tab" data-tab="yori">寄付からの値上がり率</button>
+    <button class="tab" data-tab="minute">分足チャート記録</button>
+    <button class="tab" data-tab="sector">業種別騰落</button>
+    <button class="tab" data-tab="stop">ストップ高・安</button>
+    <button class="tab" data-tab="pts">PTS株価</button>
   </nav>
 
   <div id="view-ranking">
@@ -254,6 +273,31 @@ footer a { color: var(--accent); }
       本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
     </footer>
   </div><!-- /view-intraday -->
+
+  <div id="view-yori" hidden>
+    <div class="embed-note">寄付からの値上がり率ランキング(別サイトを埋め込み表示) — <a href="/Yoritsukikaranoneagari-ranking/" target="_blank" rel="noopener">別タブで開く ↗</a></div>
+    <iframe class="embed" title="寄付からの値上がり率ランキング" data-src="/Yoritsukikaranoneagari-ranking/" loading="lazy"></iframe>
+  </div>
+
+  <div id="view-minute" hidden>
+    <div class="embed-note">分足チャート記録(別サイトを埋め込み表示) — <a href="/kabutan-minute-chart/" target="_blank" rel="noopener">別タブで開く ↗</a></div>
+    <iframe class="embed" title="分足チャート記録" data-src="/kabutan-minute-chart/" loading="lazy"></iframe>
+  </div>
+
+  <div id="view-sector" hidden>
+    <div class="embed-note">東証 業種別騰落ランキング(別サイトを埋め込み表示) — <a href="/Sector-ranking/" target="_blank" rel="noopener">別タブで開く ↗</a></div>
+    <iframe class="embed" title="業種別騰落ランキング" data-src="/Sector-ranking/" loading="lazy"></iframe>
+  </div>
+
+  <div id="view-stop" hidden>
+    <div class="embed-note">本日のストップ高・ストップ安銘柄(別サイトを埋め込み表示) — <a href="/Stop-takayasu/" target="_blank" rel="noopener">別タブで開く ↗</a></div>
+    <iframe class="embed" title="ストップ高・ストップ安" data-src="/Stop-takayasu/" loading="lazy"></iframe>
+  </div>
+
+  <div id="view-pts" hidden>
+    <div class="embed-note">PTS株価ランキング(別サイトを埋め込み表示) — <a href="/buffett-code-pts-ranking/" target="_blank" rel="noopener">別タブで開く ↗</a></div>
+    <iframe class="embed" title="PTS株価ランキング" data-src="/buffett-code-pts-ranking/" loading="lazy"></iframe>
+  </div>
 </div>
 
 <script>
@@ -782,11 +826,21 @@ async function iaInit() {
   }
 }
 
+const VIEW_ID = {
+  ranking: "view-ranking", intraday: "view-intraday",
+  yori: "view-yori", minute: "view-minute", sector: "view-sector",
+  stop: "view-stop", pts: "view-pts",
+};
 function switchTab(name) {
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
-  document.getElementById("view-ranking").hidden = (name !== "ranking");
-  document.getElementById("view-intraday").hidden = (name !== "intraday");
+  for (const id of Object.values(VIEW_ID)) {
+    document.getElementById(id).hidden = (id !== VIEW_ID[name]);
+  }
   if (name === "intraday" && !iaInited) { iaInited = true; iaInit(); }
+  // 外部サイトのiframeは初回表示時に遅延読み込み
+  const view = document.getElementById(VIEW_ID[name]);
+  const ifr = view.querySelector("iframe[data-src]");
+  if (ifr && !ifr.src) ifr.src = ifr.dataset.src;
 }
 document.querySelectorAll(".tab").forEach(b => { b.onclick = () => switchTab(b.dataset.tab); });
 </script>
