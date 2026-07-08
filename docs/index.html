@@ -209,6 +209,7 @@ footer a { color: var(--accent); }
   <nav class="tabs">
     <button class="tab active" data-tab="ranking">売買代金ランキング</button>
     <button class="tab" data-tab="intraday">15:24→引け 分析</button>
+    <button class="tab" data-tab="split">分割後1ヶ月騰落</button>
     <button class="tab" data-tab="yori">寄付からの値上がり率</button>
     <button class="tab" data-tab="minute">分足チャート記録</button>
     <button class="tab" data-tab="sector">業種別騰落</button>
@@ -276,6 +277,31 @@ footer a { color: var(--accent); }
       本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
     </footer>
   </div><!-- /view-intraday -->
+
+  <div id="view-split" hidden>
+    <div class="toolbar">
+      <span><label>対象</label><select id="spScopeSel">
+        <option value="500">売買代金 上位500位以内</option>
+        <option value="200">売買代金 上位200位以内</option>
+      </select></span>
+      <span class="stat" id="spStat"></span>
+    </div>
+    <div class="banner" id="spBanner">読み込み中…</div>
+    <div class="cards" id="spCards"></div>
+    <div class="hintRow">
+      <div class="hint"><b>2025年1月以降に効力が発生した株式分割</b>のうち、本日時点の売買代金ランキング上位500位以内(auカブコム証券の分割銘柄一覧と突合)に入っている銘柄について、<b>分割効力発生日の前営業日終値(分割調整後)→ 効力発生日から1ヶ月後の終値</b>の騰落率をまとめた一度きりの調査データです(2026-07-08作成、毎日更新はされません)。TOPIXとの比較は、同一期間の<b>1308(上場インデックスファンドTOPIX)</b>の終値騰落率で代用し、「超過」= 銘柄騰落率 − TOPIX騰落率です。効力発生から1ヶ月経っていない銘柄は「進行中」(現時点までの騰落率を表示)として平均・中央値などの集計から除外しています。ETF(1306・1329・1365・1629)も対象外です。株価はYahoo Financeの分割調整済み終値。列見出しクリックで並び替えできます。</div>
+    </div>
+    <div class="tablecard">
+      <table id="spTbl">
+        <thead><tr id="spHeadRow"></tr></thead>
+        <tbody id="spBody"><tr><td class="loading" colspan="12">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+    <footer>
+      分割銘柄一覧: <a href="https://kabu.com/investment/meigara/bunkatu.html" target="_blank" rel="noopener">auカブコム証券</a> / 株価: Yahoo Finance(分割調整済み) / TOPIXは1308で代用。<br>
+      本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
+    </footer>
+  </div><!-- /view-split -->
 
   <div id="view-yori" hidden>
     <div class="embed-note">寄付からの値上がり率ランキング(別サイトを埋め込み表示) — <a href="/Yoritsukikaranoneagari-ranking/" target="_blank" rel="noopener">別タブで開く ↗</a></div>
@@ -836,8 +862,131 @@ async function iaInit() {
   }
 }
 
+/* ---- 分割後1ヶ月騰落 ---- */
+const SP_COLS = [
+  { key: "rank",          label: "代金順位", num: s => s.rank },
+  { key: "code",          label: "コード",   code: true, left: true },
+  { key: "name",          label: "銘柄名",   left: true, cls: "name tl" },
+  { key: "market",        label: "市場",     left: true, cls: "tl" },
+  { key: "ratio",         label: "分割",     left: true, cls: "tl" },
+  { key: "effective",     label: "効力発生日", left: true, cls: "tl" },
+  { key: "base_close",    label: "基準終値", num: s => s.base_close ?? -Infinity, fmt: fmtPrice },
+  { key: "end_close",     label: "1ヶ月後終値", num: s => s.end_close ?? -Infinity, fmt: fmtPrice },
+  { key: "ret_pct",       label: "騰落率",   num: s => s.ret_pct ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "topix_ret_pct", label: "TOPIX",   num: s => s.topix_ret_pct ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "excess_pct",    label: "超過",     num: s => s.excess_pct ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "status",        label: "状態",     left: true, cls: "tl", fmt: v => v === "complete" ? "集計済" : "進行中" },
+];
+let spData = null, spSortKey = "rank", spSortAsc = true, spInited = false, spScope = 500;
+
+function spRenderCards() {
+  if (!spData) return;
+  const cards = [];
+  const s = spData.summary[spScope <= 200 ? "top200" : "top500"];
+  cards.push(
+    '<div class="card overall"><div class="ttl">分割後1ヶ月 騰落率(上位' + spScope + '位以内・' + s.count + '銘柄)</div>' +
+    '<div class="big ' + signCls(s.mean) + '">' + fmtPct(s.mean) + '</div>' +
+    '<div class="sub">平均。中央値 <b>' + fmtPct(s.median) + '</b><br>' +
+    '上昇 <span class="u">' + s.up + '</span> / 下落 <span class="d">' + s.down + '</span> / 変わらず ' + s.flat + '</div></div>'
+  );
+  cards.push(
+    '<div class="card"><div class="ttl">対TOPIX 超過リターン(同・' + s.count + '銘柄)</div>' +
+    '<div class="big ' + signCls(s.mean_excess) + '">' + fmtPct(s.mean_excess) + '</div>' +
+    '<div class="sub">平均。中央値 <b>' + fmtPct(s.median_excess) + '</b><br>' +
+    'TOPIX超え <span class="u">' + s.beat_topix + '</span> / TOPIX未満 <span class="d">' + s.lose_topix + '</span></div></div>'
+  );
+  cards.push(
+    '<div class="card"><div class="ttl">対象外</div>' +
+    '<div class="big flat">' + (spData.summary.in_progress + spData.summary.etf_excluded) + '銘柄</div>' +
+    '<div class="sub">1ヶ月未経過(進行中) <b>' + spData.summary.in_progress + '</b> ・ ETF <b>' + spData.summary.etf_excluded + '</b><br>' +
+    '進行中は表に表示・集計から除外</div></div>'
+  );
+  document.getElementById("spCards").innerHTML = cards.join("");
+}
+
+function spBuildHead() {
+  const tr = document.getElementById("spHeadRow");
+  tr.innerHTML = "";
+  for (const c of SP_COLS) {
+    const th = document.createElement("th");
+    th.textContent = c.label;
+    if (c.left) th.classList.add("tl");
+    if (c.key === spSortKey) {
+      const a = document.createElement("span");
+      a.className = "arw";
+      a.textContent = spSortAsc ? "▲" : "▼";
+      th.appendChild(a);
+    }
+    th.onclick = () => {
+      if (spSortKey === c.key) spSortAsc = !spSortAsc;
+      else { spSortKey = c.key; spSortAsc = (c.key === "rank"); }
+      spRenderTable();
+    };
+    tr.appendChild(th);
+  }
+}
+
+function spRenderTable() {
+  if (!spData) return;
+  spBuildHead();
+  const col = SP_COLS.find(c => c.key === spSortKey);
+  const rows = spData.stocks.filter(s => s.rank <= spScope);
+  rows.sort((a, b) => {
+    let r;
+    if (col.num) r = col.num(a) - col.num(b);
+    else r = String(a[col.key]).localeCompare(String(b[col.key]), "ja");
+    if (r === 0) r = a.rank - b.rank;
+    return spSortAsc ? r : -r;
+  });
+  const tb = document.getElementById("spBody");
+  tb.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  for (const s of rows) {
+    const tr = document.createElement("tr");
+    if (s.status !== "complete") tr.style.opacity = ".55";
+    for (const c of SP_COLS) {
+      const v = s[c.key];
+      const td = document.createElement("td");
+      if (c.code) {
+        td.className = "code tl";
+        const a = document.createElement("a");
+        a.href = "https://kabutan.jp/stock/chart?code=" + encodeURIComponent(v) + "&ashi=4";
+        a.target = "_blank"; a.rel = "noopener";
+        a.textContent = v;
+        td.appendChild(a);
+      } else {
+        if (c.cls) td.className = c.cls;
+        else if (c.color) td.className = signCls(v);
+        td.textContent = c.fmt ? c.fmt(v) : (v == null ? "-" : v);
+      }
+      tr.appendChild(td);
+    }
+    frag.appendChild(tr);
+  }
+  tb.appendChild(frag);
+  const comp = rows.filter(s => s.status === "complete").length;
+  document.getElementById("spStat").innerHTML =
+    "全 <b>" + rows.length + "</b> 銘柄(集計済 " + comp + " / 進行中 " + (rows.length - comp) + ")";
+}
+
+async function spInit() {
+  try {
+    const res = await fetch("data_split/analysis.json", { cache: "no-cache" });
+    spData = await res.json();
+    document.getElementById("spBanner").innerHTML =
+      "対象: <b>" + spData.period + "</b> × 売買代金ランキング(" + spData.ranking_date + "時点)上位500位以内 / " +
+      "基準: 効力発生日の前営業日終値 → 1ヶ月後終値(分割調整後) / TOPIXは" + spData.topix_proxy;
+    const sel = document.getElementById("spScopeSel");
+    sel.onchange = () => { spScope = +sel.value; spRenderCards(); spRenderTable(); };
+    spRenderCards();
+    spRenderTable();
+  } catch (e) {
+    document.getElementById("spBanner").innerHTML = '<span class="err">読み込みエラー: ' + e + '</span>';
+  }
+}
+
 const VIEW_ID = {
-  ranking: "view-ranking", intraday: "view-intraday",
+  ranking: "view-ranking", intraday: "view-intraday", split: "view-split",
   yori: "view-yori", minute: "view-minute", sector: "view-sector",
   stop: "view-stop", pts: "view-pts",
 };
@@ -847,6 +996,7 @@ function switchTab(name) {
     document.getElementById(id).hidden = (id !== VIEW_ID[name]);
   }
   if (name === "intraday" && !iaInited) { iaInited = true; iaInit(); }
+  if (name === "split" && !spInited) { spInited = true; spInit(); }
   // 外部サイトのiframeは初回表示時に遅延読み込み
   const view = document.getElementById(VIEW_ID[name]);
   const ifr = view.querySelector("iframe[data-src]");
