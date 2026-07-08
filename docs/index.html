@@ -146,6 +146,41 @@ footer a { color: var(--accent); }
   thead th .arw { margin-left: 1px; }
   td.name { max-width: 62px; }
 }
+/* ---- タブ ---- */
+.tabs {
+  display: flex; gap: 6px; padding: 0 4px 14px; flex-wrap: wrap;
+}
+.tab {
+  background: var(--panel2); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 9px;
+  padding: 9px 18px; font-size: .9rem; font-weight: 600;
+  cursor: pointer; letter-spacing: .02em;
+}
+.tab:hover { color: var(--text); border-color: var(--accent); }
+.tab.active {
+  color: #04121a; border-color: var(--accent);
+  background: linear-gradient(135deg, #1d8f98, #39c5cf);
+}
+/* ---- 集計カード ---- */
+.cards {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px; margin-bottom: 12px;
+}
+.card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 13px 15px;
+}
+.card.overall { border-color: #1d8f98; }
+.card .ttl { color: var(--accent); font-size: .82rem; font-weight: 700; margin-bottom: 8px; }
+.card.overall .ttl { color: var(--text); }
+.card .big { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.card .big.up { color: var(--up); }
+.card .big.down { color: var(--down); }
+.card .big.flat { color: var(--muted); }
+.card .sub { color: var(--muted); font-size: .78rem; margin-top: 6px; line-height: 1.6; }
+.card .sub b { color: var(--text); font-weight: 600; }
+.card .sub .u { color: var(--up); }
+.card .sub .d { color: var(--down); }
 </style>
 </head>
 <body>
@@ -156,6 +191,12 @@ footer a { color: var(--accent); }
     <a class="srcbtn" href="https://github.com/AL00000000/kabutan-ranking/archive/refs/heads/main.zip">⬇ ソースコード</a>
   </header>
 
+  <nav class="tabs">
+    <button class="tab active" data-tab="ranking">売買代金ランキング</button>
+    <button class="tab" data-tab="intraday">15:24→引け 分析</button>
+  </nav>
+
+  <div id="view-ranking">
   <div class="toolbar">
     <button class="refresh" id="refreshBtn">🔄 最新データを取得</button>
     <span><label>データ群</label><select id="viewSel">
@@ -190,6 +231,29 @@ footer a { color: var(--accent); }
     データ取得元: <a href="https://kabutan.jp/warning/trading_value_ranking" target="_blank" rel="noopener">株探(kabutan.jp)</a> / 売買代金の単位: 百万円 / 株価は15分ディレイ / 市場休場日は更新されません。<br>
     本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
   </footer>
+  </div><!-- /view-ranking -->
+
+  <div id="view-intraday" hidden>
+    <div class="toolbar">
+      <span><label>日付</label><select id="iaDateSel"></select></span>
+      <span class="stat" id="iaStat"></span>
+    </div>
+    <div class="banner" id="iaBanner">読み込み中…</div>
+    <div class="cards" id="iaCards"></div>
+    <div class="hintRow">
+      <div class="hint">大引け後(15:50頃)に、売買代金上位200銘柄について <b>15:24時点の株価から15:30(引け)までの変化率</b> を記録・集計しています。上のカードは上位10/50/75/100/200銘柄それぞれの平均・中央値と、上昇/下落/変わらずの内訳、その順位に入るボーダーの売買代金です。平均・中央値は上昇・下落・変わらずを全て含めた単純平均です。表は列見出しクリックで並び替えできます。</div>
+    </div>
+    <div class="tablecard">
+      <table id="iaTbl">
+        <thead><tr id="iaHeadRow"></tr></thead>
+        <tbody id="iaBody"><tr><td class="loading" colspan="8">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+    <footer>
+      データ取得元: <a href="https://kabutan.jp/stock/chart" target="_blank" rel="noopener">株探(kabutan.jp)</a> の分足データ / 株価は15分ディレイ / 市場休場日は更新されません。<br>
+      本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
+    </footer>
+  </div><!-- /view-intraday -->
 </div>
 
 <script>
@@ -563,6 +627,162 @@ init().catch(e => {
   document.getElementById("body").innerHTML =
     '<tr><td class="loading" colspan="17">読み込みエラー: ' + e + "</td></tr>";
 });
+
+// ===== 15:24→引け 分析タブ =====
+// 売買代金(百万円)を 兆・億 の万進表記に整形(3桁区切りを使わない)
+function fmtOku(hyakuman) {
+  if (hyakuman == null) return "-";
+  const okuInt = Math.round(hyakuman / 100);        // 億(整数)。1億 = 100百万
+  const cho = Math.floor(okuInt / 10000), oku = okuInt % 10000;
+  if (cho > 0) return cho + "兆" + String(oku).padStart(4, "0") + "億円";
+  return okuInt + "億円";
+}
+function fmtPrice(v) {
+  if (v == null) return "-";
+  return Number(v).toLocaleString("ja-JP", { maximumFractionDigits: 1 });
+}
+function fmtSigned(v) {
+  if (v == null) return "-";
+  const s = Number(v).toLocaleString("ja-JP", { maximumFractionDigits: 1 });
+  return v > 0 ? "+" + s : s;
+}
+function fmtPct(v) {
+  if (v == null) return "-";
+  return (v > 0 ? "+" : "") + v.toFixed(2) + "%";
+}
+function signCls(v) { return v == null ? "" : v > 0 ? "up" : v < 0 ? "down" : "flat"; }
+
+const IA_COLS = [
+  { key: "rank",       label: "順位",     num: s => s.rank },
+  { key: "code",       label: "コード",   code: true, left: true },
+  { key: "name",       label: "銘柄名",   left: true, cls: "name tl" },
+  { key: "value",      label: "売買代金", num: s => s.value ?? -Infinity, fmt: fmtOku },
+  { key: "p1524",      label: "15:24",    num: s => s.p1524 ?? -Infinity, fmt: fmtPrice },
+  { key: "p1530",      label: "15:30",    num: s => s.p1530 ?? -Infinity, fmt: fmtPrice },
+  { key: "change_pct", label: "前日比%",  num: s => s.change_pct ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "pct",        label: "変化率",   num: s => s.pct ?? -Infinity, color: true, fmt: fmtPct },
+];
+let iaData = null, iaDates = [], iaSortKey = "rank", iaSortAsc = true, iaInited = false;
+
+function iaRenderCards() {
+  if (!iaData) return;
+  const o = iaData.overall;
+  const cards = [];
+  cards.push(
+    '<div class="card overall"><div class="ttl">上位' + iaData.count + '銘柄 全体</div>' +
+    '<div class="big ' + signCls(o.mean) + '">' + fmtPct(o.mean) + '</div>' +
+    '<div class="sub">中央値 <b>' + fmtPct(o.median) + '</b><br>' +
+    '上昇 <span class="u">' + o.up + '</span> / 下落 <span class="d">' + o.down + '</span> / 変わらず ' + o.flat + '</div></div>'
+  );
+  for (const c of iaData.cutoffs) {
+    cards.push(
+      '<div class="card"><div class="ttl">上位' + c.n + '銘柄</div>' +
+      '<div class="big ' + signCls(c.mean) + '">' + fmtPct(c.mean) + '</div>' +
+      '<div class="sub">中央 <b>' + fmtPct(c.median) + '</b> ・ 上<span class="u">' + c.up +
+      '</span>/下<span class="d">' + c.down + '</span>/変' + c.flat + '<br>' +
+      'ボーダー: ' + c.border_name + ' <b>' + fmtOku(c.border_value) + '</b></div></div>'
+    );
+  }
+  document.getElementById("iaCards").innerHTML = cards.join("");
+}
+
+function iaBuildHead() {
+  const tr = document.getElementById("iaHeadRow");
+  tr.innerHTML = "";
+  for (const c of IA_COLS) {
+    const th = document.createElement("th");
+    th.textContent = c.label;
+    if (c.left) th.classList.add("tl");
+    if (c.key === iaSortKey) {
+      const a = document.createElement("span");
+      a.className = "arw";
+      a.textContent = iaSortAsc ? "▲" : "▼";
+      th.appendChild(a);
+    }
+    th.onclick = () => {
+      if (iaSortKey === c.key) iaSortAsc = !iaSortAsc;
+      else { iaSortKey = c.key; iaSortAsc = (c.key === "rank"); }
+      iaRenderTable();
+    };
+    tr.appendChild(th);
+  }
+}
+
+function iaRenderTable() {
+  if (!iaData) return;
+  iaBuildHead();
+  const col = IA_COLS.find(c => c.key === iaSortKey);
+  const rows = iaData.stocks.slice();
+  rows.sort((a, b) => {
+    let r;
+    if (col.num) r = col.num(a) - col.num(b);
+    else r = String(a[col.key]).localeCompare(String(b[col.key]), "ja");
+    if (r === 0) r = a.rank - b.rank;
+    return iaSortAsc ? r : -r;
+  });
+  const tb = document.getElementById("iaBody");
+  tb.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  for (const s of rows) {
+    const tr = document.createElement("tr");
+    for (const c of IA_COLS) {
+      const v = s[c.key];
+      const td = document.createElement("td");
+      if (c.code) {
+        td.className = "code tl";
+        const a = document.createElement("a");
+        a.href = "https://kabutan.jp/stock/chart?code=" + encodeURIComponent(v) + "&ashi=4";
+        a.target = "_blank"; a.rel = "noopener";
+        a.textContent = v;
+        td.appendChild(a);
+      } else {
+        if (c.cls) td.className = c.cls;
+        else if (c.color) td.className = signCls(v);
+        td.textContent = c.fmt ? c.fmt(v) : (v == null ? "-" : v);
+      }
+      tr.appendChild(td);
+    }
+    frag.appendChild(tr);
+  }
+  tb.appendChild(frag);
+  document.getElementById("iaStat").innerHTML = "全 <b>" + rows.length + "</b> 銘柄";
+}
+
+async function iaLoad(d) {
+  const res = await fetch("data_intraday/" + d + ".json", { cache: "no-cache" });
+  iaData = await res.json();
+  document.getElementById("iaBanner").innerHTML =
+    "記録日: <b>" + (iaData.trade_date || iaData.date) + "</b> / 売買代金上位 <b>" +
+    iaData.count + "</b> 銘柄 / 15:24 → 15:30(大引け)の変化率";
+  iaRenderCards();
+  iaRenderTable();
+}
+
+async function iaInit() {
+  try {
+    const res = await fetch("data_intraday/index.json", { cache: "no-cache" });
+    const idx = await res.json();
+    iaDates = idx.dates || [];
+    const sel = document.getElementById("iaDateSel");
+    sel.innerHTML = iaDates.map(d => '<option value="' + d + '">' + d + "</option>").join("");
+    sel.onchange = () => iaLoad(sel.value);
+    if (iaDates.length) await iaLoad(iaDates[0]);
+    else {
+      document.getElementById("iaBanner").textContent = "データがありません";
+      document.getElementById("iaBody").innerHTML = '<tr><td class="loading" colspan="8">データがありません</td></tr>';
+    }
+  } catch (e) {
+    document.getElementById("iaBanner").innerHTML = '<span class="err">読み込みエラー: ' + e + '</span>';
+  }
+}
+
+function switchTab(name) {
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+  document.getElementById("view-ranking").hidden = (name !== "ranking");
+  document.getElementById("view-intraday").hidden = (name !== "intraday");
+  if (name === "intraday" && !iaInited) { iaInited = true; iaInit(); }
+}
+document.querySelectorAll(".tab").forEach(b => { b.onclick = () => switchTab(b.dataset.tab); });
 </script>
 </body>
 </html>
