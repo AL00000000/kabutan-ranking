@@ -98,10 +98,17 @@ def agg(subset):
 def main():
     today = date.today().isoformat()
 
+    DOCS_DATA.mkdir(parents=True, exist_ok=True)
+
     # 1) 売買代金ランキング上位 TOP_N 銘柄(50件/頁)
     stocks = []
+    rank_date = None
     for page in range(1, (TOP_N // 50) + 1):
         html = fr.fetch(page)
+        if rank_date is None:
+            m = fr.AS_OF_RE.search(html)
+            if m:
+                rank_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
         rows = fr.parse(html)
         if not rows:
             print(f"ERROR: ranking page {page} の解析に失敗(ページ構造変更の可能性)",
@@ -109,6 +116,12 @@ def main():
             sys.exit(1)
         stocks.extend(rows)
         time.sleep(1.0)
+
+    # 休場日と分かった時点で打ち切る。この後は200銘柄を1件ずつ引くので、
+    # ここで抜けないと空振りのために数分と大量のリクエストを浪費する。
+    if rank_date and rank_date != today and (DOCS_DATA / f"{rank_date}.json").is_file():
+        print(f"skip: {rank_date} は取得済み(実行日 {today} は休場日などの空振り)")
+        return
     seen = set()
     stocks = [s for s in stocks if not (s["code"] in seen or seen.add(s["code"]))][:TOP_N]
     for i, s in enumerate(stocks, 1):
@@ -152,6 +165,18 @@ def main():
 
     # 4) 出力
     DOCS_DATA.mkdir(parents=True, exist_ok=True)
+
+    # 休場日に走ると前営業日の終値がそのまま返るため、実行日ではなく
+    # 実際の売買日で保存する。既に持っていれば何も書かない。
+    data_date = trade_date or today
+    if data_date != today:
+        if (DOCS_DATA / f"{data_date}.json").is_file():
+            print(f"skip: {data_date} は取得済み(実行日 {today} は休場日などの空振り)")
+            return
+        print(f"注意: 実行日 {today} に対し売買日は {data_date}。"
+              f"未取得の日なので {data_date} として保存する", file=sys.stderr)
+    today = data_date
+
     payload = {
         "date": today,
         "trade_date": trade_date,
