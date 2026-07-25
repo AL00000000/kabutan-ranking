@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>信用評価損益率 25年チャート | 東証二市場</title>
+<style>
+/* 親サイト(docs/index.html)のトークンをそのまま踏襲 */
+:root {
+  --bg: #0a0f1c;
+  --panel: #101830;
+  --panel2: #0d1426;
+  --border: #1e2a48;
+  --text: #dbe4f5;
+  --muted: #7787a5;
+  --accent: #39c5cf;
+  --up: #ff5b6a;
+  --new: #ffd166;
+
+  /* チャート用ロール（既存トークンから採用） */
+  --surface: #101830;
+  --grid: #18233f;
+  --axis: #2b3a60;
+  --ink: #dbe4f5;
+  --ink-3: #7787a5;
+  --series: #39c5cf;
+  --series-fill: rgba(57, 197, 207, .16);
+  --series-edge: rgba(57, 197, 207, .45);
+  --ceiling: #ff5b6a;
+  --floor: #ffd166;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+  font-feature-settings: "palt" 1;
+}
+.wrap { max-width: 1240px; margin: 0 auto; padding: 14px 14px 40px; display: flex; flex-direction: column; gap: 12px; }
+
+.lede { color: var(--muted); font-size: .8rem; line-height: 1.75; padding: 0 2px; }
+.lede b { color: var(--text); font-weight: 600; }
+
+/* stat tiles */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 8px; }
+.tile {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 11px 13px 13px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.tile dt { color: var(--muted); font-size: .7rem; letter-spacing: .06em; font-weight: 600; }
+.tile dd { margin: 0; font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: -.01em; }
+.tile small { color: var(--muted); font-size: .7rem; font-variant-numeric: tabular-nums; }
+.pill { align-self: flex-start; font-size: .66rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
+
+/* controls */
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.ctl-label { color: var(--muted); font-size: .72rem; letter-spacing: .06em; font-weight: 600; margin-right: -6px; }
+.seg { display: inline-flex; background: var(--panel2); border: 1px solid var(--border); border-radius: 9px; padding: 3px; gap: 2px; }
+.seg button {
+  font: inherit; font-size: .8rem; font-weight: 500; color: var(--muted);
+  background: none; border: 0; border-radius: 6px; padding: 6px 12px; cursor: pointer; white-space: nowrap;
+}
+.seg button:hover { color: var(--text); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #04121a; font-weight: 700; }
+.seg button:focus-visible, summary:focus-visible, .dl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* chart card */
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 12px 10px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 0 4px 12px; font-size: .74rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.key { width: 15px; height: 3px; border-radius: 2px; flex: none; }
+.key.band { height: 11px; border-radius: 3px; background: var(--series-fill); border: 1px solid var(--series-edge); }
+.key.dash { height: 0; border-top: 2px dashed currentColor; border-radius: 0; }
+
+.plot { position: relative; overflow-x: auto; overflow-y: hidden; }
+.plot svg { display: block; width: 100%; min-width: 620px; height: auto; touch-action: pan-y; }
+text { font-family: inherit; }
+.tick { font-size: 11px; fill: var(--ink-3); font-variant-numeric: tabular-nums; }
+.zone-label { font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ev-label { font-size: 10px; fill: var(--ink-3); font-weight: 500; }
+
+/* tooltip */
+.tip {
+  position: absolute; pointer-events: none; z-index: 5; min-width: 132px;
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 9px;
+  box-shadow: 0 8px 26px -12px #000; padding: 8px 10px; font-size: .74rem;
+  opacity: 0; transition: opacity .12s ease;
+}
+.tip[data-on="1"] { opacity: 1; }
+.tip b { display: block; font-size: .76rem; font-weight: 700; color: var(--text); margin-bottom: 5px; font-variant-numeric: tabular-nums; }
+.tip-row { display: flex; justify-content: space-between; gap: 14px; color: var(--muted); line-height: 1.7; font-variant-numeric: tabular-nums; }
+.tip-row i { font-style: normal; font-weight: 700; color: var(--text); }
+
+/* table */
+details { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 0 14px; }
+summary {
+  cursor: pointer; padding: 12px 0; font-size: .82rem; font-weight: 600; list-style: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "▾"; color: var(--muted); font-size: .72rem; transition: transform .18s ease; }
+details[open] summary::after { transform: rotate(180deg); }
+.tbl-wrap { max-height: 360px; overflow: auto; border-top: 1px solid var(--border); margin: 0 -14px; padding: 0 14px; }
+table { width: 100%; border-collapse: collapse; font-size: .78rem; font-variant-numeric: tabular-nums; }
+thead th {
+  position: sticky; top: 0; background: var(--panel); text-align: right;
+  font-size: .7rem; font-weight: 600; letter-spacing: .05em; color: var(--muted);
+  padding: 9px 7px; border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+thead th:first-child, tbody td:first-child { text-align: left; }
+tbody td { padding: 7px; text-align: right; border-bottom: 1px solid var(--grid); color: var(--muted); }
+tbody td:first-child { color: var(--text); font-weight: 500; }
+
+.dl {
+  display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .78rem; font-weight: 500;
+  color: var(--text); background: var(--panel2); border: 1px solid var(--border);
+  border-radius: 9px; padding: 8px 14px; cursor: pointer;
+}
+.dl:hover { border-color: var(--accent); color: var(--accent); }
+.foot { color: var(--muted); font-size: .72rem; line-height: 1.8; }
+.foot a { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="lede">
+    東証二市場の信用買い建玉の含み損益率（週次）。0%に近づくほど過熱、大きく沈むほど投げ売り一巡を示す逆張り指標です。
+    <span id="period"></span> の週次<span id="nWeeks"></span>件を月次<span id="nMonths"></span>件に集計し、月内の<b>高値・安値レンジ</b>を帯で重ねています。
+  </p>
+
+  <dl class="stats" id="stats"></dl>
+
+  <div class="controls">
+    <span class="ctl-label">粒度</span>
+    <div class="seg" role="group" aria-label="データ粒度">
+      <button type="button" data-mode="m" aria-pressed="true">月次＋高安レンジ</button>
+      <button type="button" data-mode="w" aria-pressed="false">週次</button>
+    </div>
+    <span class="ctl-label">期間</span>
+    <div class="seg" role="group" aria-label="表示期間">
+      <button type="button" data-span="all" aria-pressed="true">全期間</button>
+      <button type="button" data-span="15" aria-pressed="false">15年</button>
+      <button type="button" data-span="10" aria-pressed="false">10年</button>
+      <button type="button" data-span="5" aria-pressed="false">5年</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="legend" id="legend"></div>
+    <div class="plot" id="plot"><div class="tip" id="tip" role="status" aria-live="polite"></div></div>
+  </div>
+
+  <details>
+    <summary><span>データ表（月次集計 <span id="nMonths2"></span>件）</span></summary>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>年月</th><th>始値</th><th>高値</th><th>安値</th><th>終値</th><th>週数</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </details>
+
+  <div><button type="button" class="dl" id="dl">週次データをCSVでダウンロード</button></div>
+
+  <p class="foot">
+    出所：<a href="https://www.traders.co.jp/margin_derivatives/margin_transition" target="_blank" rel="noopener">トレーダーズ・ウェブ「信用残の推移」</a>
+    より <span id="period2"></span> の週次<span id="nWeeks2"></span>件を取得し月次集計。<span id="missNote"></span>
+    目安水準：−3%超で天井圏、−10%前後で追証発生、−15%割れで底値圏とされます。
+  </p>
+</div>
+
+<script>
+  const DATA = /*__DATA__*/;
+</script>
+<script>
+(function () {
+    "use strict";
+
+    // ── geometry ────────────────────────────────────────────────────
+    const W = 1000, H = 470, ML = 54, MR = 18, MT = 30, MB = 34;
+    const X0 = ML, X1 = W - MR, Y0 = MT, Y1 = H - MB;
+    const YMAX = 8, YMIN = -42;
+
+    const ty = v => Y0 + (YMAX - v) / (YMAX - YMIN) * (Y1 - Y0);
+    const r1 = n => n.toFixed(2);
+    const esc = s => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+    let mode = "m", span = "all";
+    let view = [], tMin = 0, tMax = 1;
+    const tx = t => X0 + (t - tMin) / (tMax - tMin) * (X1 - X0);
+
+    const plot = document.getElementById("plot");
+    const tip = document.getElementById("tip");
+
+    // ── stat tiles (computed from the data, never hardcoded) ────────
+    const wk = DATA.weekly;
+    const last = wk[wk.length - 1];
+    const lo = wk.reduce((a, b) => (b[2] < a[2] ? b : a));
+    const hi = wk.reduce((a, b) => (b[2] > a[2] ? b : a));
+    const zone = v => v >= -3 ? ["天井圏", "var(--ceiling)"]
+      : v <= -15 ? ["底値圏", "var(--floor)"]
+        : ["中立圏", "var(--ink-3)"];
+    const [zName, zCol] = zone(last[2]);
+
+    document.getElementById("stats").innerHTML = `
+      <div class="tile">
+        <dt>直近値</dt>
+        <dd>${r1(last[2])}<span style="font-size:15px">%</span></dd>
+        <small>${last[1]} 時点</small>
+        <span class="pill" style="color:${zCol}">${zName}</span>
+      </div>
+      <div class="tile">
+        <dt>過去最安</dt>
+        <dd style="color:var(--ceiling)">${r1(lo[2])}<span style="font-size:15px">%</span></dd>
+        <small>${lo[1]}・リーマンショック</small>
+      </div>
+      <div class="tile">
+        <dt>過去最高</dt>
+        <dd style="color:var(--floor)">+${r1(hi[2])}<span style="font-size:15px">%</span></dd>
+        <small>${hi[1]}・アベノミクス</small>
+      </div>
+      <div class="tile">
+        <dt>収録期間</dt>
+        <dd style="font-size:19px">${wk[0][1].slice(0, 7)}〜${last[1].slice(0, 7)}</dd>
+        <small>週次 ${wk.length.toLocaleString()}件 ／ 月次 ${DATA.monthly.length}件</small>
+      </div>`;
+
+    document.getElementById("legend").innerHTML = `
+      <span><i class="key" style="background:var(--series)"></i>評価損益率（月次終値）</span>
+      <span id="lg-band"><i class="key band"></i>月内の高値〜安値レンジ</span>
+      <span style="color:var(--ceiling)"><i class="key dash"></i>−3% 天井圏</span>
+      <span style="color:var(--floor)"><i class="key dash"></i>−15% 底値圏</span>`;
+
+    // ── render ──────────────────────────────────────────────────────
+    function render() {
+      const src = mode === "m" ? DATA.monthly : DATA.weekly;
+      const cut = span === "all" ? -Infinity : DATA.weekly[DATA.weekly.length - 1][0] - Number(span);
+      view = src.filter(d => d[0] >= cut);
+      tMin = view[0][0];
+      tMax = view[view.length - 1][0];
+      if (tMax === tMin) tMax = tMin + 1;
+
+      const val = d => mode === "m" ? d[5] : d[2];
+      const s = [];
+
+      // horizontal gridlines + y ticks
+      for (let v = 5; v >= -40; v -= 5) {
+        const y = ty(v);
+        s.push(`<line x1="${X0}" x2="${X1}" y1="${y}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`);
+        s.push(`<text class="tick" x="${X0 - 9}" y="${y + 4}" text-anchor="end">${v > 0 ? "+" : ""}${v}%</text>`);
+      }
+
+      // zero baseline, slightly stronger
+      s.push(`<line x1="${X0}" x2="${X1}" y1="${ty(0)}" y2="${ty(0)}" stroke="var(--axis)" stroke-width="1.5"/>`);
+
+      // year gridlines
+      const yrStep = (tMax - tMin) > 18 ? 5 : (tMax - tMin) > 8 ? 2 : 1;
+      for (let y = Math.ceil(tMin / yrStep) * yrStep; y <= tMax; y += yrStep) {
+        const x = tx(y);
+        s.push(`<line x1="${x}" x2="${x}" y1="${Y0}" y2="${Y1}" stroke="var(--grid)" stroke-width="1"/>`);
+        s.push(`<text class="tick" x="${x}" y="${Y1 + 20}" text-anchor="middle">${y}</text>`);
+      }
+
+      // threshold zones — permanent text labels are the secondary encoding
+      // that the palette's contrast/CVD relief rule requires.
+      [[-3, "天井圏 −3%", "var(--ceiling)"], [-15, "底値圏 −15%", "var(--floor)"]].forEach(([v, label, col]) => {
+        const y = ty(v);
+        s.push(`<line x1="${X0}" x2="${X1}" y1="${y}" y2="${y}" stroke="${col}" stroke-width="1.5" stroke-dasharray="5 4" opacity=".85"/>`);
+        s.push(`<text class="zone-label" x="${X1 - 4}" y="${y - 6}" text-anchor="end" fill="${col}">${label}</text>`);
+      });
+
+      // event guides
+      DATA.events.filter(e => e[0] >= tMin && e[0] <= tMax).forEach((e, i) => {
+        const x = tx(e[0]);
+        const ly = i % 2 ? Y0 - 16 : Y0 - 3;
+        const anchor = x < X0 + 60 ? "start" : x > X1 - 60 ? "end" : "middle";
+        s.push(`<line x1="${x}" x2="${x}" y1="${Y0}" y2="${Y1}" stroke="var(--axis)" stroke-width="1" stroke-dasharray="2 4" opacity=".55"/>`);
+        s.push(`<text class="ev-label" x="${x}" y="${ly}" text-anchor="${anchor}">${esc(e[1])}</text>`);
+      });
+
+      // high/low envelope — the candlestick-style range band
+      if (mode === "m") {
+        const up = view.map(d => `${tx(d[0])},${ty(d[3])}`).join("L");
+        const dn = view.slice().reverse().map(d => `${tx(d[0])},${ty(d[4])}`).join("L");
+        s.push(`<path d="M${up}L${dn}Z" fill="var(--series-fill)"/>`);
+        s.push(`<polyline points="${view.map(d => `${tx(d[0])},${ty(d[3])}`).join(" ")}" fill="none" stroke="var(--series-edge)" stroke-width="1"/>`);
+        s.push(`<polyline points="${view.map(d => `${tx(d[0])},${ty(d[4])}`).join(" ")}" fill="none" stroke="var(--series-edge)" stroke-width="1"/>`);
+      }
+
+      // the series line
+      s.push(`<polyline points="${view.map(d => `${tx(d[0])},${ty(val(d))}`).join(" ")}" fill="none" stroke="var(--series)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`);
+
+      // endpoint emphasis
+      const le = view[view.length - 1];
+      s.push(`<circle cx="${tx(le[0])}" cy="${ty(val(le))}" r="4" fill="var(--series)" stroke="var(--surface)" stroke-width="2"/>`);
+
+      // crosshair layer
+      s.push(`<g id="xh" style="display:none">
+        <line id="xh-l" y1="${Y0}" y2="${Y1}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3"/>
+        <circle id="xh-hi" r="3" fill="var(--series-edge)"/>
+        <circle id="xh-lo" r="3" fill="var(--series-edge)"/>
+        <circle id="xh-c" r="5" fill="var(--series)" stroke="var(--surface)" stroke-width="2"/>
+      </g>`);
+
+      plot.querySelector("svg")?.remove();
+      plot.insertAdjacentHTML("afterbegin",
+        `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="信用評価損益率の推移チャート">${s.join("")}</svg>`);
+
+      document.getElementById("lg-band").style.display = mode === "m" ? "" : "none";
+    }
+
+    // ── hover: crosshair + tooltip ──────────────────────────────────
+    function onMove(ev) {
+      const svg = plot.querySelector("svg");
+      if (!svg || !view.length) return;
+      const box = svg.getBoundingClientRect();
+      const sx = (ev.clientX - box.left) / box.width * W;
+
+      let best = 0, bd = Infinity;
+      for (let i = 0; i < view.length; i++) {
+        const d = Math.abs(tx(view[i][0]) - sx);
+        if (d < bd) { bd = d; best = i; }
+      }
+      const d = view[best];
+      const cv = mode === "m" ? d[5] : d[2];
+      const px = tx(d[0]), py = ty(cv);
+
+      const g = svg.getElementById("xh");
+      g.style.display = "";
+      svg.getElementById("xh-l").setAttribute("x1", px);
+      svg.getElementById("xh-l").setAttribute("x2", px);
+      svg.getElementById("xh-c").setAttribute("cx", px);
+      svg.getElementById("xh-c").setAttribute("cy", py);
+      const dh = svg.getElementById("xh-hi"), dl = svg.getElementById("xh-lo");
+      if (mode === "m") {
+        dh.style.display = dl.style.display = "";
+        dh.setAttribute("cx", px); dh.setAttribute("cy", ty(d[3]));
+        dl.setAttribute("cx", px); dl.setAttribute("cy", ty(d[4]));
+      } else {
+        dh.style.display = dl.style.display = "none";
+      }
+
+      const [zn, zc] = zone(cv);
+      tip.innerHTML = mode === "m"
+        ? `<b>${d[1]}（${d[6]}週）</b>
+           <div class="tip-row"><span>高値</span><i>${r1(d[3])}%</i></div>
+           <div class="tip-row"><span>安値</span><i>${r1(d[4])}%</i></div>
+           <div class="tip-row"><span>終値</span><i style="color:${zc}">${r1(d[5])}%</i></div>
+           <div class="tip-row"><span>判定</span><i style="color:${zc}">${zn}</i></div>`
+        : `<b>${d[1]}</b>
+           <div class="tip-row"><span>評価損益率</span><i style="color:${zc}">${r1(d[2])}%</i></div>
+           <div class="tip-row"><span>判定</span><i style="color:${zc}">${zn}</i></div>`;
+
+      const cx = px / W * box.width;
+      const cy = py / H * box.height;
+      tip.dataset.on = "1";
+      const tw = tip.offsetWidth, th = tip.offsetHeight;
+      let lx = cx + 16;
+      if (lx + tw > box.width) lx = cx - tw - 16;
+      tip.style.left = Math.max(0, lx) + "px";
+      tip.style.top = Math.max(0, Math.min(box.height - th, cy - th / 2)) + "px";
+    }
+
+    function onLeave() {
+      tip.dataset.on = "0";
+      const g = plot.querySelector("#xh");
+      if (g) g.style.display = "none";
+    }
+
+    plot.addEventListener("pointermove", onMove);
+    plot.addEventListener("pointerleave", onLeave);
+
+    // ── controls ────────────────────────────────────────────────────
+    document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => {
+      mode = b.dataset.mode;
+      document.querySelectorAll("[data-mode]").forEach(o => o.setAttribute("aria-pressed", String(o === b)));
+      onLeave(); render();
+    }));
+
+    document.querySelectorAll("[data-span]").forEach(b => b.addEventListener("click", () => {
+      span = b.dataset.span;
+      document.querySelectorAll("[data-span]").forEach(o => o.setAttribute("aria-pressed", String(o === b)));
+      onLeave(); render();
+    }));
+
+    // ── table + CSV ─────────────────────────────────────────────────
+    document.getElementById("tbody").innerHTML = DATA.monthly.slice().reverse()
+      .map(m => `<tr><td>${m[1]}</td><td>${r1(m[2])}</td><td>${r1(m[3])}</td><td>${r1(m[4])}</td><td>${r1(m[5])}</td><td>${m[6] || ""}</td></tr>`)
+      .join("");
+
+    document.getElementById("dl").addEventListener("click", () => {
+      const csv = "﻿申込日,評価損益率(%)\n" + DATA.weekly.map(w => `${w[1]},${w[2]}`).join("\n");
+      const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "shinyo_hyoka_soneki_2001-2026.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    render();
+    addEventListener("resize", onLeave);
+  })();
+</script>
+<script>
+(function () {
+  const w = DATA.weekly, m = DATA.monthly, meta = DATA.meta || {};
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  const period = w[0][1] + "〜" + w[w.length - 1][1];
+  set("period", period); set("period2", period);
+  set("nWeeks", w.length.toLocaleString()); set("nWeeks2", w.length.toLocaleString());
+  set("nMonths", m.length.toLocaleString()); set("nMonths2", m.length.toLocaleString());
+  const miss = meta.missing || [];
+  set("missNote", miss.length
+    ? miss.join("、") + " は出所側で評価損益率が欠損のため除外。"
+    : "");
+})();
+</script>
+</body>
+</html>
