@@ -1018,23 +1018,42 @@ function switchTab(name) {
   const view = document.getElementById(VIEW_ID[name]);
   const ifr = view.querySelector("iframe[data-src]");
   if (ifr && !ifr.src) ifr.src = ifr.dataset.src;
+  clearBadge(name);   // 開いたら既読にしてNEWを消す
 }
 document.querySelectorAll(".tab").forEach(b => { b.onclick = () => switchTab(b.dataset.tab); });
 
 /* ===== タブ別の最終更新日を取得して NEW バッジを出す =====
    各サイトは同一オリジン(al00000000.github.io)なので直接fetchできる。
    kind: index=data/index.json の dates[] / field=単一フィールド / probe=日付総当たり */
+// daily:true = 平日毎日更新。更新されて当たり前なのでNEWバッジは出さず、
+// 最終更新日のツールチップだけ付ける。バッジは週次/不定期のタブ限定。
 const FEEDS = {
-  ranking:  { kind: "index", url: "./data/index.json" },
-  intraday: { kind: "index", url: "./data_intraday/index.json" },
+  ranking:  { kind: "index", url: "./data/index.json", daily: true },
+  intraday: { kind: "index", url: "./data_intraday/index.json", daily: true },
   split:    { kind: "field", url: "./data_split/analysis.json", field: "generated" },
-  yori:     { kind: "index", url: "/Yoritsukikaranoneagari-ranking/data/index.json" },
-  minute:   { kind: "probe", url: "/kabutan-minute-chart/data/0000/" },
-  sector:   { kind: "index", url: "/Sector-ranking/data/index.json" },
-  stop:     { kind: "index", url: "/Stop-takayasu/data/index.json" },
-  pts:      { kind: "index", url: "/buffett-code-pts-ranking/data/index.json" },
+  yori:     { kind: "index", url: "/Yoritsukikaranoneagari-ranking/data/index.json", daily: true },
+  minute:   { kind: "probe", url: "/kabutan-minute-chart/data/0000/", daily: true },
+  sector:   { kind: "index", url: "/Sector-ranking/data/index.json", daily: true },
+  stop:     { kind: "index", url: "/Stop-takayasu/data/index.json", daily: true },
+  pts:      { kind: "index", url: "/buffett-code-pts-ranking/data/index.json", daily: true },
   shinyo:   { kind: "index", url: "./data_shinyo/index.json" },
 };
+
+/* バッジは「前回そのタブを開いたときより新しいデータがあるか」で判定する。
+   日数で切ると、週1更新のタブは見に来ない日に窓が閉じて見逃すため。 */
+const SEEN_KEY = "kabutanTabSeen";
+const readSeen = () => { try { return JSON.parse(localStorage.getItem(SEEN_KEY)) || {}; } catch (e) { return {}; } };
+const writeSeen = o => { try { localStorage.setItem(SEEN_KEY, JSON.stringify(o)); } catch (e) { /* 保存できなくても表示は続行 */ } };
+
+function clearBadge(name) {
+  const btn = document.querySelector(`.tab[data-tab="${name}"]`);
+  const ymd = btn && btn.dataset.latest;
+  if (!ymd) return;
+  const seen = readSeen();
+  if ((seen[name] || "") < ymd) { seen[name] = ymd; writeSeen(seen); }
+  const b = btn.querySelector(".newbadge");
+  if (b) b.remove();
+}
 
 // 閲覧者のPCがどの時間帯でも、判定は日本時間の日付で行う
 const ymdJST = d => new Intl.DateTimeFormat("en-CA", {
@@ -1076,15 +1095,21 @@ async function markUpdates() {
     const ago = daysAgo(ymd);
     const when = ago === 0 ? "本日" : ago === 1 ? "昨日" : `${ago}日前`;
     btn.title = `最終更新: ${ymd}（${when}）`;
+    btn.dataset.latest = ymd;
 
-    if (ago >= 0 && ago <= 1) {
-      const b = document.createElement("span");
-      b.className = "newbadge";
-      b.textContent = "NEW";
-      b.setAttribute("aria-label", `${ymd}に更新されました`);
-      btn.appendChild(b);
-    }
+    if (cfg.daily) return;                          // 毎日更新のタブはバッジ対象外
+    if ((readSeen()[tab] || "") >= ymd) return;     // 前回開いた時点から進んでいなければ出さない
+
+    const b = document.createElement("span");
+    b.className = "newbadge";
+    b.textContent = "NEW";
+    b.setAttribute("aria-label", `${ymd}に更新されました（未読）`);
+    btn.appendChild(b);
   }));
+
+  // 初期表示中のタブは開いている扱いにして既読化
+  const active = document.querySelector(".tab.active");
+  if (active) clearBadge(active.dataset.tab);
 }
 markUpdates();
 </script>
