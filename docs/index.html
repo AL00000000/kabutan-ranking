@@ -149,7 +149,21 @@ footer a { color: var(--accent); }
 }
 /* ---- タブ ---- */
 .tabs {
-  display: flex; gap: 6px; padding: 0 4px 14px; flex-wrap: wrap;
+  display: flex; flex-direction: column; gap: 9px; padding: 0 4px 14px;
+}
+/* 更新頻度でタブを3グループに分ける */
+.tabgroup { display: flex; align-items: flex-start; gap: 12px; }
+.tabgroup-label {
+  flex: none; width: 4.6em; padding-top: 10px;
+  color: var(--muted); font-size: .72rem; font-weight: 700; letter-spacing: .06em;
+}
+.tabgroup-items { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+/* 更新終了は破線で「止まっている」ことを形でも示す */
+.tab.is-ended { border-style: dashed; opacity: .72; }
+.tab.is-ended:hover, .tab.is-ended.active { opacity: 1; }
+@media (max-width: 620px) {
+  .tabgroup { flex-direction: column; gap: 5px; }
+  .tabgroup-label { width: auto; padding-top: 0; }
 }
 .tab {
   background: var(--panel2); color: var(--muted);
@@ -213,20 +227,35 @@ footer a { color: var(--accent); }
 <div class="wrap">
   <header class="site">
     <h1>売買代金ランキング/その他<span class="dot">.</span></h1>
-    <span class="sub">東証の各種ランキング・チャートを1ページに集約 / 平日更新 / 上のタブで切替</span>
+    <span class="sub">東証の各種ランキング・チャートを1ページに集約 / 更新頻度ごとにタブを分類 / 各タブにカーソルを合わせると最終更新日</span>
     <a class="srcbtn" href="https://github.com/AL00000000/kabutan-ranking/archive/refs/heads/main.zip">⬇ ソースコード</a>
   </header>
 
   <nav class="tabs">
-    <button class="tab active" data-tab="ranking">売買代金ランキング</button>
-    <button class="tab" data-tab="intraday">15:24→引け 分析</button>
-    <button class="tab" data-tab="split">分割後1ヶ月騰落</button>
-    <button class="tab" data-tab="yori">寄付からの値上がり率</button>
-    <button class="tab" data-tab="minute">分足チャート記録</button>
-    <button class="tab" data-tab="sector">業種別騰落</button>
-    <button class="tab" data-tab="stop">ストップ高・安</button>
-    <button class="tab" data-tab="pts">PTS株価</button>
-    <button class="tab" data-tab="shinyo">信用評価損益率</button>
+    <div class="tabgroup">
+      <span class="tabgroup-label">毎日更新</span>
+      <div class="tabgroup-items">
+        <button class="tab active" data-tab="ranking">売買代金ランキング</button>
+        <button class="tab" data-tab="intraday">15:24→引け 分析</button>
+        <button class="tab" data-tab="yori">寄付からの値上がり率</button>
+        <button class="tab" data-tab="minute">分足チャート記録</button>
+        <button class="tab" data-tab="sector">業種別騰落</button>
+        <button class="tab" data-tab="stop">ストップ高・安</button>
+        <button class="tab" data-tab="pts">PTS株価</button>
+      </div>
+    </div>
+    <div class="tabgroup">
+      <span class="tabgroup-label">週次更新</span>
+      <div class="tabgroup-items">
+        <button class="tab" data-tab="shinyo">信用評価損益率</button>
+      </div>
+    </div>
+    <div class="tabgroup">
+      <span class="tabgroup-label ended">更新終了</span>
+      <div class="tabgroup-items">
+        <button class="tab is-ended" data-tab="split">分割後1ヶ月騰落</button>
+      </div>
+    </div>
   </nav>
 
   <div id="view-ranking">
@@ -1025,18 +1054,19 @@ document.querySelectorAll(".tab").forEach(b => { b.onclick = () => switchTab(b.d
 /* ===== タブ別の最終更新日を取得して NEW バッジを出す =====
    各サイトは同一オリジン(al00000000.github.io)なので直接fetchできる。
    kind: index=data/index.json の dates[] / field=単一フィールド / probe=日付総当たり */
-// daily:true = 平日毎日更新。更新されて当たり前なのでNEWバッジは出さず、
-// 最終更新日のツールチップだけ付ける。バッジは週次/不定期のタブ限定。
+/* freq はタブ見出しの3分類と対応。NEWバッジは weekly のみに出す。
+   daily=更新されて当たり前なので出さない / ended=もう更新されないので出す意味がない。
+   最終更新日のツールチップは3分類とも付ける。 */
 const FEEDS = {
-  ranking:  { kind: "index", url: "./data/index.json", daily: true },
-  intraday: { kind: "index", url: "./data_intraday/index.json", daily: true },
-  split:    { kind: "field", url: "./data_split/analysis.json", field: "generated" },
-  yori:     { kind: "index", url: "/Yoritsukikaranoneagari-ranking/data/index.json", daily: true },
-  minute:   { kind: "probe", url: "/kabutan-minute-chart/data/0000/", daily: true },
-  sector:   { kind: "index", url: "/Sector-ranking/data/index.json", daily: true },
-  stop:     { kind: "index", url: "/Stop-takayasu/data/index.json", daily: true },
-  pts:      { kind: "index", url: "/buffett-code-pts-ranking/data/index.json", daily: true },
-  shinyo:   { kind: "index", url: "./data_shinyo/index.json" },
+  ranking:  { kind: "index", url: "./data/index.json", freq: "daily" },
+  intraday: { kind: "index", url: "./data_intraday/index.json", freq: "daily" },
+  yori:     { kind: "index", url: "/Yoritsukikaranoneagari-ranking/data/index.json", freq: "daily" },
+  minute:   { kind: "probe", url: "/kabutan-minute-chart/data/0000/", freq: "daily" },
+  sector:   { kind: "index", url: "/Sector-ranking/data/index.json", freq: "daily" },
+  stop:     { kind: "index", url: "/Stop-takayasu/data/index.json", freq: "daily" },
+  pts:      { kind: "index", url: "/buffett-code-pts-ranking/data/index.json", freq: "daily" },
+  shinyo:   { kind: "index", url: "./data_shinyo/index.json", freq: "weekly" },
+  split:    { kind: "field", url: "./data_split/analysis.json", field: "generated", freq: "ended" },
 };
 
 /* バッジは「前回そのタブを開いたときより新しいデータがあるか」で判定する。
@@ -1094,11 +1124,13 @@ async function markUpdates() {
 
     const ago = daysAgo(ymd);
     const when = ago === 0 ? "本日" : ago === 1 ? "昨日" : `${ago}日前`;
-    btn.title = `最終更新: ${ymd}（${when}）`;
+    btn.title = cfg.freq === "ended"
+      ? `更新終了（最終更新: ${ymd}）`
+      : `最終更新: ${ymd}（${when}）`;
     btn.dataset.latest = ymd;
 
-    if (cfg.daily) return;                          // 毎日更新のタブはバッジ対象外
-    if ((readSeen()[tab] || "") >= ymd) return;     // 前回開いた時点から進んでいなければ出さない
+    if (cfg.freq !== "weekly") return;               // バッジは週次更新のタブのみ
+    if ((readSeen()[tab] || "") >= ymd) return;      // 前回開いた時点から進んでいなければ出さない
 
     const b = document.createElement("span");
     b.className = "newbadge";
