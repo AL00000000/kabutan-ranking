@@ -162,6 +162,17 @@ footer a { color: var(--accent); }
   color: #04121a; border-color: var(--accent);
   background: linear-gradient(135deg, #1d8f98, #39c5cf);
 }
+/* 更新直後のタブに付くNEWバッジ（更新日とその翌日まで） */
+.tab .newbadge {
+  display: inline-block; margin-left: 7px;
+  background: var(--new); color: #04121a;
+  font-size: .58rem; font-weight: 800; letter-spacing: .06em;
+  border-radius: 4px; padding: 1px 5px; vertical-align: 1.5px;
+  animation: newpulse 2.4s ease-in-out infinite;
+}
+.tab.active .newbadge { background: #04121a; color: var(--new); }
+@keyframes newpulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+@media (prefers-reduced-motion: reduce) { .tab .newbadge { animation: none; } }
 /* ---- 集計カード ---- */
 .cards {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
@@ -1009,6 +1020,73 @@ function switchTab(name) {
   if (ifr && !ifr.src) ifr.src = ifr.dataset.src;
 }
 document.querySelectorAll(".tab").forEach(b => { b.onclick = () => switchTab(b.dataset.tab); });
+
+/* ===== タブ別の最終更新日を取得して NEW バッジを出す =====
+   各サイトは同一オリジン(al00000000.github.io)なので直接fetchできる。
+   kind: index=data/index.json の dates[] / field=単一フィールド / probe=日付総当たり */
+const FEEDS = {
+  ranking:  { kind: "index", url: "./data/index.json" },
+  intraday: { kind: "index", url: "./data_intraday/index.json" },
+  split:    { kind: "field", url: "./data_split/analysis.json", field: "generated" },
+  yori:     { kind: "index", url: "/Yoritsukikaranoneagari-ranking/data/index.json" },
+  minute:   { kind: "probe", url: "/kabutan-minute-chart/data/0000/" },
+  sector:   { kind: "index", url: "/Sector-ranking/data/index.json" },
+  stop:     { kind: "index", url: "/Stop-takayasu/data/index.json" },
+  pts:      { kind: "index", url: "/buffett-code-pts-ranking/data/index.json" },
+  shinyo:   { kind: "index", url: "./data_shinyo/index.json" },
+};
+
+// 閲覧者のPCがどの時間帯でも、判定は日本時間の日付で行う
+const ymdJST = d => new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
+}).format(d);
+
+const daysAgo = ymd => Math.round((Date.parse(ymdJST(new Date())) - Date.parse(ymd)) / 86400000);
+
+// 分足チャートは日付索引を持たないので、当日から遡って最初に見つかった日を採用
+async function probeLatest(base) {
+  for (let i = 0; i < 8; i++) {
+    const ymd = ymdJST(new Date(Date.now() - i * 86400000));
+    try {
+      const r = await fetch(`${base}${ymd}.json`, { method: "HEAD" });
+      if (r.ok) return ymd;
+    } catch (e) { /* 次の日付へ */ }
+  }
+  return null;
+}
+
+async function latestFor(cfg) {
+  if (cfg.kind === "probe") return probeLatest(cfg.url);
+  const r = await fetch(cfg.url, { cache: "no-cache" });
+  if (!r.ok) return null;
+  const j = await r.json();
+  if (cfg.kind === "field") return j[cfg.field] || null;
+  if (j.updated) return j.updated;              // 反映日が別途記録されていればそちらを優先
+  return Array.isArray(j.dates) && j.dates.length ? j.dates.slice().sort().at(-1) : null;
+}
+
+async function markUpdates() {
+  await Promise.all(Object.entries(FEEDS).map(async ([tab, cfg]) => {
+    const btn = document.querySelector(`.tab[data-tab="${tab}"]`);
+    if (!btn) return;
+    let ymd = null;
+    try { ymd = await latestFor(cfg); } catch (e) { /* 取得失敗はバッジなしで続行 */ }
+    if (!ymd) { btn.title = "最終更新日: 取得できませんでした"; return; }
+
+    const ago = daysAgo(ymd);
+    const when = ago === 0 ? "本日" : ago === 1 ? "昨日" : `${ago}日前`;
+    btn.title = `最終更新: ${ymd}（${when}）`;
+
+    if (ago >= 0 && ago <= 1) {
+      const b = document.createElement("span");
+      b.className = "newbadge";
+      b.textContent = "NEW";
+      b.setAttribute("aria-label", `${ymd}に更新されました`);
+      btn.appendChild(b);
+    }
+  }));
+}
+markUpdates();
 </script>
 </body>
 </html>
