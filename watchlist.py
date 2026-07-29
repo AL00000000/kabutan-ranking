@@ -27,6 +27,14 @@ import re
 import sys
 from pathlib import Path
 
+# 出力をパイプ/リダイレクトすると Windows では cp932 になり、
+# ツリー表示の絵文字(📁📂)で UnicodeEncodeError になるため UTF-8 に固定する。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8")
+    except (AttributeError, ValueError):
+        pass
+
 BASE = Path(__file__).parent
 DATA = BASE / "docs" / "data_watch"
 WATCHLIST = DATA / "watchlist.json"
