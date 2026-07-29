@@ -3,3 +3,4 @@ token.json
 __pycache__/
 SETUP_GUIDE.txt
 daily_intraday.log
+daily_watch.log
