@@ -241,7 +241,7 @@ footer a { color: var(--accent); }
         <button class="tab" data-tab="minute">分足チャート記録</button>
         <button class="tab" data-tab="sector">業種別騰落</button>
         <button class="tab" data-tab="stop">ストップ高・安</button>
-        <button class="tab" data-tab="stoplow">ストップ安→後場寄り検証</button>
+        <button class="tab" data-tab="stoplow">ストップ安→追証決済時検証</button>
         <button class="tab" data-tab="pts">PTS株価</button>
       </div>
     </div>
@@ -333,7 +333,7 @@ footer a { color: var(--accent); }
     <div class="cards" id="slCards"></div>
     <div class="hintRow">
       <div class="hint"><b>引けでストップ安に張り付いた銘柄(T)</b>について、その<b>2営業日後(T+2)の後場寄り(12:30の始値)</b>が、① T の終値 ② T+2 の始値 ③ T+2 の前場引け値(11:30) それぞれと比べてどうだったかをまとめています。上のカードは3つの比較それぞれの平均・中央値と、後場寄りが高かった/安かった/変わらずの内訳です(平均・中央値は全て含めた単純平均)。<br>
-      <b>集計から除外している行</b>: (1) <b>気配</b> = T+2 の後場寄りに1株も出来ていない銘柄。売り気配のままだとチャートは直前の約定値を出来高0で持ち越すため、表示上の12:30値は実際には付いていません。(2) <b>分足なし</b> = 株探の5分足は直近5営業日分しか遡れないため、それ以前の T+2 については11:30・12:30が取得できません(日足から取れる終値・始値のみ表示)。「11:30→12:30」の集計は前場引けにも出来高がある行のみが対象です。列見出しクリックで並び替えできます。</div>
+      <b>集計から除外している行</b>: (1) <b>気配</b> = T+2 の後場寄りに1株も出来ていない銘柄。売り気配のままだとチャートは直前の約定値を出来高0で持ち越すため、表示上の12:30値は実際には付いていません。(2) <b>分足なし</b> = 株探の5分足は直近5営業日分しか遡れないため、それ以前の T+2 については11:30・12:30が取得できません(日足から取れる終値・始値のみ表示)。「翌々11:30→12:30」の集計は前場引けにも出来高がある行のみが対象です。列見出しクリックで並び替えできます。</div>
     </div>
     <div class="tablecard">
       <table id="slTbl">
@@ -948,9 +948,9 @@ const SL_COLS = [
   { key: "open_t2",      label: "始値",     num: s => s.open_t2 ?? -Infinity, fmt: fmtPrice },
   { key: "am_close",     label: "11:30",    num: s => s.am_close ?? -Infinity, fmt: fmtPrice },
   { key: "pm_open",      label: "12:30",    num: s => s.pm_open ?? -Infinity, fmt: fmtPrice },
-  { key: "pct_close_t",  label: "当日終値→12:30", num: s => s.pct_close_t ?? -Infinity, color: true, fmt: fmtPct },
-  { key: "pct_open_t2",  label: "始値→12:30",     num: s => s.pct_open_t2 ?? -Infinity, color: true, fmt: fmtPct },
-  { key: "pct_am_close", label: "11:30→12:30",    num: s => s.pct_am_close ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "pct_close_t",  label: "スト安当日終値→翌々12:30", num: s => s.pct_close_t ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "pct_open_t2",  label: "翌々始値→12:30",  num: s => s.pct_open_t2 ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "pct_am_close", label: "翌々11:30→12:30", num: s => s.pct_am_close ?? -Infinity, color: true, fmt: fmtPct },
   { key: "status",       label: "備考",     left: true, fmt: v => SL_STATUS[v] ?? "" },
 ];
 let slData = null, slSortKey = "t", slSortAsc = false, slInited = false;
