@@ -192,6 +192,11 @@ footer a { color: var(--accent); }
   display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 10px; margin-bottom: 12px;
 }
+.rec {
+  color: var(--new); font-weight: 700; font-size: .72rem;
+  border: 1px solid var(--new); border-radius: 5px; padding: 1px 5px; white-space: nowrap;
+}
+.streakval { font-weight: 700; font-size: 1.02rem; }
 .card {
   background: var(--panel); border: 1px solid var(--border);
   border-radius: 12px; padding: 13px 15px;
@@ -242,6 +247,7 @@ footer a { color: var(--accent); }
         <button class="tab" data-tab="sector">業種別騰落</button>
         <button class="tab" data-tab="stop">ストップ高・安</button>
         <button class="tab" data-tab="stoplow">ストップ安→追証決済時検証</button>
+        <button class="tab" data-tab="streaks">指数連騰日数</button>
         <button class="tab" data-tab="pts">PTS株価</button>
       </div>
     </div>
@@ -346,6 +352,30 @@ footer a { color: var(--accent); }
       本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
     </footer>
   </div><!-- /view-stoplow -->
+
+  <div id="view-streaks" hidden>
+    <div class="toolbar">
+      <span><label>分類</label><select id="stGroupSel"><option value="">すべて</option></select></span>
+      <span class="stat" id="stStat"></span>
+    </div>
+    <div class="banner" id="stBanner">読み込み中…</div>
+    <div class="cards" id="stCards"></div>
+    <div class="hintRow">
+      <div class="hint">主要指数の<b>終値の前日比</b>が何日連続で同じ方向に動いているかです。「連騰日数」は符号付きで、<b>+3 = 3日連続で上昇</b>、<b>-5 = 5日連続で下落</b>、0 = 直近が前日比変わらず。前日比がちょうどゼロの日で連続は途切れます。「最長」は履歴期間中の最長連騰・最長連落、「同等以上」は現在と同じ方向で今回以上の長さが過去に何回あったか(進行中の今回は含まない)で、今の連続がどれくらい珍しいかの目安です。現在が最長タイ以上のときは<span class="rec">記録更新中</span>と表示します。<br>
+      <b>履歴の長さは指数によって違います</b>: 米国指数・日経平均・KOSPI・VIX・米10年債は20年、日10年債は1986年から、日経VIは2023年から、<b>TOPIXとグロース250は2025年5月から</b>(株探が指数の日足を約300営業日分しか返さないため。以後は毎日の実行で伸びていきます)。米国指数は日本時間の翌朝に確定するため、最終取引日が1日前になります。<br>
+      日経VIは配布元が転載を禁じているため、<b>終値は表示せず</b>連騰日数と前日比%のみ掲載しています。列見出しクリックで並び替えできます。</div>
+    </div>
+    <div class="tablecard">
+      <table id="stTbl">
+        <thead><tr id="stHeadRow"></tr></thead>
+        <tbody id="stBody"><tr><td class="loading" colspan="10">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+    <footer>
+      データ取得元: <a href="https://finance.yahoo.com/" target="_blank" rel="noopener">Yahoo Finance</a>(米国指数・日経平均・KOSPI・VIX・米10年債) / <a href="https://kabutan.jp/" target="_blank" rel="noopener">株探</a>(TOPIX・グロース250) / <a href="https://indexes.nikkei.co.jp/nkave/index/profile?idx=nk225vi" target="_blank" rel="noopener">日経平均VI</a> / <a href="https://www.mof.go.jp/jgbs/reference/interest_rate/" target="_blank" rel="noopener">財務省 国債金利情報</a>。<br>
+      本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
+    </footer>
+  </div><!-- /view-streaks -->
 
   <div id="view-split" hidden>
     <div class="toolbar">
@@ -1065,6 +1095,136 @@ async function slInit() {
   }
 }
 
+/* ---- 指数連騰日数 ---- */
+const ST_COLS = [
+  { key: "name",           label: "指数",       left: true, cls: "name tl" },
+  { key: "group",          label: "分類",       left: true },
+  { key: "last_date",      label: "最終取引日",  left: true },
+  { key: "close",          label: "終値",       num: s => s.close ?? -Infinity,
+    fmt: (v, s) => v == null ? "非公開"
+      : v.toLocaleString("ja-JP", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + (s.unit || "") },
+  { key: "change_pct",     label: "前日比",     num: s => s.change_pct ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "cur",            label: "連騰日数",   num: s => s.cur, streak: true },
+  { key: "max_up",         label: "最長連騰",   num: s => s.max_up, fmt: v => v ? "+" + v : "-" },
+  { key: "max_down",       label: "最長連落",   num: s => -s.max_down, fmt: v => v ? "-" + v : "-" },
+  { key: "same_or_longer", label: "同等以上",   num: s => s.same_or_longer, fmt: v => v + "回" },
+  { key: "hist_days",      label: "履歴",       num: s => s.hist_days, fmt: (v, s) => s.hist_from.slice(0, 7) + "〜" },
+];
+let stData = null, stSortKey = "cur", stSortAsc = false, stInited = false;
+
+function stRenderCards() {
+  if (!stData) return;
+  const rows = stData.indices;
+  const up = rows.filter(r => r.cur > 0), down = rows.filter(r => r.cur < 0);
+  const top = a => a.slice().sort((x, y) => Math.abs(y.cur) - Math.abs(x.cur))[0];
+  const card = (ttl, arr, cls) => {
+    const t = top(arr);
+    return '<div class="card"><div class="ttl">' + ttl + '</div>' +
+      '<div class="big ' + cls + '">' + arr.length + ' / ' + rows.length + '</div>' +
+      '<div class="sub">' + (t ? '最長は <b>' + t.name + '</b> の ' + fmtStreak(t.cur) : '該当なし') + '</div></div>';
+  };
+  const recs = rows.filter(r => r.is_record && r.cur !== 0);
+  document.getElementById("stCards").innerHTML =
+    card("連騰中の指数", up, "up") + card("連落中の指数", down, "down") +
+    '<div class="card"><div class="ttl">記録更新中</div><div class="big">' + recs.length + '</div>' +
+    '<div class="sub">' + (recs.length ? recs.map(r => r.name + ' ' + fmtStreak(r.cur)).join("<br>")
+                                       : '履歴中の最長を超えている指数はありません') + '</div></div>';
+}
+
+function fmtStreak(v) { return v > 0 ? "+" + v + "日" : v < 0 ? v + "日" : "0"; }
+
+function stBuildHead() {
+  const tr = document.getElementById("stHeadRow");
+  tr.innerHTML = "";
+  for (const c of ST_COLS) {
+    const th = document.createElement("th");
+    th.textContent = c.label;
+    if (c.left) th.classList.add("tl");
+    if (c.key === stSortKey) {
+      const a = document.createElement("span");
+      a.className = "arw";
+      a.textContent = stSortAsc ? "▲" : "▼";
+      th.appendChild(a);
+    }
+    th.onclick = () => {
+      if (stSortKey === c.key) stSortAsc = !stSortAsc;
+      else { stSortKey = c.key; stSortAsc = false; }
+      stRenderTable();
+    };
+    tr.appendChild(th);
+  }
+}
+
+function stRenderTable() {
+  if (!stData) return;
+  stBuildHead();
+  const g = document.getElementById("stGroupSel").value;
+  let rows = stData.indices.filter(r => !g || r.group === g);
+  const col = ST_COLS.find(c => c.key === stSortKey);
+  rows = rows.slice().sort((a, b) => {
+    let r = col.num ? col.num(a) - col.num(b)
+                    : String(a[col.key] ?? "").localeCompare(String(b[col.key] ?? ""), "ja");
+    if (r === 0) r = a.name.localeCompare(b.name, "ja");
+    return stSortAsc ? r : -r;
+  });
+
+  const tb = document.getElementById("stBody");
+  tb.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  for (const s of rows) {
+    const tr = document.createElement("tr");
+    for (const c of ST_COLS) {
+      const v = s[c.key];
+      const td = document.createElement("td");
+      if (c.streak) {
+        td.className = signCls(v);
+        const b = document.createElement("span");
+        b.className = "streakval";
+        b.textContent = fmtStreak(v);
+        td.appendChild(b);
+        if (s.is_record && v !== 0) {
+          const r = document.createElement("span");
+          r.className = "rec";
+          r.textContent = "記録更新中";
+          r.style.marginLeft = "6px";
+          td.appendChild(r);
+        }
+      } else {
+        if (c.cls) td.className = c.cls;
+        else if (c.left) td.className = "tl";
+        else if (c.color) td.className = signCls(v);
+        td.textContent = c.fmt ? c.fmt(v, s) : (v == null ? "-" : v);
+      }
+      tr.appendChild(td);
+    }
+    frag.appendChild(tr);
+  }
+  tb.appendChild(frag);
+  document.getElementById("stStat").innerHTML = "表示 <b>" + rows.length + "</b> / " + stData.count + " 指数";
+}
+
+async function stInit() {
+  try {
+    const res = await fetch("data_streaks/data.json", { cache: "no-cache" });
+    stData = await res.json();
+    const sel = document.getElementById("stGroupSel");
+    for (const g of [...new Set(stData.indices.map(r => r.group))]) {
+      const o = document.createElement("option");
+      o.value = o.textContent = g;
+      sel.appendChild(o);
+    }
+    sel.onchange = stRenderTable;
+    document.getElementById("stBanner").innerHTML =
+      "対象 <b>" + stData.count + "</b> 指数 / 最新の取引日: <b>" + (stData.updated || "-") + "</b>" +
+      (stData.failed && stData.failed.length
+        ? ' / <span class="err">取得できなかった指数 ' + stData.failed.length + "件</span>" : "");
+    stRenderCards();
+    stRenderTable();
+  } catch (e) {
+    document.getElementById("stBanner").innerHTML = '<span class="err">読み込みエラー: ' + e + '</span>';
+  }
+}
+
 /* ---- 分割後1ヶ月騰落 ---- */
 const SP_COLS = [
   { key: "rank",          label: "代金順位", num: s => s.rank },
@@ -1191,7 +1351,8 @@ async function spInit() {
 const VIEW_ID = {
   ranking: "view-ranking", intraday: "view-intraday", split: "view-split",
   yori: "view-yori", minute: "view-minute", sector: "view-sector",
-  stop: "view-stop", stoplow: "view-stoplow", pts: "view-pts", shinyo: "view-shinyo",
+  stop: "view-stop", stoplow: "view-stoplow", streaks: "view-streaks",
+  pts: "view-pts", shinyo: "view-shinyo",
 };
 function switchTab(name) {
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
@@ -1200,6 +1361,7 @@ function switchTab(name) {
   }
   if (name === "intraday" && !iaInited) { iaInited = true; iaInit(); }
   if (name === "stoplow" && !slInited) { slInited = true; slInit(); }
+  if (name === "streaks" && !stInited) { stInited = true; stInit(); }
   if (name === "split" && !spInited) { spInited = true; spInit(); }
   // 外部サイトのiframeは初回表示時に遅延読み込み
   const view = document.getElementById(VIEW_ID[name]);
@@ -1223,6 +1385,7 @@ const FEEDS = {
   sector:   { kind: "index", url: "/Sector-ranking/data/index.json", freq: "daily" },
   stop:     { kind: "index", url: "/Stop-takayasu/data/index.json", freq: "daily" },
   stoplow:  { kind: "field", url: "./data_stoplow/data.json", field: "updated", freq: "daily" },
+  streaks:  { kind: "field", url: "./data_streaks/data.json", field: "updated", freq: "daily" },
   pts:      { kind: "index", url: "/buffett-code-pts-ranking/data/index.json", freq: "daily" },
   shinyo:   { kind: "index", url: "./data_shinyo/index.json", freq: "weekly" },
   split:    { kind: "field", url: "./data_split/analysis.json", field: "generated", freq: "ended" },
