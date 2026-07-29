@@ -285,6 +285,16 @@ def main():
             for r in rows
         ],
     }
+    # 休場日に走っても中身は前回と同じになる。generated だけ動いて毎回コミットが
+    # 積まれるのを避けるため、実質的な差分が無ければ書かない。
+    if OUT.is_file():
+        old = json.loads(OUT.read_text(encoding="utf-8"))
+        if {k: v for k, v in old.items() if k != "generated"} == \
+           {k: v for k, v in payload.items() if k != "generated"}:
+            print("skip: 前回から変化なし", file=sys.stderr)
+            print(str(OUT))
+            return
+
     OUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
                    encoding="utf-8")
 
