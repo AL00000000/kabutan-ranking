@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>監視銘柄リスト</title>
+<style>
+:root {
+  --bg: #0a0f1c;
+  --panel: #101830;
+  --panel2: #0d1426;
+  --border: #1e2a48;
+  --text: #dbe4f5;
+  --muted: #7787a5;
+  --accent: #39c5cf;
+  --up: #ff5b6a;
+  --down: #4da3ff;
+  --ma5: #ffd166;
+  --ma25: #39c5cf;
+  --ma75: #9b8cff;
+  --line: #ff9f43;
+  --band-a: rgba(255,255,255,.022);
+  --band-b: rgba(57,197,207,.045);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+  min-height: 100vh;
+}
+.wrap { max-width: 1400px; margin: 0 auto; padding: 16px 14px 64px; }
+
+/* ---------- ヘッダー ---------- */
+header.site { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 4px 2px 14px; }
+header.site h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: .02em; }
+header.site h1 .dot { color: var(--accent); }
+header.site .asof { color: var(--muted); font-size: .8rem; }
+
+/* ---------- セグメント（リスト / タブ / ボタン群） ---------- */
+.seg { display: inline-flex; background: var(--panel2); border: 1px solid var(--border); border-radius: 9px; padding: 3px; gap: 3px; }
+.seg button {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font: inherit; font-size: .84rem; padding: 6px 13px; border-radius: 6px; white-space: nowrap;
+}
+.seg button:hover { color: var(--text); }
+.seg button.on { background: var(--panel); color: var(--accent); box-shadow: inset 0 0 0 1px var(--border); }
+.seg.lists button.on { color: #04121a; background: var(--accent); box-shadow: none; font-weight: 700; }
+
+.toolbar {
+  display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px 12px; margin-bottom: 12px;
+}
+.toolbar .grp { display: flex; align-items: center; gap: 8px; }
+.toolbar label { color: var(--muted); font-size: .78rem; }
+.spacer { flex: 1 1 auto; }
+.count { color: var(--muted); font-size: .78rem; }
+.count b { color: var(--text); font-weight: 600; }
+
+/* ---------- フォルダ帯 ---------- */
+.band { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+.band + .band { margin-top: 0; }
+.band.tint-a { background: var(--band-a); }
+.band.tint-b { background: var(--band-b); }
+.band-label {
+  flex: none; width: 104px; display: flex; align-items: flex-start; justify-content: center;
+  padding: 12px 8px; border-right: 1px solid var(--border);
+  background: rgba(0,0,0,.22);
+}
+.band-label span {
+  font-size: .82rem; font-weight: 700; letter-spacing: .06em; color: var(--accent);
+  position: sticky; top: 12px; text-align: center; overflow-wrap: anywhere;
+}
+.band-label .n { display: block; font-size: .68rem; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-top: 3px; }
+.band-body { flex: 1 1 auto; min-width: 0; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+.band .band { margin-bottom: 0; border-radius: 10px; }
+.band .band .band-label { width: 88px; background: rgba(0,0,0,.3); }
+
+/* ---------- カードグリッド ---------- */
+.cards { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(var(--cardw), 1fr)); }
+body[data-size="s"] { --cardw: 156px; --charth: 74px; }
+body[data-size="m"] { --cardw: 212px; --charth: 104px; }
+body[data-size="l"] { --cardw: 288px; --charth: 148px; }
+.card {
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 9px;
+  padding: 7px 8px 6px; display: flex; flex-direction: column; gap: 3px; cursor: pointer;
+}
+.card:hover { border-color: var(--accent); }
+.card .top { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.card .code { font-size: .72rem; color: var(--muted); font-variant-numeric: tabular-nums; flex: none; }
+.card .name { font-size: .82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card .px { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.card .close { font-size: .95rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.card .chg { font-size: .74rem; font-variant-numeric: tabular-nums; }
+.up { color: var(--up); }
+.down { color: var(--down); }
+.flat { color: var(--muted); }
+.card canvas { width: 100%; height: var(--charth); display: block; }
+.card .legend { display: flex; gap: 8px; font-size: .62rem; color: var(--muted); }
+.card .legend i { font-style: normal; }
+.card .legend .d5 { color: var(--ma5); }
+.card .legend .d25 { color: var(--ma25); }
+.card .legend .d75 { color: var(--ma75); }
+.card.pending canvas { opacity: .25; }
+
+/* ---------- 騰落率テーブル ---------- */
+.tblwrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+th, td { padding: 6px 9px; text-align: right; white-space: nowrap; }
+th {
+  position: sticky; top: 0; z-index: 2; background: var(--panel);
+  color: var(--muted); font-weight: 600; font-size: .74rem; cursor: pointer;
+  border-bottom: 1px solid var(--border); user-select: none;
+}
+th:hover { color: var(--accent); }
+th.sorted { color: var(--accent); }
+th .arrow { font-size: .62rem; }
+td { border-bottom: 1px solid rgba(30,42,72,.55); font-variant-numeric: tabular-nums; }
+tbody tr:hover td { background: rgba(57,197,207,.06); }
+td.name, th.name, td.folder, th.folder { text-align: left; }
+td.name { font-weight: 600; }
+td.code, td.folder { color: var(--muted); font-size: .76rem; }
+td.pct { position: relative; }
+td.pct .bar { position: absolute; right: 0; top: 3px; bottom: 3px; opacity: .16; border-radius: 2px; }
+td.pct.up .bar { background: var(--up); }
+td.pct.down .bar { background: var(--down); }
+
+/* ---------- 拡大モーダル ---------- */
+dialog.zoom {
+  border: 1px solid var(--border); border-radius: 14px; background: var(--panel);
+  color: var(--text); padding: 0; width: min(940px, 94vw); margin: auto;
+}
+dialog.zoom::backdrop { background: rgba(4,8,18,.72); }
+.zoom-head { display: flex; align-items: baseline; gap: 10px; padding: 14px 16px 8px; flex-wrap: wrap; }
+.zoom-head .name { font-size: 1.05rem; font-weight: 700; }
+.zoom-head .close { margin-left: auto; background: var(--panel2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 5px 12px; font: inherit; font-size: .8rem; cursor: pointer; }
+.zoom-body { padding: 0 16px 16px; }
+.zoom-body canvas { width: 100%; height: min(52vh, 420px); display: block; }
+.zoom-lines { font-size: .76rem; color: var(--muted); padding-top: 8px; display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.zoom-lines b { color: var(--line); }
+
+.msg { border: 1px solid var(--border); background: var(--panel); border-radius: 12px; padding: 18px 20px; color: var(--muted); font-size: .88rem; line-height: 1.9; }
+.msg code { background: var(--panel2); border: 1px solid var(--border); border-radius: 5px; padding: 1px 7px; color: var(--accent); font-size: .85em; }
+.msg b { color: var(--text); }
+
+.band .band { border-color: rgba(57,197,207,.28); }
+
+@media (max-width: 640px) {
+  .wrap { padding: 10px 7px 48px; }
+  header.site { padding: 2px 2px 8px; gap: 6px 10px; }
+  header.site h1 { font-size: 1rem; }
+  .toolbar { gap: 6px 8px; padding: 7px 8px; border-radius: 10px; }
+  .toolbar label { font-size: .72rem; }
+  .seg { padding: 2px; border-radius: 7px; }
+  .seg button { font-size: .76rem; padding: 5px 9px; }
+  .band-label { width: 28px; padding: 9px 3px; }
+  .band-label span { writing-mode: vertical-rl; letter-spacing: .1em; text-orientation: upright; font-size: .76rem; }
+  .band-label .n { display: none; }
+  .band .band .band-label { width: 24px; }
+  .band-body { padding: 6px; gap: 6px; }
+  .cards { gap: 6px; }
+  .card { padding: 6px; }
+  body[data-size="s"] { --cardw: 118px; --charth: 60px; }
+  body[data-size="m"] { --cardw: 148px; --charth: 84px; }
+  body[data-size="l"] { --cardw: 100%; --charth: 168px; }
+}
+</style>
+</head>
+<body data-size="m">
+<div class="wrap">
+
+<header class="site">
+  <h1><span class="dot">◆</span> 監視銘柄リスト</h1>
+  <span class="asof" id="asof"></span>
+</header>
+
+<div class="toolbar">
+  <div class="grp"><div class="seg lists" id="listSeg"></div></div>
+  <div class="grp"><div class="seg" id="tabSeg">
+    <button data-tab="chart" class="on">チャート</button>
+    <button data-tab="table">騰落率</button>
+  </div></div>
+  <div class="spacer"></div>
+  <div class="grp chart-only"><label>期間</label><div class="seg" id="periodSeg">
+    <button data-p="1m">1ヶ月</button>
+    <button data-p="3m" class="on">3ヶ月</button>
+    <button data-p="6m">6ヶ月</button>
+    <button data-p="1y">1年</button>
+  </div></div>
+  <div class="grp chart-only"><label>大きさ</label><div class="seg" id="sizeSeg">
+    <button data-s="s">小</button>
+    <button data-s="m" class="on">中</button>
+    <button data-s="l">大</button>
+  </div></div>
+  <div class="grp"><label>並び</label><div class="seg" id="sortSeg">
+    <button data-k="reg" class="on">登録順</button>
+    <button data-k="pct">騰落率</button>
+    <button data-k="code">コード</button>
+  </div></div>
+  <div class="grp"><label>範囲</label><div class="seg" id="scopeSeg">
+    <button data-sc="folder" class="on">フォルダ内</button>
+    <button data-sc="all">全体</button>
+  </div></div>
+  <span class="count" id="count"></span>
+</div>
+
+<div id="content"></div>
+</div>
+
+<dialog class="zoom" id="zoom">
+  <div class="zoom-head">
+    <span class="name" id="zName"></span>
+    <span class="asof" id="zPx"></span>
+    <button class="close" id="zClose">閉じる ✕</button>
+  </div>
+  <div class="zoom-body">
+    <canvas id="zCanvas"></canvas>
+    <div class="zoom-lines" id="zLines"></div>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+const DIR = "data_watch/";
+const BARS = { "1m": 22, "3m": 62, "6m": 124, "1y": 250 };
+
+const state = {
+  watchlist: null, names: {}, summary: {}, lines: {},
+  listIdx: 0, tab: "chart", period: "3m", size: "m", sortKey: "reg", sortDir: -1, scope: "folder",
+};
+const cache = new Map();      // code -> 日足データ
+const pending = new Map();    // code -> Promise
+const $ = (s) => document.querySelector(s);
+
+/* ============================ 読み込み ============================ */
+async function getJSON(path, fallback) {
+  try {
+    const r = await fetch(DIR + path, { cache: "no-cache" });
+    if (!r.ok) throw new Error(r.status);
+    return await r.json();
+  } catch (e) { return fallback; }
+}
+
+async function boot() {
+  const [wl, names, summary, lines] = await Promise.all([
+    getJSON("watchlist.json", null),
+    getJSON("names.json", {}),
+    getJSON("summary.json", { stocks: {} }),
+    getJSON("lines.json", { lines: {} }),
+  ]);
+  if (!wl || !wl.lists || !wl.lists.length) {
+    $("#content").innerHTML = '<div class="msg"><b>監視リストがまだありません。</b><br>'
+      + '<code>py watchlist.py mklist 狙い株</code> でリストを作り、'
+      + '<code>py watchlist.py add 6146 --to 狙い株</code> で銘柄を追加してください。</div>';
+    return;
+  }
+  state.watchlist = wl;
+  state.names = names || {};
+  state.summary = (summary && summary.stocks) || {};
+  state.lines = (lines && lines.lines) || {};
+  $("#asof").textContent = summary && summary.date ? "最終更新 " + summary.date : "";
+  buildListSeg();
+  bindControls();
+  render();
+}
+
+/* ============================ 部品 ============================ */
+function curList() { return state.watchlist.lists[state.listIdx]; }
+
+function nameOf(code) {
+  const s = state.summary[code];
+  return (s && s.name) || state.names[code] || code;
+}
+
+function countCodes(node) {
+  let n = (node.codes || []).length;
+  for (const f of node.folders || []) n += countCodes(f);
+  return n;
+}
+
+/** リストを「帯」の木に分解する。帯 = { label, codes, children } */
+function bandOf(folder) {
+  return {
+    label: folder.name,
+    codes: (folder.codes || []).slice(),
+    children: (folder.folders || []).map(bandOf),
+  };
+}
+
+function toBands(list) {
+  const bands = [];
+  const hasFolders = (list.folders || []).length > 0;
+  if ((list.codes || []).length) {
+    bands.push({ label: hasFolders ? "未分類" : null, codes: list.codes.slice(), children: [] });
+  }
+  for (const f of list.folders || []) bands.push(bandOf(f));
+  return bands.filter((b) => b.codes.length || b.children.length);
+}
+
+/** 帯とその配下すべての銘柄を平らに並べる */
+function flatten(band) {
+  const out = band.codes.slice();
+  for (const c of band.children || []) out.push(...flatten(c));
+  return out;
+}
+
+function sortCodes(codes) {
+  const k = state.sortKey;
+  if (k === "reg") return codes;
+  const arr = codes.slice();
+  if (k === "code") { arr.sort((a, b) => a.localeCompare(b)); return arr; }
+  arr.sort((a, b) => {
+    const pa = state.summary[a] && state.summary[a].pct, pb = state.summary[b] && state.summary[b].pct;
+    if (pa == null && pb == null) return 0;
+    if (pa == null) return 1;
+    if (pb == null) return -1;
+    return (pb - pa) * (state.sortDir < 0 ? 1 : -1);
+  });
+  return arr;
+}
+
+const fmt = (v, d) => v == null ? "—" : v.toLocaleString("ja-JP", { minimumFractionDigits: d || 0, maximumFractionDigits: d == null ? 1 : d });
+const pctText = (v) => v == null ? "—" : (v > 0 ? "+" : "") + v.toFixed(2) + "%";
+const dirClass = (v) => v == null ? "flat" : v > 0 ? "up" : v < 0 ? "down" : "flat";
+
+/* ============================ 描画（一覧） ============================ */
+function render() {
+  const list = curList();
+  const content = $("#content");
+  content.innerHTML = "";
+  document.querySelectorAll(".chart-only").forEach((e) => { e.style.display = state.tab === "chart" ? "" : "none"; });
+
+  let bands = toBands(list);
+  if (state.scope === "all") {
+    const all = [];
+    for (const b of bands) all.push(...flatten(b));
+    bands = [{ label: null, codes: all, children: [] }];
+  }
+  $("#count").innerHTML = "<b>" + countCodes(list) + "</b> 銘柄";
+
+  let tint = 0;
+  const renderBand = (band, depth) => {
+    const { sec, body } = bandShell(band, tint++, depth);
+    const codes = sortCodes(band.codes);
+    if (codes.length) {
+      body.appendChild(state.tab === "chart" ? cardGrid(codes) : dataTable(codes));
+    }
+    for (const child of band.children || []) body.appendChild(renderBand(child, depth + 1));
+    return sec;
+  };
+  for (const band of bands) content.appendChild(renderBand(band, 0));
+  observeCards();
+}
+
+function bandShell(band, i, depth) {
+  const sec = document.createElement("section");
+  sec.className = "band " + (i % 2 ? "tint-b" : "tint-a");
+  sec.dataset.depth = depth;
+  if (band.label) {
+    const lab = document.createElement("div");
+    lab.className = "band-label";
+    lab.innerHTML = "<span>" + escapeHTML(band.label)
+      + '<i class="n">' + flatten(band).length + "</i></span>";
+    sec.appendChild(lab);
+  }
+  const body = document.createElement("div");
+  body.className = "band-body";
+  sec.appendChild(body);
+  return { sec, body };
+}
+
+function cardGrid(codes) {
+  const grid = document.createElement("div");
+  grid.className = "cards";
+  for (const code of codes) grid.appendChild(card(code));
+  return grid;
+}
+
+function card(code) {
+  const s = state.summary[code] || {};
+  const el = document.createElement("article");
+  el.className = "card pending";
+  el.dataset.code = code;
+  el.innerHTML =
+    '<div class="top"><span class="code">' + code + '</span>'
+    + '<span class="name">' + escapeHTML(nameOf(code)) + '</span></div>'
+    + '<div class="px"><span class="close">' + fmt(s.close) + '</span>'
+    + '<span class="chg ' + dirClass(s.pct) + '">' + (s.chg == null ? "" : (s.chg > 0 ? "+" : "") + fmt(s.chg)) + " " + pctText(s.pct) + '</span></div>'
+    + '<canvas></canvas>'
+    + '<div class="legend"><i class="d5">5日</i><i class="d25">25日</i><i class="d75">75日</i></div>';
+  el.addEventListener("click", () => openZoom(code));
+  return el;
+}
+
+/* ============================ 描画（騰落率） ============================ */
+const COLS = [
+  { k: "code", t: "コード", cls: "code" },
+  { k: "name", t: "銘柄名", cls: "name" },
+  { k: "close", t: "終値" },
+  { k: "chg", t: "前日比" },
+  { k: "pct", t: "前日比%" },
+  { k: "r1w", t: "1週" },
+  { k: "r1m", t: "1ヶ月" },
+  { k: "r3m", t: "3ヶ月" },
+  { k: "r6m", t: "6ヶ月" },
+  { k: "r1y", t: "1年" },
+  { k: "rytd", t: "年初来" },
+  { k: "rank", t: "代金順位" },
+];
+let tblSort = { k: "pct", dir: -1 };
+
+function dataTable(bandCodes) {
+  const wrap = document.createElement("div");
+  wrap.className = "tblwrap";
+  const t = document.createElement("table");
+
+  const head = COLS.map((c) =>
+    '<th class="' + (c.cls || "") + (tblSort.k === c.k ? " sorted" : "") + '" data-k="' + c.k + '">'
+    + c.t + (tblSort.k === c.k ? ' <span class="arrow">' + (tblSort.dir < 0 ? "▼" : "▲") + "</span>" : "") + "</th>").join("");
+
+  const codes = bandCodes.slice().sort((a, b) => {
+    const A = state.summary[a] || {}, B = state.summary[b] || {};
+    let va = tblSort.k === "name" ? nameOf(a) : tblSort.k === "code" ? a : A[tblSort.k];
+    let vb = tblSort.k === "name" ? nameOf(b) : tblSort.k === "code" ? b : B[tblSort.k];
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    if (typeof va === "string") return va.localeCompare(vb) * (tblSort.dir < 0 ? -1 : 1);
+    return (va - vb) * (tblSort.dir < 0 ? -1 : 1);
+  });
+
+  const rows = codes.map((code) => {
+    const s = state.summary[code] || {};
+    const cell = (v, isPct) => {
+      if (!isPct) return "<td>" + (v == null ? "—" : fmt(v)) + "</td>";
+      const w = v == null ? 0 : Math.min(Math.abs(v) * 4, 100);
+      return '<td class="pct ' + dirClass(v) + '"><span class="bar" style="width:' + w + '%"></span>' + pctText(v) + "</td>";
+    };
+    return "<tr>"
+      + '<td class="code">' + code + "</td>"
+      + '<td class="name">' + escapeHTML(nameOf(code)) + "</td>"
+      + "<td>" + fmt(s.close) + "</td>"
+      + '<td class="' + dirClass(s.chg) + '">' + (s.chg == null ? "—" : (s.chg > 0 ? "+" : "") + fmt(s.chg)) + "</td>"
+      + cell(s.pct, true) + cell(s.r1w, true) + cell(s.r1m, true) + cell(s.r3m, true)
+      + cell(s.r6m, true) + cell(s.r1y, true) + cell(s.rytd, true)
+      + "<td>" + (s.rank == null ? "—" : s.rank) + "</td>"
+      + "</tr>";
+  }).join("");
+
+  t.innerHTML = "<thead><tr>" + head + "</tr></thead><tbody>" + rows + "</tbody>";
+  t.querySelectorAll("th").forEach((th) => {
+    th.onclick = () => {
+      const k = th.dataset.k;
+      if (tblSort.k === k) tblSort.dir *= -1; else { tblSort.k = k; tblSort.dir = -1; }
+      render();
+    };
+  });
+  wrap.appendChild(t);
+  return wrap;
+}
+
+/* ============================ データ取得（遅延） ============================ */
+let observer = null;
+function observeCards() {
+  if (observer) observer.disconnect();
+  if (state.tab !== "chart") return;
+  observer = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      observer.unobserve(e.target);
+      fillCard(e.target);
+    }
+  }, { rootMargin: "500px 0px" });
+  document.querySelectorAll(".card").forEach((c) => observer.observe(c));
+}
+
+async function loadCode(code) {
+  if (cache.has(code)) return cache.get(code);
+  if (pending.has(code)) return pending.get(code);
+  const p = getJSON("codes/" + code + ".json", null).then((d) => {
+    if (d && d.c) { d.ma = { 5: sma(d.c, 5), 25: sma(d.c, 25), 75: sma(d.c, 75) }; }
+    cache.set(code, d);
+    pending.delete(code);
+    return d;
+  });
+  pending.set(code, p);
+  return p;
+}
+
+async function fillCard(el) {
+  const code = el.dataset.code;
+  const d = await loadCode(code);
+  el.classList.remove("pending");
+  if (!d) { el.querySelector("canvas").replaceWith(noData()); return; }
+  if (!state.summary[code]) patchFromBars(el, d);
+  drawChart(el.querySelector("canvas"), d, BARS[state.period], state.lines[code], false);
+}
+
+function noData() {
+  const s = document.createElement("div");
+  s.className = "legend";
+  s.style.height = "var(--charth)";
+  s.style.display = "flex";
+  s.style.alignItems = "center";
+  s.textContent = "データ未取得";
+  return s;
+}
+
+/** summary.json が無い銘柄は日足から終値・前日比を出す */
+function patchFromBars(el, d) {
+  const n = d.c.length;
+  if (!n) return;
+  const close = d.c[n - 1], prev = n > 1 ? d.c[n - 2] : null;
+  const pct = prev ? (close / prev - 1) * 100 : null;
+  el.querySelector(".close").textContent = fmt(close);
+  const chg = el.querySelector(".chg");
+  chg.className = "chg " + dirClass(pct);
+  chg.textContent = (prev == null ? "" : (close - prev > 0 ? "+" : "") + fmt(close - prev)) + " " + pctText(pct);
+}
+
+function sma(arr, n) {
+  const out = new Array(arr.length).fill(null);
+  let sum = 0, cnt = 0;
+  for (let i = 0; i < arr.length; i++) {
+    const v = arr[i];
+    if (v == null) { continue; }
+    sum += v; cnt++;
+    if (cnt > n) { /* 欠損があっても概ね正しく保つ */ }
+    if (i >= n) { const old = arr[i - n]; if (old != null) { sum -= old; cnt--; } }
+    if (cnt >= n) out[i] = sum / n;
+  }
+  return out;
+}
+
+/* ============================ ローソク足描画 ============================ */
+function drawChart(cv, d, nbars, lines, big) {
+  const w = cv.clientWidth, h = cv.clientHeight;
+  if (!w || !h) return;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+
+  const n = d.c.length;
+  const from = Math.max(0, n - nbars);
+  const cnt = n - from;
+  if (cnt < 2) return;
+
+  let lo = Infinity, hi = -Infinity;
+  for (let i = from; i < n; i++) {
+    if (d.l[i] != null) lo = Math.min(lo, d.l[i]);
+    if (d.h[i] != null) hi = Math.max(hi, d.h[i]);
+    for (const p of [5, 25, 75]) { const v = d.ma[p][i]; if (v != null) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }
+  }
+  for (const ln of lines || []) { if (ln.price >= lo * 0.9 && ln.price <= hi * 1.1) { lo = Math.min(lo, ln.price); hi = Math.max(hi, ln.price); } }
+  if (!isFinite(lo) || !isFinite(hi) || hi <= lo) return;
+  const pad = (hi - lo) * 0.06;
+  lo -= pad; hi += pad;
+
+  // 価格ラベルの実寸から右余白を決める(桁数で切れないように)
+  const fs = big ? 11 : 9;
+  g.font = fs + "px ui-monospace, Consolas, monospace";
+  const label = (v) => Math.round(v).toLocaleString("ja-JP");
+  const padR = Math.ceil(g.measureText(label(hi)).width) + 7;
+  const padT = big ? 10 : 7, padB = big ? 20 : 7;
+  const plotW = Math.max(20, w - padR), plotH = Math.max(10, h - padT - padB);
+
+  const x = (i) => ((i - from) + 0.5) * (plotW / cnt);
+  const y = (v) => padT + plotH - ((v - lo) / (hi - lo)) * plotH;
+
+  // 目盛り
+  g.strokeStyle = "rgba(120,135,165,.16)"; g.lineWidth = 1;
+  g.fillStyle = "#7787a5"; g.textAlign = "left"; g.textBaseline = "alphabetic";
+  const ticks = big ? 5 : 3;
+  for (let t = 0; t < ticks; t++) {
+    const v = lo + (hi - lo) * (t / (ticks - 1));
+    const yy = Math.round(y(v)) + 0.5;
+    g.beginPath(); g.moveTo(0, yy); g.lineTo(plotW, yy); g.stroke();
+    const ly = Math.min(Math.max(yy + fs * 0.35, fs), h - 2);
+    g.fillText(label(v), plotW + 4, ly);
+  }
+
+  // ローソク足
+  const bw = plotW / cnt;
+  const body = Math.max(1, Math.min(bw * 0.68, big ? 9 : 5));
+  for (let i = from; i < n; i++) {
+    const o = d.o[i], hh = d.h[i], ll = d.l[i], c = d.c[i];
+    if (c == null) continue;
+    const up = o == null ? true : c >= o;
+    const col = up ? "#ff5b6a" : "#4da3ff";
+    const cx = x(i);
+    g.strokeStyle = col; g.fillStyle = col;
+    if (hh != null && ll != null) {
+      g.lineWidth = Math.max(1, body * 0.18);
+      g.beginPath(); g.moveTo(cx, y(hh)); g.lineTo(cx, y(ll)); g.stroke();
+    }
+    if (o != null) {
+      const yo = y(o), yc = y(c);
+      const top = Math.min(yo, yc), hgt = Math.max(1, Math.abs(yc - yo));
+      g.fillRect(cx - body / 2, top, body, hgt);
+    }
+  }
+
+  // 移動平均
+  const maCols = { 5: "#ffd166", 25: "#39c5cf", 75: "#9b8cff" };
+  for (const p of [5, 25, 75]) {
+    g.strokeStyle = maCols[p]; g.lineWidth = big ? 1.6 : 1.1;
+    g.beginPath();
+    let started = false;
+    for (let i = from; i < n; i++) {
+      const v = d.ma[p][i];
+      if (v == null) { started = false; continue; }
+      if (!started) { g.moveTo(x(i), y(v)); started = true; } else g.lineTo(x(i), y(v));
+    }
+    g.stroke();
+  }
+
+  // 意識するライン
+  for (const ln of lines || []) {
+    const yy = y(ln.price);
+    if (yy < padT - 2 || yy > padT + plotH + 2) continue;
+    g.strokeStyle = ln.color || "#ff9f43"; g.lineWidth = 1;
+    g.setLineDash([4, 3]);
+    g.beginPath(); g.moveTo(0, yy); g.lineTo(plotW, yy); g.stroke();
+    g.setLineDash([]);
+    if (big && ln.label) { g.fillStyle = ln.color || "#ff9f43"; g.fillText(ln.label, 4, yy - 4); }
+  }
+
+  // 日付（拡大時のみ）
+  if (big) {
+    g.fillStyle = "#7787a5"; g.textAlign = "center";
+    const step = Math.max(1, Math.floor(cnt / 6));
+    for (let i = from; i < n; i += step) {
+      const s = String(d.d[i]), cx = x(i);
+      g.textAlign = cx < 26 ? "left" : cx > plotW - 26 ? "right" : "center";
+      g.fillText(s.slice(4, 6) + "/" + s.slice(6, 8), Math.min(Math.max(cx, 0), plotW), h - 5);
+    }
+    g.textAlign = "left";
+  }
+}
+
+/* ============================ 拡大表示 ============================ */
+async function openZoom(code) {
+  const d = await loadCode(code);
+  if (!d) return;
+  const s = state.summary[code] || {};
+  $("#zName").textContent = code + "  " + nameOf(code);
+  $("#zPx").innerHTML = s.close == null ? "" :
+    fmt(s.close) + ' <span class="' + dirClass(s.pct) + '">' + pctText(s.pct) + "</span>";
+  const lines = state.lines[code] || [];
+  $("#zLines").innerHTML = lines.length
+    ? lines.map((l) => "<span><b>" + fmt(l.price) + "円</b> " + escapeHTML(l.label || "") + "</span>").join("")
+    : '<span>ラインなし（<code>py watchlist.py line add ' + code + ' 価格 --label ラベル</code> で追加）</span>';
+  const dlg = $("#zoom");
+  dlg.showModal();
+  requestAnimationFrame(() => drawChart($("#zCanvas"), d, BARS["1y"], lines, true));
+}
+
+/* ============================ 操作 ============================ */
+function buildListSeg() {
+  const seg = $("#listSeg");
+  seg.innerHTML = state.watchlist.lists.map((l, i) =>
+    '<button data-i="' + i + '"' + (i === state.listIdx ? ' class="on"' : "") + ">"
+    + escapeHTML(l.name) + "</button>").join("");
+  seg.querySelectorAll("button").forEach((b) => {
+    b.onclick = () => { state.listIdx = +b.dataset.i; syncSeg(seg, b); render(); };
+  });
+}
+
+function syncSeg(seg, btn) {
+  seg.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === btn));
+}
+
+function bindControls() {
+  const bind = (sel, fn) => {
+    const seg = $(sel);
+    seg.querySelectorAll("button").forEach((b) => {
+      b.onclick = () => { syncSeg(seg, b); fn(b); render(); };
+    });
+  };
+  bind("#tabSeg", (b) => { state.tab = b.dataset.tab; });
+  bind("#periodSeg", (b) => { state.period = b.dataset.p; });
+  bind("#sizeSeg", (b) => { state.size = b.dataset.s; document.body.dataset.size = b.dataset.s; });
+  bind("#sortSeg", (b) => {
+    if (state.sortKey === b.dataset.k && b.dataset.k === "pct") state.sortDir *= -1;
+    state.sortKey = b.dataset.k;
+  });
+  bind("#scopeSeg", (b) => { state.scope = b.dataset.sc; });
+  $("#zClose").onclick = () => $("#zoom").close();
+  let t = null;
+  window.addEventListener("resize", () => { clearTimeout(t); t = setTimeout(redrawVisible, 200); });
+}
+
+function redrawVisible() {
+  document.querySelectorAll(".card").forEach((el) => {
+    const d = cache.get(el.dataset.code);
+    const cv = el.querySelector("canvas");
+    if (d && cv) drawChart(cv, d, BARS[state.period], state.lines[el.dataset.code], false);
+  });
+}
+
+function escapeHTML(s) {
+  return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+boot();
+</script>
+</body>
+</html>
