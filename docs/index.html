@@ -241,6 +241,7 @@ footer a { color: var(--accent); }
         <button class="tab" data-tab="minute">分足チャート記録</button>
         <button class="tab" data-tab="sector">業種別騰落</button>
         <button class="tab" data-tab="stop">ストップ高・安</button>
+        <button class="tab" data-tab="stoplow">ストップ安→後場寄り検証</button>
         <button class="tab" data-tab="pts">PTS株価</button>
       </div>
     </div>
@@ -318,6 +319,33 @@ footer a { color: var(--accent); }
       本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
     </footer>
   </div><!-- /view-intraday -->
+
+  <div id="view-stoplow" hidden>
+    <div class="toolbar">
+      <span><label>表示</label><select id="slScopeSel">
+        <option value="valid">集計対象の行のみ</option>
+        <option value="all">全行(気配・分足なしも含む)</option>
+      </select></span>
+      <input id="slQ" type="search" placeholder="銘柄名・コードで絞り込み">
+      <span class="stat" id="slStat"></span>
+    </div>
+    <div class="banner" id="slBanner">読み込み中…</div>
+    <div class="cards" id="slCards"></div>
+    <div class="hintRow">
+      <div class="hint"><b>引けでストップ安に張り付いた銘柄(T)</b>について、その<b>2営業日後(T+2)の後場寄り(12:30の始値)</b>が、① T の終値 ② T+2 の始値 ③ T+2 の前場引け値(11:30) それぞれと比べてどうだったかをまとめています。上のカードは3つの比較それぞれの平均・中央値と、後場寄りが高かった/安かった/変わらずの内訳です(平均・中央値は全て含めた単純平均)。<br>
+      <b>集計から除外している行</b>: (1) <b>気配</b> = T+2 の後場寄りに1株も出来ていない銘柄。売り気配のままだとチャートは直前の約定値を出来高0で持ち越すため、表示上の12:30値は実際には付いていません。(2) <b>分足なし</b> = 株探の5分足は直近5営業日分しか遡れないため、それ以前の T+2 については11:30・12:30が取得できません(日足から取れる終値・始値のみ表示)。「11:30→12:30」の集計は前場引けにも出来高がある行のみが対象です。列見出しクリックで並び替えできます。</div>
+    </div>
+    <div class="tablecard">
+      <table id="slTbl">
+        <thead><tr id="slHeadRow"></tr></thead>
+        <tbody id="slBody"><tr><td class="loading" colspan="13">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+    <footer>
+      ストップ安銘柄: <a href="/Stop-takayasu/" target="_blank" rel="noopener">ストップ高・ストップ安タブ</a>と同じデータ / 株価: <a href="https://kabutan.jp/stock/chart" target="_blank" rel="noopener">株探(kabutan.jp)</a> の日足・5分足 / 株価は15分ディレイ。<br>
+      本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
+    </footer>
+  </div><!-- /view-stoplow -->
 
   <div id="view-split" hidden>
     <div class="toolbar">
@@ -908,6 +936,135 @@ async function iaInit() {
   }
 }
 
+/* ---- ストップ安 → 2営業日後の後場寄り 検証 ---- */
+const SL_STATUS = { done: "", kehai: "気配", partial: "分足なし", pending: "集計待ち" };
+const SL_COLS = [
+  { key: "t",            label: "ストップ安日", left: true },
+  { key: "code",         label: "コード",   code: true, left: true },
+  { key: "name",         label: "銘柄名",   left: true, cls: "name tl" },
+  { key: "market",       label: "市場",     left: true },
+  { key: "close_t",      label: "当日終値", num: s => s.close_t ?? -Infinity, fmt: fmtPrice },
+  { key: "t2",           label: "2営業日後", left: true },
+  { key: "open_t2",      label: "始値",     num: s => s.open_t2 ?? -Infinity, fmt: fmtPrice },
+  { key: "am_close",     label: "11:30",    num: s => s.am_close ?? -Infinity, fmt: fmtPrice },
+  { key: "pm_open",      label: "12:30",    num: s => s.pm_open ?? -Infinity, fmt: fmtPrice },
+  { key: "pct_close_t",  label: "当日終値→12:30", num: s => s.pct_close_t ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "pct_open_t2",  label: "始値→12:30",     num: s => s.pct_open_t2 ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "pct_am_close", label: "11:30→12:30",    num: s => s.pct_am_close ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "status",       label: "備考",     left: true, fmt: v => SL_STATUS[v] ?? "" },
+];
+let slData = null, slSortKey = "t", slSortAsc = false, slInited = false;
+
+function slRenderCards() {
+  if (!slData) return;
+  const s = slData.summary;
+  const defs = [
+    ["ストップ安日の終値 → 後場寄り", s.close_t],
+    ["2営業日後の始値 → 後場寄り", s.open_t2],
+    ["2営業日後の11:30 → 後場寄り", s.am_close],
+  ];
+  document.getElementById("slCards").innerHTML = defs.map(([ttl, a]) =>
+    '<div class="card"><div class="ttl">' + ttl + '</div>' +
+    '<div class="big ' + signCls(a.mean) + '">' + fmtPct(a.mean) + '</div>' +
+    '<div class="sub">中央 <b>' + fmtPct(a.median) + '</b> ・ 対象 <b>' + a.count + '</b>銘柄<br>' +
+    '高い <span class="u">' + a.up + '</span> / 安い <span class="d">' + a.down +
+    '</span> / 変わらず ' + a.flat + '</div></div>'
+  ).join("");
+}
+
+function slBuildHead() {
+  const tr = document.getElementById("slHeadRow");
+  tr.innerHTML = "";
+  for (const c of SL_COLS) {
+    const th = document.createElement("th");
+    th.textContent = c.label;
+    if (c.left) th.classList.add("tl");
+    if (c.key === slSortKey) {
+      const a = document.createElement("span");
+      a.className = "arw";
+      a.textContent = slSortAsc ? "▲" : "▼";
+      th.appendChild(a);
+    }
+    th.onclick = () => {
+      if (slSortKey === c.key) slSortAsc = !slSortAsc;
+      else { slSortKey = c.key; slSortAsc = false; }
+      slRenderTable();
+    };
+    tr.appendChild(th);
+  }
+}
+
+function slRenderTable() {
+  if (!slData) return;
+  slBuildHead();
+  const scope = document.getElementById("slScopeSel").value;
+  const q = document.getElementById("slQ").value.trim().toLowerCase();
+  let rows = slData.rows.filter(r => scope === "all" || r.status === "done");
+  if (q) rows = rows.filter(r => (r.name || "").toLowerCase().includes(q) ||
+                                 (r.code || "").toLowerCase().includes(q));
+  const col = SL_COLS.find(c => c.key === slSortKey);
+  rows = rows.slice().sort((a, b) => {
+    let r;
+    if (col.num) r = col.num(a) - col.num(b);
+    else r = String(a[col.key] ?? "").localeCompare(String(b[col.key] ?? ""), "ja");
+    if (r === 0) r = String(a.t + a.code).localeCompare(String(b.t + b.code));
+    return slSortAsc ? r : -r;
+  });
+
+  const tb = document.getElementById("slBody");
+  tb.innerHTML = "";
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td class="loading" colspan="13">該当する銘柄がありません</td></tr>';
+    document.getElementById("slStat").innerHTML = "";
+    return;
+  }
+  const frag = document.createDocumentFragment();
+  for (const s of rows) {
+    const tr = document.createElement("tr");
+    for (const c of SL_COLS) {
+      const v = s[c.key];
+      const td = document.createElement("td");
+      if (c.code) {
+        td.className = "code tl";
+        const a = document.createElement("a");
+        a.href = "https://kabutan.jp/stock/chart?code=" + encodeURIComponent(v) + "&ashi=5";
+        a.target = "_blank"; a.rel = "noopener";
+        a.textContent = v;
+        td.appendChild(a);
+      } else {
+        if (c.cls) td.className = c.cls;
+        else if (c.left) td.className = "tl";
+        else if (c.color) td.className = signCls(v);
+        td.textContent = c.fmt ? c.fmt(v) : (v == null ? "-" : v);
+      }
+      tr.appendChild(td);
+    }
+    frag.appendChild(tr);
+  }
+  tb.appendChild(frag);
+  document.getElementById("slStat").innerHTML =
+    "表示 <b>" + rows.length + "</b> / 全 <b>" + slData.total + "</b> 行";
+}
+
+async function slInit() {
+  try {
+    const res = await fetch("data_stoplow/data.json", { cache: "no-cache" });
+    slData = await res.json();
+    const s = slData.summary;
+    document.getElementById("slBanner").innerHTML =
+      "引けでストップ安張り付き <b>" + slData.total + "</b> 件 / 集計対象 <b>" +
+      s.open_t2.count + "</b> 件" +
+      (s.excluded_no_trade ? " / 気配で除外 <b>" + s.excluded_no_trade + "</b> 件" : "") +
+      " / 最新の2営業日後: <b>" + (slData.updated || "-") + "</b>";
+    document.getElementById("slScopeSel").onchange = slRenderTable;
+    document.getElementById("slQ").oninput = slRenderTable;
+    slRenderCards();
+    slRenderTable();
+  } catch (e) {
+    document.getElementById("slBanner").innerHTML = '<span class="err">読み込みエラー: ' + e + '</span>';
+  }
+}
+
 /* ---- 分割後1ヶ月騰落 ---- */
 const SP_COLS = [
   { key: "rank",          label: "代金順位", num: s => s.rank },
@@ -1034,7 +1191,7 @@ async function spInit() {
 const VIEW_ID = {
   ranking: "view-ranking", intraday: "view-intraday", split: "view-split",
   yori: "view-yori", minute: "view-minute", sector: "view-sector",
-  stop: "view-stop", pts: "view-pts", shinyo: "view-shinyo",
+  stop: "view-stop", stoplow: "view-stoplow", pts: "view-pts", shinyo: "view-shinyo",
 };
 function switchTab(name) {
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
@@ -1042,6 +1199,7 @@ function switchTab(name) {
     document.getElementById(id).hidden = (id !== VIEW_ID[name]);
   }
   if (name === "intraday" && !iaInited) { iaInited = true; iaInit(); }
+  if (name === "stoplow" && !slInited) { slInited = true; slInit(); }
   if (name === "split" && !spInited) { spInited = true; spInit(); }
   // 外部サイトのiframeは初回表示時に遅延読み込み
   const view = document.getElementById(VIEW_ID[name]);
@@ -1064,6 +1222,7 @@ const FEEDS = {
   minute:   { kind: "probe", url: "/kabutan-minute-chart/data/0000/", freq: "daily" },
   sector:   { kind: "index", url: "/Sector-ranking/data/index.json", freq: "daily" },
   stop:     { kind: "index", url: "/Stop-takayasu/data/index.json", freq: "daily" },
+  stoplow:  { kind: "field", url: "./data_stoplow/data.json", field: "updated", freq: "daily" },
   pts:      { kind: "index", url: "/buffett-code-pts-ranking/data/index.json", freq: "daily" },
   shinyo:   { kind: "index", url: "./data_shinyo/index.json", freq: "weekly" },
   split:    { kind: "field", url: "./data_split/analysis.json", field: "generated", freq: "ended" },
