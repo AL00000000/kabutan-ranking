@@ -309,6 +309,10 @@ def summarize(code, name, bars, rank):
     def back(days):
         return pct(close, close_at_or_before(bars, dint(last_date - timedelta(days=days))))
 
+    # 25日移動平均線(直近25本の終値の単純平均)。カードの色分けに使う
+    closes25 = [b[4] for b in bars[-25:] if b[4] is not None]
+    ma25 = round(sum(closes25) / len(closes25), 1) if len(closes25) == 25 else None
+
     ytd_base = close_at_or_before(bars, dint(date(last_date.year, 1, 1) - timedelta(days=1)))
     highs = [b[2] for b in recent if b[2] is not None]
     lows = [b[3] for b in recent if b[3] is not None]
@@ -321,6 +325,8 @@ def summarize(code, name, bars, rank):
         "chg": None if prev is None else round(close - prev, 1),
         "pct": pct(close, prev),
         "r1w": back(7),
+        "ma25": ma25,
+        "vs25": pct(close, ma25),      # 25日線からの乖離率(+なら線の上)
         "r1m": back(30),
         "r3m": back(91),
         "r6m": back(182),
@@ -353,6 +359,12 @@ def main(argv=None):
     names = load_json(NAMES, {})
     rank_names, ranks = ranking_lookup()
     today = date.today()
+
+    if args.summary_only:
+        # 保存済みの日足から summary.json を作り直すだけ(通信しない)。
+        # 集計項目を増やしたときに、取得し直さず反映させるために使う。
+        build_summary(all_codes, names, ranks)
+        return 0
 
     print(f"対象 {len(targets)}銘柄 ({'全期間取り直し' if args.full else '差分更新'})")
     ok, failed = 0, []
@@ -419,6 +431,8 @@ def build_parser():
     p.add_argument("--codes", help="対象銘柄を限定する (例: 6146,7735)")
     p.add_argument("--no-sync", action="store_true", dest="no_sync",
                    help="Firestoreからの取り込みを行わず、ローカルの watchlist.json をそのまま使う")
+    p.add_argument("--summary-only", action="store_true", dest="summary_only",
+                   help="株価を取得せず、保存済みの日足から summary.json だけ作り直す")
     return p
 
 

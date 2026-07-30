@@ -98,6 +98,13 @@ body[data-size="l"] { --cardw: 288px; --charth: 148px; }
 .up { color: var(--up); }
 .down { color: var(--down); }
 .flat { color: var(--muted); }
+
+/* 終値と25日移動平均線の比較。線より上なら緑、下なら赤の背景で塗る。
+   前日比の赤(--up)/青(--down)とは別物なので、色を分けて混同を避けている。 */
+.a25up, .a25down { border-radius: 5px; padding: 1px 5px; }
+.a25up { background: rgba(37,150,90,.30); color: #8ff0bc; }
+.a25down { background: rgba(200,54,70,.30); color: #ffb3bc; }
+td.a25up, td.a25down { border-radius: 0; }
 .card canvas { width: 100%; height: var(--charth); display: block; }
 .card .legend { display: flex; gap: 8px; font-size: .62rem; color: var(--muted); }
 .card .legend i { font-style: normal; }
@@ -207,6 +214,23 @@ body.editing .card .grip { display: flex; }
   grid-column: 1 / -1; border: 1px dashed var(--border); border-radius: 8px;
   padding: 14px; text-align: center; color: var(--muted); font-size: .76rem;
 }
+/* 長押しで掴めるようにするため、編集中のカードは選択・長押しメニューを抑える */
+body.editing .card { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.toast {
+  position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 12px);
+  background: var(--panel); color: var(--text); border: 1px solid var(--border);
+  border-radius: 999px; padding: 9px 16px; font-size: .8rem; z-index: 10000;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5); opacity: 0; pointer-events: none;
+  transition: opacity .18s, transform .18s;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.legendbar {
+  display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center;
+  margin: 0 0 8px; color: var(--muted); font-size: .72rem;
+}
+.legendbar .lg { display: inline-flex; align-items: center; gap: 5px; }
+.legendbar .sw { width: 13px; height: 13px; border-radius: 4px; padding: 0; }
 
 @media (max-width: 640px) {
   .authbar { width: 100%; margin-left: 0; }
@@ -285,6 +309,12 @@ body.editing .card .grip { display: flex; }
     <button class="btn" id="addFolderBtn">+ フォルダ</button>
     <button class="btn" id="addListBtn">+ リスト</button>
   </div>
+</div>
+
+<div class="legendbar">
+  <span class="lg"><i class="sw a25up"></i>終値が25日線より上</span>
+  <span class="lg"><i class="sw a25down"></i>終値が25日線より下</span>
+  <span class="lg editonly">並べ替え: カードを長押し(PCはそのままドラッグ)、または右上の ⠿ をつまんで移動</span>
 </div>
 
 <div id="content"></div>
@@ -583,6 +613,10 @@ function sortCodes(codes) {
 const fmt = (v, d) => v == null ? "—" : v.toLocaleString("ja-JP", { minimumFractionDigits: d || 0, maximumFractionDigits: d == null ? 1 : d });
 const pctText = (v) => v == null ? "—" : (v > 0 ? "+" : "") + v.toFixed(2) + "%";
 const dirClass = (v) => v == null ? "flat" : v > 0 ? "up" : v < 0 ? "down" : "flat";
+/** 終値が25日移動平均線より上か下か。銘柄名・コードの背景色に使う。 */
+const a25Class = (v) => v == null ? "" : v > 0 ? " a25up" : v < 0 ? " a25down" : "";
+const a25Title = (s) => s.ma25 == null ? "25日線を出すには日足が25本必要です"
+  : "25日線 " + fmt(s.ma25) + "(乖離 " + pctText(s.vs25) + ")";
 
 /* ============================ 描画（一覧） ============================ */
 function render() {
@@ -667,8 +701,9 @@ function card(code, dnd) {
   el.className = "card pending";
   el.dataset.code = code;
   el.innerHTML =
-    '<div class="top"><span class="code">' + code + '</span>'
-    + '<span class="name">' + escapeHTML(nameOf(code)) + '</span></div>'
+    '<div class="top" title="' + escapeHTML(a25Title(s)) + '">'
+    + '<span class="code' + a25Class(s.vs25) + '">' + code + '</span>'
+    + '<span class="name' + a25Class(s.vs25) + '">' + escapeHTML(nameOf(code)) + '</span></div>'
     + '<div class="px"><span class="close">' + fmt(s.close) + '</span>'
     + '<span class="chg ' + dirClass(s.pct) + '">' + (s.chg == null ? "" : (s.chg > 0 ? "+" : "") + fmt(s.chg)) + " " + pctText(s.pct) + '</span></div>'
     + '<canvas></canvas>'
@@ -679,12 +714,18 @@ function card(code, dnd) {
     grip.className = "grip";
     grip.textContent = "⠿";
     grip.title = "ドラッグして移動";
-    grip.addEventListener("pointerdown", (e) => beginDrag(e, el));
+    grip.addEventListener("pointerdown", (e) => beginDrag(e, el, "instant"));
     el.appendChild(grip);
-    // マウスならカード本体からでも掴めるようにする
+    // カード本体からも掴める。マウスは少し動かしたら、指/ペンは長押しで。
     el.addEventListener("pointerdown", (e) => {
-      if (e.pointerType === "mouse" && e.button === 0) beginDrag(e, el, true);
+      if (e.pointerType === "mouse") {
+        if (e.button === 0) beginDrag(e, el, "move");
+      } else {
+        beginDrag(e, el, "hold");
+      }
     });
+  } else if (state.tab === "chart") {
+    el.addEventListener("pointerdown", (e) => { if (e.isPrimary) armDragHint(e, el); });
   }
   return el;
 }
@@ -732,9 +773,10 @@ function dataTable(bandCodes) {
       const w = v == null ? 0 : Math.min(Math.abs(v) * 4, 100);
       return '<td class="pct ' + dirClass(v) + '"><span class="bar" style="width:' + w + '%"></span>' + pctText(v) + "</td>";
     };
+    const a25 = a25Class(s.vs25), a25t = ' title="' + escapeHTML(a25Title(s)) + '"';
     return "<tr>"
-      + '<td class="code">' + code + "</td>"
-      + '<td class="name">' + escapeHTML(nameOf(code)) + "</td>"
+      + '<td class="code' + a25 + '"' + a25t + ">" + code + "</td>"
+      + '<td class="name' + a25 + '"' + a25t + ">" + escapeHTML(nameOf(code)) + "</td>"
       + "<td>" + fmt(s.close) + "</td>"
       + '<td class="' + dirClass(s.chg) + '">' + (s.chg == null ? "—" : (s.chg > 0 ? "+" : "") + fmt(s.chg)) + "</td>"
       + cell(s.pct, true) + cell(s.r1w, true) + cell(s.r1m, true) + cell(s.r3m, true)
@@ -1017,11 +1059,23 @@ function escapeHTML(s) {
 
 /* ============================ ドラッグ&ドロップ ============================
    HTML5のDnD APIはタッチ端末で動かないため Pointer Events で実装する。
-   スマホはグリップ(⠿)から、PCはカード本体からも掴める。            */
+   掴み方は3通り:
+     instant … グリップ(⠿)を押した瞬間から掴む
+     move    … マウスでカード本体を5px動かしたら掴む(クリックでの拡大と両立させるため)
+     hold    … 指/ペンでカード本体を長押ししたら掴む。長押し中に動いたら
+               普通のスクロールとみなして掴まない                        */
+const HOLD_MS = 320;      // 長押しと判定するまでの時間
+const HOLD_SLOP = 10;     // 長押し待ちの間に許す指のブレ(px)
 let drag = null;
 let justDragged = false;
 
-function beginDrag(e, cardEl, needThreshold) {
+// 掴んでいる間だけページのスクロールを止める。タッチ開始前から登録しておかないと
+// ブラウザがスクロールを確定させてしまい preventDefault が効かなくなる。
+document.addEventListener("touchmove", (e) => {
+  if (drag && drag.started) e.preventDefault();
+}, { passive: false });
+
+function beginDrag(e, cardEl, mode) {
   if (drag || !state.editing || e.pointerType === "mouse" && e.button !== 0) return;
   const bandEl = cardEl.closest(".band");
   if (!bandEl) return;
@@ -1029,16 +1083,27 @@ function beginDrag(e, cardEl, needThreshold) {
   const ctx = {
     code: cardEl.dataset.code,
     from: JSON.parse(bandEl.dataset.path),
-    cardEl, pid: e.pointerId,
+    cardEl, pid: e.pointerId, mode: mode || "instant",
     start: { x: e.clientX, y: e.clientY },
-    started: false, ghost: null, mark: null, drop: null, hot: null,
+    started: false, ghost: null, mark: null, drop: null, hot: null, holdTimer: null,
   };
   drag = ctx;
 
+  const detach = () => {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onUp);
+    if (ctx.holdTimer) { clearTimeout(ctx.holdTimer); ctx.holdTimer = null; }
+  };
   const onMove = (ev) => {
     if (ev.pointerId !== ctx.pid) return;
     if (!ctx.started) {
-      if (needThreshold && Math.hypot(ev.clientX - ctx.start.x, ev.clientY - ctx.start.y) < 5) return;
+      const dist = Math.hypot(ev.clientX - ctx.start.x, ev.clientY - ctx.start.y);
+      if (ctx.mode === "hold") {
+        if (dist > HOLD_SLOP) { detach(); drag = null; }   // スクロールしたいだけ
+        return;
+      }
+      if (ctx.mode === "move" && dist < 5) return;
       startGhost(ctx);
     }
     ev.preventDefault();
@@ -1046,9 +1111,7 @@ function beginDrag(e, cardEl, needThreshold) {
   };
   const onUp = (ev) => {
     if (ev.pointerId !== ctx.pid) return;
-    window.removeEventListener("pointermove", onMove);
-    window.removeEventListener("pointerup", onUp);
-    window.removeEventListener("pointercancel", onUp);
+    detach();
     if (ctx.started) finishDrag(ctx);
     drag = null;
   };
@@ -1056,7 +1119,56 @@ function beginDrag(e, cardEl, needThreshold) {
   window.addEventListener("pointerup", onUp);
   window.addEventListener("pointercancel", onUp);
 
-  if (!needThreshold) { e.preventDefault(); startGhost(ctx); moveGhost(ctx, e); }
+  if (ctx.mode === "instant") {
+    e.preventDefault();
+    startGhost(ctx);
+    moveGhost(ctx, e);
+  } else if (ctx.mode === "hold") {
+    ctx.holdTimer = setTimeout(() => {
+      ctx.holdTimer = null;
+      if (drag !== ctx || ctx.started) return;
+      startGhost(ctx);
+      moveGhost(ctx, { clientX: ctx.start.x, clientY: ctx.start.y });
+      if (navigator.vibrate) navigator.vibrate(15);   // 掴めたことを指に返す
+    }, HOLD_MS);
+  }
+}
+
+/* 並べ替えができない状態のときに、無言で何も起きないと理由が分からないので
+   長押ししたら理由を出す。 */
+let toastTimer = null;
+function toast(msg) {
+  let el = document.getElementById("toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast";
+    el.className = "toast";
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2600);
+}
+
+function armDragHint(e, cardEl) {
+  const t = setTimeout(() => {
+    if (!state.editing) toast("並べ替えるには、右上の「Googleでログイン」が必要です");
+    else if (state.scope !== "folder") toast("並べ替えは「範囲: フォルダ内」の表示でできます");
+    else if (state.sortKey !== "reg") toast("並べ替えは「並び: 登録順」の表示でできます");
+  }, 450);
+  const off = () => {
+    clearTimeout(t);
+    window.removeEventListener("pointerup", off);
+    window.removeEventListener("pointercancel", off);
+    window.removeEventListener("pointermove", onMove);
+  };
+  const onMove = (ev) => {
+    if (Math.hypot(ev.clientX - e.clientX, ev.clientY - e.clientY) > HOLD_SLOP) off();
+  };
+  window.addEventListener("pointerup", off);
+  window.addEventListener("pointercancel", off);
+  window.addEventListener("pointermove", onMove, { passive: true });
 }
 
 function startGhost(ctx) {
