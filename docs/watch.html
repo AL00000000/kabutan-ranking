@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>監視銘柄リスト</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 :root {
   --bg: #0a0f1c;
@@ -77,7 +80,7 @@ header.site .asof { color: var(--muted); font-size: .8rem; }
 .band .band .band-label { width: 88px; background: rgba(0,0,0,.3); }
 
 /* ---------- カードグリッド ---------- */
-.cards { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(var(--cardw), 1fr)); }
+.cards { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(var(--cardw), 1fr)); position: relative; }
 body[data-size="s"] { --cardw: 156px; --charth: 74px; }
 body[data-size="m"] { --cardw: 212px; --charth: 104px; }
 body[data-size="l"] { --cardw: 288px; --charth: 148px; }
@@ -145,6 +148,74 @@ dialog.zoom::backdrop { background: rgba(4,8,18,.72); }
 
 .band .band { border-color: rgba(57,197,207,.28); }
 
+/* ---------- ログイン / 保存状態 ---------- */
+.authbar { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.btn {
+  background: var(--panel2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: 5px 12px; font: inherit; font-size: .78rem; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.primary { background: var(--accent); color: #04121a; border-color: var(--accent); font-weight: 700; }
+.btn.primary:hover { color: #04121a; filter: brightness(1.08); }
+.authbar .who { color: var(--muted); font-size: .76rem; max-width: 30ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.savestat { color: var(--muted); font-size: .74rem; white-space: nowrap; }
+.savestat.ok { color: var(--ma25); }
+.savestat.err { color: var(--up); }
+.uidbox {
+  display: none; margin-bottom: 10px; font-size: .78rem; line-height: 1.8;
+  border: 1px solid var(--border); background: var(--panel); border-radius: 10px; padding: 10px 12px; color: var(--muted);
+}
+.uidbox code { background: var(--panel2); border: 1px solid var(--border); border-radius: 5px; padding: 1px 7px; color: var(--accent); user-select: all; }
+
+/* ---------- 編集モード ---------- */
+.editonly { display: none !important; }
+body.editing .editonly { display: inline-flex !important; }
+body.editing .band-label { flex-direction: column; gap: 6px; }
+.foldctl { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+.foldctl button {
+  background: none; border: 1px solid var(--border); color: var(--muted);
+  border-radius: 6px; font: inherit; font-size: .66rem; padding: 2px 6px; cursor: pointer; line-height: 1.5;
+}
+.foldctl button:hover { color: var(--accent); border-color: var(--accent); }
+
+.card .grip {
+  display: none; position: absolute; top: 3px; right: 3px; z-index: 2;
+  width: 22px; height: 22px; align-items: center; justify-content: center;
+  color: var(--muted); font-size: .8rem; cursor: grab; border-radius: 5px;
+  background: rgba(10,15,28,.72); touch-action: none;
+}
+body.editing .card { position: relative; }
+body.editing .card .grip { display: flex; }
+.card .grip:hover { color: var(--accent); background: var(--panel); }
+.card.drag-src { opacity: .3; }
+
+.drag-ghost {
+  position: fixed; z-index: 9999; pointer-events: none; opacity: .92;
+  box-shadow: 0 10px 28px rgba(0,0,0,.55); border-color: var(--accent) !important;
+  transform: rotate(1.5deg); will-change: transform;
+}
+/* グリッドの子として挿入すると再流動してカーソル下の対象がずれるため、絶対配置で重ねる */
+.drop-mark {
+  position: absolute; width: 3px; border-radius: 2px; pointer-events: none;
+  background: var(--accent); box-shadow: 0 0 8px var(--accent);
+}
+.cards.drop-in, .band-body.drop-in { outline: 2px dashed var(--accent); outline-offset: 3px; border-radius: 8px; }
+.band-label.drop-in { background: var(--accent); }
+.band-label.drop-in span, .band-label.drop-in .n { color: #04121a; }
+.seg.lists button.drop-in { background: var(--accent); color: #04121a; }
+.emptyzone {
+  grid-column: 1 / -1; border: 1px dashed var(--border); border-radius: 8px;
+  padding: 14px; text-align: center; color: var(--muted); font-size: .76rem;
+}
+
+@media (max-width: 640px) {
+  .authbar { width: 100%; margin-left: 0; }
+  .authbar .who { max-width: 18ch; }
+  body.editing .band-label { width: 74px; }
+  body.editing .band-label span { writing-mode: horizontal-tb; text-orientation: mixed; }
+  .card .grip { width: 30px; height: 30px; font-size: .95rem; }
+}
+
 @media (max-width: 640px) {
   .wrap { padding: 10px 7px 48px; }
   header.site { padding: 2px 2px 8px; gap: 6px 10px; }
@@ -172,7 +243,15 @@ dialog.zoom::backdrop { background: rgba(4,8,18,.72); }
 <header class="site">
   <h1><span class="dot">◆</span> 監視銘柄リスト</h1>
   <span class="asof" id="asof"></span>
+  <div class="authbar">
+    <span class="savestat" id="saveStat">読み込み中…</span>
+    <span class="who" id="who" hidden></span>
+    <button class="btn primary" id="loginBtn">Googleでログイン</button>
+    <button class="btn" id="logoutBtn" hidden>ログアウト</button>
+  </div>
 </header>
+
+<div class="uidbox" id="uidbox"></div>
 
 <div class="toolbar">
   <div class="grp"><div class="seg lists" id="listSeg"></div></div>
@@ -202,6 +281,10 @@ dialog.zoom::backdrop { background: rgba(4,8,18,.72); }
     <button data-sc="all">全体</button>
   </div></div>
   <span class="count" id="count"></span>
+  <div class="grp editonly" style="gap:6px">
+    <button class="btn" id="addFolderBtn">+ フォルダ</button>
+    <button class="btn" id="addListBtn">+ リスト</button>
+  </div>
 </div>
 
 <div id="content"></div>
@@ -224,9 +307,25 @@ dialog.zoom::backdrop { background: rgba(4,8,18,.72); }
 const DIR = "data_watch/";
 const BARS = { "1m": 22, "3m": 62, "6m": 124, "1y": 250 };
 
+// margin-call-visualizer と同じ Firebase プロジェクトを再利用する。
+// al00000000.github.io は既に承認済みドメインなので追加設定は要らない。
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCItdy5OI11Qc51K92Eh-BdnKf8x9wbVN8",
+  authDomain: "margin-call-visualizer.firebaseapp.com",
+  projectId: "margin-call-visualizer",
+  storageBucket: "margin-call-visualizer.firebasestorage.app",
+  messagingSenderId: "499047741056",
+  appId: "1:499047741056:web:be43ee7059430fa7e69865",
+};
+// 単一の共有ドキュメント。誰でも読めて、書けるのはルールで許可した uid だけ。
+const DOC_PATH = ["watchlists", "main"];
+
+let auth = null, db = null, currentUser = null, unsubscribe = null;
+
 const state = {
   watchlist: null, names: {}, summary: {}, lines: {},
   listIdx: 0, tab: "chart", period: "3m", size: "m", sortKey: "reg", sortDir: -1, scope: "folder",
+  editing: false, source: "file",
 };
 const cache = new Map();      // code -> 日足データ
 const pending = new Map();    // code -> Promise
@@ -241,6 +340,8 @@ async function getJSON(path, fallback) {
   } catch (e) { return fallback; }
 }
 
+let fileWatchlist = null;   // data_watch/watchlist.json(未ログイン時の表示 & 初回移行の種)
+
 async function boot() {
   const [wl, names, summary, lines] = await Promise.all([
     getJSON("watchlist.json", null),
@@ -248,24 +349,173 @@ async function boot() {
     getJSON("summary.json", { stocks: {} }),
     getJSON("lines.json", { lines: {} }),
   ]);
-  if (!wl || !wl.lists || !wl.lists.length) {
-    $("#content").innerHTML = '<div class="msg"><b>監視リストがまだありません。</b><br>'
-      + '<code>py watchlist.py mklist 狙い株</code> でリストを作り、'
-      + '<code>py watchlist.py add 6146 --to 狙い株</code> で銘柄を追加してください。</div>';
-    return;
-  }
-  state.watchlist = wl;
+  fileWatchlist = normalizeWatchlist(wl);
   state.names = names || {};
   state.summary = (summary && summary.stocks) || {};
   state.lines = (lines && lines.lines) || {};
   $("#asof").textContent = summary && summary.date ? "最終更新 " + summary.date : "";
-  buildListSeg();
+
   bindControls();
+  bindAuthUI();
+  applyWatchlist(fileWatchlist, "file");
+  initFirebase();
+}
+
+/** 構造を正規化する(codes/folders の欠損を埋める)。 */
+function normalizeWatchlist(wl) {
+  if (!wl || !Array.isArray(wl.lists)) return null;
+  const node = (n) => {
+    n.codes = Array.isArray(n.codes) ? n.codes.filter((c) => typeof c === "string") : [];
+    n.folders = Array.isArray(n.folders) ? n.folders : [];
+    n.folders.forEach(node);
+    return n;
+  };
+  wl.lists.forEach(node);
+  return { version: wl.version || 1, lists: wl.lists };
+}
+
+function applyWatchlist(wl, source) {
+  state.source = source;
+  if (!wl || !wl.lists.length) {
+    state.watchlist = null;
+    $("#content").innerHTML = '<div class="msg"><b>監視リストがまだありません。</b><br>'
+      + 'ログインして <b>+ リスト</b> から作るか、'
+      + '<code>py watchlist.py mklist 狙い株</code> で作成してください。</div>';
+    $("#listSeg").innerHTML = "";
+    $("#count").textContent = "";
+    return;
+  }
+  state.watchlist = wl;
+  if (state.listIdx >= wl.lists.length) state.listIdx = 0;
+  buildListSeg();
   render();
 }
 
+/* ============================ Firebase ============================ */
+function initFirebase() {
+  if (typeof firebase === "undefined") {
+    setSave("オフライン(閲覧のみ)", "err");
+    return;
+  }
+  firebase.initializeApp(FIREBASE_CONFIG);
+  auth = firebase.auth();
+  db = firebase.firestore();
+
+  // リダイレクト方式でログインした直後の結果を拾う
+  auth.getRedirectResult().catch(() => {});
+
+  auth.onAuthStateChanged((user) => {
+    currentUser = user;
+    $("#loginBtn").hidden = !!user;
+    $("#logoutBtn").hidden = !user;
+    $("#who").hidden = !user;
+    $("#who").textContent = user ? (user.email || "") : "";
+    state.editing = !!user;
+    document.body.classList.toggle("editing", state.editing);
+    if (state.editing) {
+      // 並べ替えは配列順に対応するため、編集中は登録順・フォルダ表示に固定する
+      state.sortKey = "reg";
+      state.scope = "folder";
+      syncSegTo("#sortSeg", "k", "reg");
+      syncSegTo("#scopeSeg", "sc", "folder");
+    }
+    showUidBox(user);
+    watchRemote();
+  });
+}
+
+/** 共有ドキュメントを購読する。複数端末に即時反映される。 */
+function watchRemote() {
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  if (!db) return;
+  setSave("同期中…");
+  unsubscribe = db.collection(DOC_PATH[0]).doc(DOC_PATH[1]).onSnapshot(
+    (doc) => {
+      if (doc.exists) {
+        const wl = normalizeWatchlist(doc.data());
+        if (wl && wl.lists.length) {
+          applyWatchlist(wl, "cloud");
+          setSave(currentUser ? "クラウドに自動保存されます" : "クラウドと同期(閲覧のみ)", "ok");
+          return;
+        }
+      }
+      // クラウドが空: ログイン済みなら現在のファイル内容を引き継ぐ
+      if (currentUser && fileWatchlist) {
+        saveRemote(fileWatchlist, true);
+      } else {
+        applyWatchlist(fileWatchlist, "file");
+        setSave("ログインするとクラウドに保存されます");
+      }
+    },
+    () => {
+      applyWatchlist(fileWatchlist, "file");
+      setSave("クラウドに接続できません(閲覧のみ)", "err");
+    }
+  );
+}
+
+let saveTimer = null;
+function scheduleSave() {
+  if (!currentUser) return;
+  setSave("保存中…");
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveRemote(state.watchlist, false), 500);
+}
+
+async function saveRemote(wl, isSeed) {
+  if (!db || !currentUser) return;
+  try {
+    await db.collection(DOC_PATH[0]).doc(DOC_PATH[1]).set({
+      version: wl.version || 1,
+      lists: JSON.parse(JSON.stringify(wl.lists)),
+      updated: new Date().toISOString(),
+      updatedBy: currentUser.uid,
+    });
+    setSave(isSeed ? "現在の内容をクラウドに移行しました" : "クラウドに自動保存されます", "ok");
+  } catch (e) {
+    const denied = e && (e.code === "permission-denied" || /permission/i.test(e.message || ""));
+    setSave(denied ? "書き込み権限がありません(ルール未設定)" : "保存に失敗しました", "err");
+  }
+}
+
+function setSave(msg, cls) {
+  const el = $("#saveStat");
+  el.textContent = msg;
+  el.className = "savestat" + (cls ? " " + cls : "");
+}
+
+/** ルール設定に必要な uid を、ログイン直後に本人へ提示する。 */
+function showUidBox(user) {
+  const box = $("#uidbox");
+  if (!user) { box.style.display = "none"; return; }
+  box.style.display = "block";
+  box.innerHTML = 'あなたの uid: <code>' + escapeHTML(user.uid) + "</code>"
+    + '<br>この uid を Firestore のセキュリティルールに設定すると、この端末から編集できるようになります。'
+    + ' <button class="btn" id="uidHide" style="margin-left:6px">閉じる</button>';
+  $("#uidHide").onclick = () => { box.style.display = "none"; };
+}
+
+function bindAuthUI() {
+  $("#loginBtn").onclick = async () => {
+    if (!auth) return;
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+      await auth.signInWithPopup(provider);
+    } catch (e) {
+      // スマホやアプリ内ブラウザではポップアップが塞がれるためリダイレクトへ切り替える
+      const code = (e && e.code) || "";
+      if (/popup|cancelled|blocked/i.test(code)) {
+        auth.signInWithRedirect(provider);
+      } else {
+        setSave("ログインに失敗しました", "err");
+      }
+    }
+  };
+  $("#logoutBtn").onclick = () => { if (confirm("ログアウトしますか？")) auth.signOut(); };
+}
+
 /* ============================ 部品 ============================ */
-function curList() { return state.watchlist.lists[state.listIdx]; }
+function curList() { return state.watchlist ? state.watchlist.lists[state.listIdx] : null; }
 
 function nameOf(code) {
   const s = state.summary[code];
@@ -278,23 +528,34 @@ function countCodes(node) {
   return n;
 }
 
-/** リストを「帯」の木に分解する。帯 = { label, codes, children } */
-function bandOf(folder) {
+/** リストを「帯」の木に分解する。帯 = { label, codes, children, path }
+ *  path はリスト直下を [] とし、folders のインデックスを連ねたもの。DnDの移動先指定に使う。 */
+function bandOf(folder, path) {
   return {
     label: folder.name,
     codes: (folder.codes || []).slice(),
-    children: (folder.folders || []).map(bandOf),
+    children: (folder.folders || []).map((f, i) => bandOf(f, path.concat(i))),
+    path,
   };
 }
 
 function toBands(list) {
   const bands = [];
   const hasFolders = (list.folders || []).length > 0;
-  if ((list.codes || []).length) {
-    bands.push({ label: hasFolders ? "未分類" : null, codes: list.codes.slice(), children: [] });
+  // 編集中は空でもドロップ先として残す
+  if ((list.codes || []).length || state.editing) {
+    bands.push({ label: hasFolders ? "未分類" : null, codes: (list.codes || []).slice(), children: [], path: [] });
   }
-  for (const f of list.folders || []) bands.push(bandOf(f));
+  for (const [i, f] of (list.folders || []).entries()) bands.push(bandOf(f, [i]));
+  if (state.editing) return bands;
   return bands.filter((b) => b.codes.length || b.children.length);
+}
+
+/** path をたどって実体ノードを返す。 */
+function nodeAt(list, path) {
+  let n = list;
+  for (const i of path) n = n.folders[i];
+  return n;
 }
 
 /** 帯とその配下すべての銘柄を平らに並べる */
@@ -328,22 +589,27 @@ function render() {
   const list = curList();
   const content = $("#content");
   content.innerHTML = "";
+  if (!list) return;
   document.querySelectorAll(".chart-only").forEach((e) => { e.style.display = state.tab === "chart" ? "" : "none"; });
 
   let bands = toBands(list);
   if (state.scope === "all") {
     const all = [];
     for (const b of bands) all.push(...flatten(b));
-    bands = [{ label: null, codes: all, children: [] }];
+    bands = [{ label: null, codes: all, children: [], path: [] }];
   }
   $("#count").innerHTML = "<b>" + countCodes(list) + "</b> 銘柄";
 
+  const dnd = state.editing && state.tab === "chart" && state.scope === "folder";
   let tint = 0;
   const renderBand = (band, depth) => {
     const { sec, body } = bandShell(band, tint++, depth);
     const codes = sortCodes(band.codes);
-    if (codes.length) {
-      body.appendChild(state.tab === "chart" ? cardGrid(codes) : dataTable(codes));
+    if (state.tab === "chart") {
+      // 編集中は空でもグリッドを置き、ドロップ先として機能させる
+      if (codes.length || dnd) body.appendChild(cardGrid(codes, dnd));
+    } else if (codes.length) {
+      body.appendChild(dataTable(codes));
     }
     for (const child of band.children || []) body.appendChild(renderBand(child, depth + 1));
     return sec;
@@ -356,11 +622,24 @@ function bandShell(band, i, depth) {
   const sec = document.createElement("section");
   sec.className = "band " + (i % 2 ? "tint-b" : "tint-a");
   sec.dataset.depth = depth;
+  sec.dataset.path = JSON.stringify(band.path || []);
+  const isFolder = (band.path || []).length > 0;
   if (band.label) {
     const lab = document.createElement("div");
     lab.className = "band-label";
     lab.innerHTML = "<span>" + escapeHTML(band.label)
       + '<i class="n">' + flatten(band).length + "</i></span>";
+    if (state.editing && isFolder) {
+      const ctl = document.createElement("div");
+      ctl.className = "foldctl editonly";
+      ctl.innerHTML = '<button data-act="ren" title="名前を変更">✎</button>'
+        + '<button data-act="sub" title="サブフォルダを作る">＋</button>'
+        + '<button data-act="del" title="フォルダを削除">🗑</button>';
+      ctl.querySelectorAll("button").forEach((b) => {
+        b.onclick = (ev) => { ev.stopPropagation(); folderAction(b.dataset.act, band.path); };
+      });
+      lab.appendChild(ctl);
+    }
     sec.appendChild(lab);
   }
   const body = document.createElement("div");
@@ -369,14 +648,20 @@ function bandShell(band, i, depth) {
   return { sec, body };
 }
 
-function cardGrid(codes) {
+function cardGrid(codes, dnd) {
   const grid = document.createElement("div");
   grid.className = "cards";
-  for (const code of codes) grid.appendChild(card(code));
+  for (const code of codes) grid.appendChild(card(code, dnd));
+  if (dnd && !codes.length) {
+    const z = document.createElement("div");
+    z.className = "emptyzone";
+    z.textContent = "ここに銘柄をドロップ";
+    grid.appendChild(z);
+  }
   return grid;
 }
 
-function card(code) {
+function card(code, dnd) {
   const s = state.summary[code] || {};
   const el = document.createElement("article");
   el.className = "card pending";
@@ -388,7 +673,19 @@ function card(code) {
     + '<span class="chg ' + dirClass(s.pct) + '">' + (s.chg == null ? "" : (s.chg > 0 ? "+" : "") + fmt(s.chg)) + " " + pctText(s.pct) + '</span></div>'
     + '<canvas></canvas>'
     + '<div class="legend"><i class="d5">5日</i><i class="d25">25日</i><i class="d75">75日</i></div>';
-  el.addEventListener("click", () => openZoom(code));
+  el.addEventListener("click", () => { if (!justDragged) openZoom(code); });
+  if (dnd) {
+    const grip = document.createElement("div");
+    grip.className = "grip";
+    grip.textContent = "⠿";
+    grip.title = "ドラッグして移動";
+    grip.addEventListener("pointerdown", (e) => beginDrag(e, el));
+    el.appendChild(grip);
+    // マウスならカード本体からでも掴めるようにする
+    el.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && e.button === 0) beginDrag(e, el, true);
+    });
+  }
   return el;
 }
 
@@ -659,16 +956,29 @@ async function openZoom(code) {
 /* ============================ 操作 ============================ */
 function buildListSeg() {
   const seg = $("#listSeg");
+  if (!state.watchlist) { seg.innerHTML = ""; return; }
   seg.innerHTML = state.watchlist.lists.map((l, i) =>
     '<button data-i="' + i + '"' + (i === state.listIdx ? ' class="on"' : "") + ">"
     + escapeHTML(l.name) + "</button>").join("");
   seg.querySelectorAll("button").forEach((b) => {
     b.onclick = () => { state.listIdx = +b.dataset.i; syncSeg(seg, b); render(); };
+    b.ondblclick = () => {
+      if (!state.editing) return;
+      const l = state.watchlist.lists[+b.dataset.i];
+      const name = prompt("リスト名", l.name);
+      if (name && name.trim()) { l.name = name.trim(); commit(); }
+    };
   });
 }
 
 function syncSeg(seg, btn) {
   seg.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === btn));
+}
+
+function syncSegTo(sel, attr, val) {
+  const seg = $(sel);
+  if (!seg) return;
+  seg.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset[attr] === val));
 }
 
 function bindControls() {
@@ -687,6 +997,8 @@ function bindControls() {
   });
   bind("#scopeSeg", (b) => { state.scope = b.dataset.sc; });
   $("#zClose").onclick = () => $("#zoom").close();
+  $("#addFolderBtn").onclick = addFolder;
+  $("#addListBtn").onclick = addList;
   let t = null;
   window.addEventListener("resize", () => { clearTimeout(t); t = setTimeout(redrawVisible, 200); });
 }
@@ -701,6 +1013,261 @@ function redrawVisible() {
 
 function escapeHTML(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+/* ============================ ドラッグ&ドロップ ============================
+   HTML5のDnD APIはタッチ端末で動かないため Pointer Events で実装する。
+   スマホはグリップ(⠿)から、PCはカード本体からも掴める。            */
+let drag = null;
+let justDragged = false;
+
+function beginDrag(e, cardEl, needThreshold) {
+  if (drag || !state.editing || e.pointerType === "mouse" && e.button !== 0) return;
+  const bandEl = cardEl.closest(".band");
+  if (!bandEl) return;
+
+  const ctx = {
+    code: cardEl.dataset.code,
+    from: JSON.parse(bandEl.dataset.path),
+    cardEl, pid: e.pointerId,
+    start: { x: e.clientX, y: e.clientY },
+    started: false, ghost: null, mark: null, drop: null, hot: null,
+  };
+  drag = ctx;
+
+  const onMove = (ev) => {
+    if (ev.pointerId !== ctx.pid) return;
+    if (!ctx.started) {
+      if (needThreshold && Math.hypot(ev.clientX - ctx.start.x, ev.clientY - ctx.start.y) < 5) return;
+      startGhost(ctx);
+    }
+    ev.preventDefault();
+    moveGhost(ctx, ev);
+  };
+  const onUp = (ev) => {
+    if (ev.pointerId !== ctx.pid) return;
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onUp);
+    if (ctx.started) finishDrag(ctx);
+    drag = null;
+  };
+  window.addEventListener("pointermove", onMove, { passive: false });
+  window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onUp);
+
+  if (!needThreshold) { e.preventDefault(); startGhost(ctx); moveGhost(ctx, e); }
+}
+
+function startGhost(ctx) {
+  ctx.started = true;
+  const r = ctx.cardEl.getBoundingClientRect();
+  const g = ctx.cardEl.cloneNode(true);
+  g.classList.add("drag-ghost");
+  g.classList.remove("drag-src");
+  g.style.width = r.width + "px";
+  g.style.height = r.height + "px";
+  g.style.left = "0px";
+  g.style.top = "0px";
+  ctx.offX = ctx.start.x - r.left;
+  ctx.offY = ctx.start.y - r.top;
+  document.body.appendChild(g);
+  ctx.ghost = g;
+  ctx.cardEl.classList.add("drag-src");
+  document.body.style.userSelect = "none";
+  ctx.lastX = ctx.start.x;
+  ctx.lastY = ctx.start.y;
+  startAutoScroll(ctx);
+}
+
+function moveGhost(ctx, ev) {
+  ctx.lastX = ev.clientX;
+  ctx.lastY = ev.clientY;
+  ctx.ghost.style.transform = "translate(" + (ev.clientX - ctx.offX) + "px," + (ev.clientY - ctx.offY) + "px) rotate(1.5deg)";
+  updateDrop(ctx);
+}
+
+/** 画面端で押さえている間、rAFで滑らかに自動スクロールし続ける。
+ *  ポインタが動かなくなると pointermove が来ないため、ここで面倒を見る。 */
+function startAutoScroll(ctx) {
+  const EDGE = 90, MAXV = 42;
+  const step = () => {
+    if (!drag || drag !== ctx) return;
+    const y = ctx.lastY;
+    let v = 0;
+    if (y < EDGE) v = -(1 - y / EDGE);
+    else if (y > window.innerHeight - EDGE) v = 1 - (window.innerHeight - y) / EDGE;
+    if (v) {
+      const before = window.scrollY;
+      window.scrollBy(0, Math.sign(v) * (6 + Math.abs(v) * MAXV));
+      if (window.scrollY !== before) updateDrop(ctx);   // 紙が動いた分だけ判定し直す
+    }
+    ctx.raf = requestAnimationFrame(step);
+  };
+  ctx.raf = requestAnimationFrame(step);
+}
+
+function updateDrop(ctx) {
+  const drop = resolveDrop(ctx.lastX, ctx.lastY);
+  ctx.drop = drop;
+  if (ctx.hot && (!drop || ctx.hot !== drop.el)) { ctx.hot.classList.remove("drop-in"); ctx.hot = null; }
+  clearMark(ctx);
+  if (!drop) return;
+  if (drop.kind === "grid") {
+    const cards = [...drop.grid.querySelectorAll(".card:not(.drag-src)")];
+    const mark = document.createElement("div");
+    mark.className = "drop-mark";
+    drop.grid.appendChild(mark);
+    const gr = drop.grid.getBoundingClientRect();
+    const ref = cards[drop.index];
+    if (ref) {
+      const r = ref.getBoundingClientRect();
+      mark.style.left = (r.left - gr.left - 5) + "px";
+      mark.style.top = (r.top - gr.top) + "px";
+      mark.style.height = r.height + "px";
+    } else if (cards.length) {
+      const r = cards[cards.length - 1].getBoundingClientRect();
+      mark.style.left = (r.right - gr.left + 2) + "px";
+      mark.style.top = (r.top - gr.top) + "px";
+      mark.style.height = r.height + "px";
+    } else {
+      mark.style.left = "4px";
+      mark.style.top = "4px";
+      mark.style.height = "44px";
+    }
+    ctx.mark = mark;
+  } else if (ctx.hot !== drop.el) {
+    drop.el.classList.add("drop-in");
+    ctx.hot = drop.el;
+  }
+}
+
+function clearMark(ctx) {
+  if (ctx.mark) { ctx.mark.remove(); ctx.mark = null; }
+}
+
+function resolveDrop(x, y) {
+  const el = document.elementFromPoint(x, y);
+  if (!el) return null;
+
+  const listBtn = el.closest("#listSeg button");
+  if (listBtn) {
+    const i = +listBtn.dataset.i;
+    return i === state.listIdx ? null : { kind: "list", listIdx: i, el: listBtn };
+  }
+  const grid = el.closest(".cards");
+  if (grid) {
+    const bandEl = grid.closest(".band");
+    if (!bandEl) return null;
+    const cards = [...grid.querySelectorAll(".card:not(.drag-src)")];
+    let index = cards.length;
+    for (let i = 0; i < cards.length; i++) {
+      const r = cards[i].getBoundingClientRect();
+      if (y < r.top) { index = i; break; }
+      if (y <= r.bottom && x < r.left + r.width / 2) { index = i; break; }
+    }
+    return { kind: "grid", path: JSON.parse(bandEl.dataset.path), grid, index, el: grid };
+  }
+  // フォルダ見出しは sticky で常に見えるので、遠くのフォルダへ入れる近道になる
+  const label = el.closest(".band-label");
+  if (label) {
+    const bandEl = label.closest(".band");
+    if (!bandEl) return null;
+    return { kind: "band", path: JSON.parse(bandEl.dataset.path), el: label };
+  }
+  const body = el.closest(".band-body");
+  if (body) {
+    const bandEl = body.closest(".band");
+    if (!bandEl) return null;
+    return { kind: "band", path: JSON.parse(bandEl.dataset.path), el: body };
+  }
+  return null;
+}
+
+function finishDrag(ctx) {
+  if (ctx.raf) cancelAnimationFrame(ctx.raf);
+  clearMark(ctx);
+  if (ctx.hot) ctx.hot.classList.remove("drop-in");
+  ctx.ghost.remove();
+  ctx.cardEl.classList.remove("drag-src");
+  document.body.style.userSelect = "";
+  justDragged = true;
+  setTimeout(() => { justDragged = false; }, 60);
+
+  const d = ctx.drop;
+  if (!d) return;
+  const moved = d.kind === "list"
+    ? applyMove(ctx.from, ctx.code, d.listIdx, [], null)
+    : applyMove(ctx.from, ctx.code, state.listIdx, d.path, d.kind === "grid" ? d.index : null);
+  if (moved) commit();
+}
+
+/** 銘柄を移動する。index は「ドラッグ中のカードを除いた並び」の何番目に差し込むか。 */
+function applyMove(fromPath, code, toListIdx, toPath, index) {
+  const wl = state.watchlist;
+  const src = nodeAt(wl.lists[state.listIdx], fromPath);
+  const i = src.codes.indexOf(code);
+  if (i < 0) return false;
+  const dst = nodeAt(wl.lists[toListIdx], toPath);
+  src.codes.splice(i, 1);
+  if (src !== dst && dst.codes.includes(code)) return true;   // 移動先に既にあれば重複させない
+  const at = index == null ? dst.codes.length : Math.max(0, Math.min(index, dst.codes.length));
+  dst.codes.splice(at, 0, code);
+  return true;
+}
+
+/* ============================ フォルダ / リスト操作 ============================ */
+function flattenNode(n) {
+  const out = (n.codes || []).slice();
+  for (const f of n.folders || []) out.push(...flattenNode(f));
+  return out;
+}
+
+function commit() {
+  buildListSeg();
+  render();
+  scheduleSave();
+}
+
+function folderAction(act, path) {
+  const list = curList();
+  const node = nodeAt(list, path);
+  if (act === "ren") {
+    const name = prompt("フォルダ名", node.name);
+    if (!name || !name.trim()) return;
+    node.name = name.trim();
+  } else if (act === "sub") {
+    const name = prompt("サブフォルダ名");
+    if (!name || !name.trim()) return;
+    node.folders.push({ name: name.trim(), codes: [], folders: [] });
+  } else if (act === "del") {
+    const n = flattenNode(node).length;
+    if (n && !confirm("「" + node.name + "」の " + n + " 銘柄を親へ移してフォルダを削除します。よろしいですか？")) return;
+    const parent = nodeAt(list, path.slice(0, -1));
+    parent.codes.push(...node.codes);
+    parent.folders.push(...node.folders);
+    parent.folders.splice(path[path.length - 1], 1);
+  }
+  commit();
+}
+
+function addFolder() {
+  if (!state.watchlist) return;
+  const name = prompt("フォルダ名");
+  if (!name || !name.trim()) return;
+  curList().folders.push({ name: name.trim(), codes: [], folders: [] });
+  commit();
+}
+
+function addList() {
+  const name = prompt("リスト名");
+  if (!name || !name.trim()) return;
+  if (!state.watchlist) state.watchlist = { version: 1, lists: [] };
+  const wl = state.watchlist;
+  wl.lists.push({ id: "list" + (wl.lists.length + 1), name: name.trim(), codes: [], folders: [] });
+  state.listIdx = wl.lists.length - 1;
+  $("#content").innerHTML = "";
+  commit();
 }
 
 boot();

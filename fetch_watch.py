@@ -87,6 +87,82 @@ def watchlist_codes():
     return codes
 
 
+# ------------------------------------------------- Firestore からの取り込み
+#
+# ブラウザ(docs/watch.html)側はGoogleログインして Firestore の
+# watchlists/main を編集する。ここではそれを読んで watchlist.json に
+# 書き戻し、以降の取得対象に反映させる。読み取り専用・鍵不要。
+
+FS_PROJECT = "margin-call-visualizer"
+FS_DOC = "watchlists/main"
+FS_KEY = "AIzaSyCItdy5OI11Qc51K92Eh-BdnKf8x9wbVN8"
+FS_URL = (f"https://firestore.googleapis.com/v1/projects/{FS_PROJECT}"
+          f"/databases/(default)/documents/{FS_DOC}?key={FS_KEY}")
+
+
+def fs_decode(v):
+    """Firestore REST の型付きJSONを素のPythonの値に戻す。"""
+    if "stringValue" in v:
+        return v["stringValue"]
+    if "integerValue" in v:
+        return int(v["integerValue"])
+    if "doubleValue" in v:
+        return float(v["doubleValue"])
+    if "booleanValue" in v:
+        return v["booleanValue"]
+    if "nullValue" in v:
+        return None
+    if "timestampValue" in v:
+        return v["timestampValue"]
+    if "arrayValue" in v:
+        return [fs_decode(x) for x in v["arrayValue"].get("values", [])]
+    if "mapValue" in v:
+        return {k: fs_decode(x) for k, x in v["mapValue"].get("fields", {}).items()}
+    return None
+
+
+def valid_node(n):
+    if not isinstance(n, dict):
+        return False
+    if not all(isinstance(c, str) for c in n.get("codes", []) or []):
+        return False
+    return all(valid_node(f) for f in n.get("folders", []) or [])
+
+
+def sync_from_firestore():
+    """クラウド側のリストを watchlist.json に取り込む。失敗しても処理は止めない。"""
+    try:
+        req = urllib.request.Request(FS_URL, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            doc = json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            print("クラウドにまだ保存がありません: ローカルの watchlist.json を使います")
+        elif e.code in (401, 403):
+            print("クラウドの読み取りが許可されていません(Firestoreルール未設定): "
+                  "ローカルの watchlist.json を使います")
+        else:
+            print(f"クラウド取得に失敗 (HTTP {e.code}): ローカルの watchlist.json を使います")
+        return False
+    except Exception as e:
+        print(f"クラウド取得に失敗 ({e}): ローカルの watchlist.json を使います")
+        return False
+
+    data = {k: fs_decode(v) for k, v in (doc.get("fields") or {}).items()}
+    lists = data.get("lists")
+    if not isinstance(lists, list) or not lists or not all(valid_node(l) for l in lists):
+        print("クラウドの内容が不正: ローカルの watchlist.json を使います")
+        return False
+
+    new = {"version": data.get("version") or 1, "lists": lists}
+    if load_json(WATCHLIST) == new:
+        print(f"クラウドと一致 (更新 {data.get('updated', '-')})")
+        return True
+    save_json(WATCHLIST, new)
+    print(f"クラウドから取り込みました (更新 {data.get('updated', '-')})")
+    return True
+
+
 # ---------------------------------------------------------------- 取得
 
 def fetch_chart(code, rng):
@@ -263,6 +339,8 @@ def summarize(code, name, bars, rank):
 def main(argv=None):
     args = build_parser().parse_args(argv)
 
+    if not args.no_sync:
+        sync_from_firestore()
     all_codes = watchlist_codes()
     if args.codes:
         targets = [c.strip().upper() for c in args.codes.replace(",", " ").split() if c.strip()]
@@ -339,6 +417,8 @@ def build_parser():
     p.add_argument("--full", "--init", action="store_true", dest="full",
                    help="全銘柄を1年分取り直す(初回および週次のメンテナンス)")
     p.add_argument("--codes", help="対象銘柄を限定する (例: 6146,7735)")
+    p.add_argument("--no-sync", action="store_true", dest="no_sync",
+                   help="Firestoreからの取り込みを行わず、ローカルの watchlist.json をそのまま使う")
     return p
 
 
