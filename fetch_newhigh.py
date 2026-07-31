@@ -172,7 +172,12 @@ def fetch_universe(pages):
 # ------------------------------------------------------- Yahoo 日足
 
 def fetch_bars(code):
-    """[(date, high, close), ...] を古い順に返す。"""
+    """[(date, high, close, volume, low), ...] を古い順に返す。
+
+    先頭3つ(日付・高値・終値)がこのスクリプトの新高値判定で使う本体。
+    出来高と安値は fetch_lowvolume.py が使う(安値は「高値==安値」で
+    ストップ高・安の気配日を見分けるため)。取れない日は None のまま残す。
+    """
     payload = json.loads(get(CHART_URL.format(sym=code)).decode("utf-8", "replace"))
     chart = payload.get("chart") or {}
     if chart.get("error"):
@@ -186,15 +191,23 @@ def fetch_bars(code):
     q = ((r.get("indicators") or {}).get("quote") or [{}])[0]
     offset = meta.get("gmtoffset", 32400)
     highs, closes = q.get("high") or [], q.get("close") or []
+    volumes, lows = q.get("volume") or [], q.get("low") or []
     bars = []
     for i, ts in enumerate(stamps):
         h = highs[i] if i < len(highs) else None
         c = closes[i] if i < len(closes) else None
+        v = volumes[i] if i < len(volumes) else None
+        lo = lows[i] if i < len(lows) else None
         if h is None or c is None:
             continue      # 休場・気配のみの日
         d = datetime.fromtimestamp(ts + offset, tz=timezone.utc).date()
-        bars.append((d, float(h), float(c)))
+        bars.append((d, float(h), float(c),
+                     None if v is None else float(v),
+                     None if lo is None else float(lo)))
     return bars
+
+
+CACHE_VERSION = 3      # 1=出来高なし 2=安値なし。上げると次回実行で全銘柄を取り直す
 
 
 def cached_bars(code, want_date, use_cache=True):
@@ -202,12 +215,13 @@ def cached_bars(code, want_date, use_cache=True):
     path = CACHE / f"{code}.json"
     if use_cache:
         c = load_json(path)
-        if c and c.get("last") == want_date.isoformat():
-            return [(date.fromisoformat(d), h, cl) for d, h, cl in c["bars"]], True
+        if c and c.get("last") == want_date.isoformat() and c.get("v") == CACHE_VERSION:
+            return [(date.fromisoformat(b[0]), b[1], b[2], b[3], b[4]) for b in c["bars"]], True
     bars = fetch_bars(code)
     if bars:
-        save_json(path, {"last": bars[-1][0].isoformat(),
-                         "bars": [[d.isoformat(), h, c] for d, h, c in bars]}, indent=None)
+        save_json(path, {"last": bars[-1][0].isoformat(), "v": CACHE_VERSION,
+                         "bars": [[d.isoformat(), h, c, v, lo] for d, h, c, v, lo in bars]},
+                  indent=None)
     return bars, False
 
 

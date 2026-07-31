@@ -248,6 +248,7 @@ footer a { color: var(--accent); }
         <button class="tab" data-tab="sector">業種別騰落</button>
         <button class="tab" data-tab="stop">ストップ高・安</button>
         <button class="tab" data-tab="newhigh">52週新高値ブレイク</button>
+        <button class="tab" data-tab="lowvolume">出来高52週最低</button>
         <button class="tab" data-tab="stoplow">ストップ安→追証決済時検証</button>
         <button class="tab" data-tab="streaks">指数連騰日数</button>
         <button class="tab" data-tab="pts">PTS株価</button>
@@ -436,6 +437,40 @@ footer a { color: var(--accent); }
       本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
     </footer>
   </div><!-- /view-newhigh -->
+
+  <div id="view-lowvolume" hidden>
+    <div class="toolbar">
+      <span><label>日付</label><select id="lvDateSel"></select></span>
+      <span><label>表示</label><select id="lvScopeSel">
+        <option value="all">すべて</option>
+        <option value="ma">5日平均が最低のみ</option>
+        <option value="day">単日が最低のみ</option>
+        <option value="both">単日・5日平均とも最低</option>
+      </select></span>
+      <span><label for="lvWatchOnly">監視銘柄のみ</label><input id="lvWatchOnly" class="chk" type="checkbox"></span>
+      <input id="lvQ" type="search" placeholder="銘柄名・コードで絞り込み">
+      <span class="stat" id="lvStat"></span>
+    </div>
+    <div class="banner" id="lvBanner">読み込み中…</div>
+    <div class="cards" id="lvCards"></div>
+    <div class="hintRow">
+      <div class="hint"><b>出来高が52週間(365日)の最低を更新した銘柄</b>です。出来高の枯れは相場の転換点のサインとして見るためのタブで、新高値タブとは逆に「動かなくなった銘柄」を拾います。<br>
+      母集団は<b>売買代金10億円以上</b>の東証銘柄(東P/東S/東G)に<b>監視銘柄リストの全銘柄</b>を足したもの。出来高が枯れた銘柄は売買代金も落ちてランキングから消えてしまうため、監視銘柄はランキング圏外でも必ず判定します。<br>
+      判定は2種類。<b>単日</b> = 当日の出来高が、当日を含まない直近52週のどの日よりも少ない。<b>5日平均</b> = 5日移動平均が、同じく直近52週のどの5日平均よりも少ない。単日は1日だけの偶然で反応しやすいので、<b>枯れの判断には5日平均のほうが向きます</b>。<br>
+      <b>ストップ高・安の気配日は除外しています。</b>買い気配のストップ高は誰も買えないので出来高が極端に小さくなりますが、これは閑散ではなく過熱で、意味が逆になるためです(高値と安値が同値の日を気配とみなします)。過去の気配日も比較の窓から除いています。除かないと異常に低い出来高が52週最小として居座り、本物の閑散日が最低を更新できなくなるためです。<br>
+      「52週平均比」= 当日出来高が52週平均の何%か。低いほど枯れています。「前回」= 直近1年で前に最低を更新した日と、そこからの営業日数。<span class="rec">1年未満</span>は上場から1年経っておらず比較期間が足りない銘柄です。列見出しクリックで並び替えできます。</div>
+    </div>
+    <div class="tablecard">
+      <table id="lvTbl">
+        <thead><tr id="lvHeadRow"></tr></thead>
+        <tbody id="lvBody"><tr><td class="loading" colspan="14">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+    <footer>
+      売買代金: <a href="https://kabutan.jp/warning/trading_value_ranking" target="_blank" rel="noopener">株探(kabutan.jp)</a>(引け後の確定値) / 日足・出来高: <a href="https://finance.yahoo.com/" target="_blank" rel="noopener">Yahoo Finance</a>(分割調整済み) / 市場休場日は更新されません。<br>
+      本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
+    </footer>
+  </div><!-- /view-lowvolume -->
 
   <div id="view-yori" hidden>
     <div class="embed-note">寄付からの値上がり率ランキング(別サイトを埋め込み表示) — <a href="/Yoritsukikaranoneagari-ranking/" target="_blank" rel="noopener">別タブで開く ↗</a></div>
@@ -1558,12 +1593,182 @@ async function nhInit() {
   }
 }
 
+/* ---- 出来高52週最低 ---- */
+function fmtKabu(v) {   // 株数 → 万株/億株
+  if (v == null) return "-";
+  if (v >= 1e8) return (v / 1e8).toLocaleString("ja-JP", { maximumFractionDigits: 2 }) + "億株";
+  if (v >= 1e4) return (v / 1e4).toLocaleString("ja-JP", { maximumFractionDigits: 1 }) + "万株";
+  return Math.round(v).toLocaleString("ja-JP") + "株";
+}
+
+const LV_COLS = [
+  { key: "code",       label: "コード",   code: true, left: true },
+  { key: "name",       label: "銘柄名",   left: true, cls: "name tl" },
+  { key: "market",     label: "市場",     left: true, fmt: v => v || "-" },
+  { key: "close",      label: "終値",     num: s => s.close ?? -Infinity, fmt: fmtPrice },
+  { key: "change_pct", label: "前日比",   num: s => s.change_pct ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "value",      label: "売買代金", num: s => s.value ?? -Infinity, fmt: fmtOku },
+  { key: "volume",     label: "出来高",   num: s => s.volume ?? Infinity, fmt: fmtKabu },
+  { key: "prev_min",   label: "これまでの52週最低", num: s => s.prev_min ?? Infinity, fmt: fmtKabu },
+  { key: "vs_avg_pct", label: "52週平均比", num: s => s.vs_avg_pct ?? Infinity,
+    fmt: v => v == null ? "-" : v + "%" },
+  { key: "ma",         label: "5日平均",  num: s => s.ma ?? Infinity, fmt: fmtKabu },
+  { key: "kind",       label: "種別",     left: true,
+    num: s => (s.is_low ? 1 : 0) + (s.ma_low ? 2 : 0),
+    fmt: (v, s) => s.is_low && s.ma_low ? "単日+5日平均" : s.ma_low ? "5日平均" : "単日" },
+  { key: "watch",      label: "監視",     left: true, cls: "tl", fmt: v => v || "" },
+  { key: "gap",        label: "前回からの営業日数", num: s => s.gap ?? Infinity,
+    fmt: v => v == null ? "1年超" : v + "日" },
+  { key: "prev_date",  label: "前回",     left: true, fmt: v => v || "-" },
+];
+let lvData = null, lvSortKey = "vs_avg_pct", lvSortAsc = true, lvInited = false;
+
+function lvRenderCards() {
+  if (!lvData) return;
+  const c = lvData.counts || {};
+  const card = (ttl, big, sub, cls) =>
+    '<div class="card"><div class="ttl">' + ttl + '</div><div class="big ' + (cls || "") + '">' +
+    big + '</div><div class="sub">' + sub + '</div></div>';
+  document.getElementById("lvCards").innerHTML =
+    card("出来高52週最低", (c.hit ?? lvData.stocks.length) + " 銘柄",
+         "母集団 " + (c.universe ?? "-") + " 銘柄(ランキング+監視銘柄)") +
+    card("5日平均が最低", (c.ma_low ?? 0) + " 銘柄",
+         "ならした出来高が52週で最も少ない", "down") +
+    card("単日が最低", (c.day_low ?? 0) + " 銘柄", "当日1日だけの出来高で最低") +
+    card("うち監視銘柄", (c.watch ?? 0) + " 銘柄", "監視銘柄リストに入っている銘柄");
+}
+
+function lvBuildHead() {
+  const tr = document.getElementById("lvHeadRow");
+  tr.innerHTML = "";
+  for (const col of LV_COLS) {
+    const th = document.createElement("th");
+    th.textContent = col.label;
+    if (col.left) th.classList.add("tl");
+    if (col.key === lvSortKey) {
+      const a = document.createElement("span");
+      a.className = "arw";
+      a.textContent = lvSortAsc ? "▲" : "▼";
+      th.appendChild(a);
+    }
+    th.onclick = () => {
+      if (lvSortKey === col.key) lvSortAsc = !lvSortAsc;
+      else { lvSortKey = col.key; lvSortAsc = true; }
+      lvRenderTable();
+    };
+    tr.appendChild(th);
+  }
+}
+
+function lvRenderTable() {
+  if (!lvData) return;
+  lvBuildHead();
+  const scope = document.getElementById("lvScopeSel").value;
+  const watchOnly = document.getElementById("lvWatchOnly").checked;
+  const q = document.getElementById("lvQ").value.trim().toLowerCase();
+
+  let rows = lvData.stocks.filter(s => {
+    if (scope === "day" && !s.is_low) return false;
+    if (scope === "ma" && !s.ma_low) return false;
+    if (scope === "both" && !(s.is_low && s.ma_low)) return false;
+    if (watchOnly && !s.watch) return false;
+    if (q && !(s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  const col = LV_COLS.find(c => c.key === lvSortKey);
+  rows = rows.slice().sort((a, b) => {
+    let r = col.num ? col.num(a) - col.num(b)
+                    : String(a[col.key] ?? "").localeCompare(String(b[col.key] ?? ""), "ja");
+    if (r === 0) r = (a.vs_avg_pct ?? 0) - (b.vs_avg_pct ?? 0);
+    return lvSortAsc ? r : -r;
+  });
+
+  const tb = document.getElementById("lvBody");
+  tb.innerHTML = "";
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td class="loading" colspan="' + LV_COLS.length + '">該当する銘柄がありません</td></tr>';
+  } else {
+    const frag = document.createDocumentFragment();
+    for (const s of rows) {
+      const tr = document.createElement("tr");
+      for (const col of LV_COLS) {
+        const v = s[col.key];
+        const td = document.createElement("td");
+        if (col.code) {
+          td.className = "code tl";
+          const a = document.createElement("a");
+          a.href = "https://kabutan.jp/stock/chart?code=" + encodeURIComponent(v);
+          a.target = "_blank"; a.rel = "noopener";
+          a.textContent = v;
+          td.appendChild(a);
+        } else {
+          if (col.cls) td.className = col.cls;
+          else if (col.left) td.className = "tl";
+          else if (col.color) td.className = signCls(v);
+          td.textContent = col.fmt ? col.fmt(v, s) : (v == null ? "-" : v);
+          // 上場1年未満は52週の比較期間が足りないので印を付ける
+          if (col.key === "prev_min" && s.short_hist) {
+            const b = document.createElement("span");
+            b.className = "rec";
+            b.textContent = "1年未満";
+            b.style.marginLeft = "6px";
+            td.appendChild(b);
+          }
+        }
+        tr.appendChild(td);
+      }
+      frag.appendChild(tr);
+    }
+    tb.appendChild(frag);
+  }
+  document.getElementById("lvStat").innerHTML =
+    "表示 <b>" + rows.length + "</b> / 該当 " + lvData.stocks.length + " 銘柄";
+  lvRenderCards();
+}
+
+async function lvLoad(ymd) {
+  const res = await fetch("data_lowvolume/" + ymd + ".json", { cache: "no-cache" });
+  lvData = await res.json();
+  const c = lvData.counts || {};
+  document.getElementById("lvBanner").innerHTML =
+    "<b>" + lvData.date + "</b> に出来高52週最低を更新 <b>" + lvData.stocks.length + "</b> 銘柄" +
+    " / 母集団: 売買代金10億円以上の東証銘柄+監視銘柄 <b>" + (c.universe ?? "-") + "</b> 銘柄" +
+    " / データ時点: " + (lvData.as_of || "-") +
+    (c.stale ? ' / <span class="err">日足が未反映で判定できなかった銘柄 ' + c.stale + "件</span>" : "") +
+    (c.failed ? ' / <span class="err">取得失敗 ' + c.failed + "件</span>" : "");
+  lvRenderTable();
+}
+
+async function lvInit() {
+  try {
+    const res = await fetch("data_lowvolume/index.json", { cache: "no-cache" });
+    // 初回実行前は index.json がまだ無い。404のHTMLをJSONとして読むとエラーになるので先に弾く
+    const idx = res.ok ? await res.json() : {};
+    const dates = idx.dates || [];
+    const sel = document.getElementById("lvDateSel");
+    sel.innerHTML = dates.map(d => '<option value="' + d + '">' + d + "</option>").join("");
+    sel.onchange = () => lvLoad(sel.value);
+    document.getElementById("lvScopeSel").onchange = lvRenderTable;
+    document.getElementById("lvWatchOnly").onchange = lvRenderTable;
+    document.getElementById("lvQ").oninput = lvRenderTable;
+    if (dates.length) await lvLoad(dates[0]);
+    else {
+      document.getElementById("lvBanner").textContent = "データがありません";
+      document.getElementById("lvBody").innerHTML =
+        '<tr><td class="loading" colspan="' + LV_COLS.length + '">データがありません</td></tr>';
+    }
+  } catch (e) {
+    document.getElementById("lvBanner").innerHTML = '<span class="err">読み込みエラー: ' + e + '</span>';
+  }
+}
+
 const VIEW_ID = {
   ranking: "view-ranking", intraday: "view-intraday", split: "view-split",
   yori: "view-yori", minute: "view-minute", sector: "view-sector",
   stop: "view-stop", stoplow: "view-stoplow", streaks: "view-streaks",
   pts: "view-pts", watch: "view-watch", shinyo: "view-shinyo",
-  newhigh: "view-newhigh",
+  newhigh: "view-newhigh", lowvolume: "view-lowvolume",
 };
 function switchTab(name) {
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
@@ -1575,6 +1780,7 @@ function switchTab(name) {
   if (name === "streaks" && !stInited) { stInited = true; stInit(); }
   if (name === "split" && !spInited) { spInited = true; spInit(); }
   if (name === "newhigh" && !nhInited) { nhInited = true; nhInit(); }
+  if (name === "lowvolume" && !lvInited) { lvInited = true; lvInit(); }
   // 外部サイトのiframeは初回表示時に遅延読み込み
   const view = document.getElementById(VIEW_ID[name]);
   const ifr = view.querySelector("iframe[data-src]");
@@ -1597,6 +1803,7 @@ const FEEDS = {
   sector:   { kind: "index", url: "/Sector-ranking/data/index.json", freq: "daily" },
   stop:     { kind: "index", url: "/Stop-takayasu/data/index.json", freq: "daily" },
   newhigh:  { kind: "index", url: "./data_newhigh/index.json", freq: "daily" },
+  lowvolume: { kind: "index", url: "./data_lowvolume/index.json", freq: "daily" },
   stoplow:  { kind: "field", url: "./data_stoplow/data.json", field: "updated", freq: "daily" },
   streaks:  { kind: "field", url: "./data_streaks/data.json", field: "updated", freq: "daily" },
   pts:      { kind: "index", url: "/buffett-code-pts-ranking/data/index.json", freq: "daily" },
