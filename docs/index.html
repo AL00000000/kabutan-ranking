@@ -265,6 +265,7 @@ footer a { color: var(--accent); }
       <span class="tabgroup-label ended">更新終了</span>
       <div class="tabgroup-items">
         <button class="tab is-ended" data-tab="split">分割後1ヶ月騰落</button>
+        <button class="tab is-ended" data-tab="jukyu">信用需給分析</button>
       </div>
     </div>
   </nav>
@@ -405,6 +406,44 @@ footer a { color: var(--accent); }
       本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
     </footer>
   </div><!-- /view-split -->
+
+  <div id="view-jukyu" hidden>
+    <div class="toolbar">
+      <span><label>データ群</label><select id="jkGroupSel">
+        <option value="jul">2026年7月 累計（22営業日）</option>
+        <option value="jun">2026年6月 累計（22営業日）</option>
+        <option value="diff">6月 → 7月 の変化</option>
+        <option value="daily">日次データ（全660行）</option>
+      </select></span>
+      <span id="jkSortWrap"><label>並び替え</label><select id="jkSortSel"></select>
+        <select id="jkOrderSel">
+          <option value="desc">降順（大きい順）</option>
+          <option value="asc">昇順（小さい順）</option>
+        </select></span>
+      <span id="jkStockWrap" hidden><label>銘柄</label><select id="jkStockSel"><option value="">すべて</option></select></span>
+      <input id="jkQ" type="search" placeholder="銘柄名・コードで絞り込み">
+      <span class="stat" id="jkStat"></span>
+    </div>
+    <div class="banner" id="jkBanner">読み込み中…</div>
+    <div class="cards" id="jkCards"></div>
+    <div class="hintRow">
+      <div class="hint"><b>松井証券アプリの「売買分析 → 過去情報」</b>から、15銘柄について <b>2026年6月・7月の各22営業日</b>の売買内訳(現物買/新規買/返済買/現物売/新規売/返済売/空売り、千株)を1日ずつ読み取り、信用需給の指標を集計した一度きりの調査データです(2026-08-02作成、毎日更新はされません)。<br>
+      <b>ネットの定義</b> … 現物ネット = 現物買 − 現物売 / 買い残ネット = 新規買 − 返済売 / 売り残ネット = 空売り + 新規売 − 返済買。日々の「買い合計 = 売り合計 = 出来高」および累計の「現物ネット + 買残ネット − 売残ネット = 0」を<b>全15銘柄 × 44営業日で検算済み</b>です。<br>
+      <b>指標の見方</b> … <b>②新規買÷発行済</b>はその月にどれだけ信用買いが回転したかの熱量。<b>③現物ネット÷発行済</b>は現物の実需買い越しの厚み。<b>④買残ネット÷発行済</b>が<b>プラスに大きいほど信用買い残が滞留</b>していて上値のシコリになります。ほぼ全銘柄で④はゼロ近傍＝現物の買い越しを受けているのは信用買いではなく売り建て側、という構図です。<b>①現物ネット÷買残ネット</b>は④がゼロ近傍だと分母割れで発散するため、<b>|④| &lt; 0.05% の銘柄には * を付けて参考値</b>としています。<br>
+      <b>注意</b> … 「空売り」列は当日中に買い戻される高頻度売買を多く含むため、⑤売り残ネットをそのまま信用売り残高の増加として読むことはできません。実残高は週次公表の信用残で別途確認してください。またこのデータは松井証券内の約定ではなく、<b>市場全体の出来高を按分した当日推計値</b>です。<br>
+      <b>並び替え</b> … 上の「並び替え」＋「降順／昇順」のプルダウン、または<b>列見出しクリック</b>(もう一度クリックで昇順/降順切替)のどちらでも並べ替えられます。データ群を切り替えると、その表の列に合わせて並び替え候補も入れ替わります。</div>
+    </div>
+    <div class="tablecard">
+      <table id="jkTbl">
+        <thead><tr id="jkHeadRow"></tr></thead>
+        <tbody id="jkBody"><tr><td class="loading" colspan="13">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+    <footer>
+      売買内訳: 松井証券アプリ「日本株」銘柄詳細 → 売買分析 → 過去情報(当日推計) / 発行済株式数: <a href="https://kabutan.jp/" target="_blank" rel="noopener">株探(kabutan.jp)</a>(2026-07-31時点)。<br>
+      本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
+    </footer>
+  </div><!-- /view-jukyu -->
 
   <div id="view-newhigh" hidden>
     <div class="toolbar">
@@ -1423,6 +1462,261 @@ async function spInit() {
   }
 }
 
+/* ---- 信用需給分析(15銘柄・2026年6月/7月) ---- */
+function jkPct(v) { return v == null ? "-" : v.toFixed(3) + "%"; }
+function jkPt(v) { return v == null ? "-" : (v > 0 ? "+" : "") + v.toFixed(3) + "pt"; }
+function jkMan(v) { return v == null ? "-" : Math.round(v).toLocaleString("ja-JP"); }
+function jkSen(v) { return v == null ? "-" : Number(v).toLocaleString("ja-JP", { maximumFractionDigits: 1 }); }
+function jkBai(v, flagged) {
+  if (v == null) return "-";
+  return (flagged ? v.toFixed(0) : v.toFixed(1)) + "倍" + (flagged ? " *" : "");
+}
+
+/* 列定義。num を持つ列だけ数値ソート＋並び替えプルダウンの候補になる。 */
+const JK_MONTH_COLS = [
+  { key: "code",   label: "コード",   code: true, left: true },
+  { key: "name",   label: "銘柄名",   left: true, cls: "name tl" },
+  { key: "market", label: "市場",     left: true, cls: "tl" },
+  { key: "i1",     label: "①現物ﾈｯﾄ÷買残ﾈｯﾄ", num: r => r.i1 ?? -Infinity, fmt: (v, r) => jkBai(v, r.i1flag) },
+  { key: "i2",     label: "②新規買÷発行済",   num: r => r.i2 ?? -Infinity, fmt: jkPct },
+  { key: "i3",     label: "③現物ﾈｯﾄ÷発行済",  num: r => r.i3 ?? -Infinity, fmt: jkPct, color: true },
+  { key: "i4",     label: "④買残ﾈｯﾄ÷発行済",  num: r => r.i4 ?? -Infinity, fmt: jkPct, color: true },
+  { key: "i5",     label: "⑤売残ﾈｯﾄ÷発行済",  num: r => r.i5 ?? -Infinity, fmt: jkPct },
+  { key: "gn",     label: "現物ﾈｯﾄ(万株)",   num: r => r.gn ?? -Infinity, fmt: jkMan, color: true },
+  { key: "kn",     label: "買残ﾈｯﾄ(万株)",   num: r => r.kn ?? -Infinity, fmt: jkMan, color: true },
+  { key: "un",     label: "売残ﾈｯﾄ(万株)",   num: r => r.un ?? -Infinity, fmt: jkMan },
+  { key: "sk",     label: "新規買累計(万株)", num: r => r.sk ?? -Infinity, fmt: jkMan },
+  { key: "turn",   label: "出来高÷発行済",   num: r => r.turn ?? -Infinity, fmt: v => v == null ? "-" : v.toFixed(1) + "%" },
+  { key: "shares", label: "発行済(万株)",    num: r => r.shares ?? -Infinity, fmt: jkMan },
+];
+const JK_DIFF_COLS = [
+  { key: "code",   label: "コード", code: true, left: true },
+  { key: "name",   label: "銘柄名", left: true, cls: "name tl" },
+  { key: "market", label: "市場",   left: true, cls: "tl" },
+  { key: "i2jun",  label: "②6月", num: r => r.i2jun, fmt: jkPct, cls: "flat" },
+  { key: "i2jul",  label: "②7月", num: r => r.i2jul, fmt: jkPct, cls: "flat" },
+  { key: "i2d",    label: "②差分", num: r => r.i2d, fmt: jkPt, color: true },
+  { key: "i3jun",  label: "③6月", num: r => r.i3jun, fmt: jkPct, cls: "flat" },
+  { key: "i3jul",  label: "③7月", num: r => r.i3jul, fmt: jkPct, cls: "flat" },
+  { key: "i3d",    label: "③差分", num: r => r.i3d, fmt: jkPt, color: true },
+  { key: "i4jun",  label: "④6月", num: r => r.i4jun, fmt: jkPct, cls: "flat" },
+  { key: "i4jul",  label: "④7月", num: r => r.i4jul, fmt: jkPct, cls: "flat" },
+  { key: "i4d",    label: "④差分", num: r => r.i4d, fmt: jkPt, color: true },
+  { key: "i5jun",  label: "⑤6月", num: r => r.i5jun, fmt: jkPct, cls: "flat" },
+  { key: "i5jul",  label: "⑤7月", num: r => r.i5jul, fmt: jkPct, cls: "flat" },
+  { key: "i5d",    label: "⑤差分", num: r => r.i5d, fmt: jkPt, color: true },
+];
+const JK_DAILY_COLS = [
+  { key: "date", label: "日付",   left: true, cls: "tl" },
+  { key: "code", label: "コード", code: true, left: true },
+  { key: "name", label: "銘柄名", left: true, cls: "name tl" },
+  { key: "gb",   label: "現物買", num: r => r.gb, fmt: jkSen },
+  { key: "kb",   label: "新規買", num: r => r.kb, fmt: jkSen },
+  { key: "hb",   label: "返済買", num: r => r.hb, fmt: jkSen },
+  { key: "gs",   label: "現物売", num: r => r.gs, fmt: jkSen },
+  { key: "ks",   label: "新規売", num: r => r.ks, fmt: jkSen },
+  { key: "hs",   label: "返済売", num: r => r.hs, fmt: jkSen },
+  { key: "ur",   label: "空売り", num: r => r.ur, fmt: jkSen },
+  { key: "vol",  label: "出来高", num: r => r.vol, fmt: jkSen },
+  { key: "gn",   label: "現物ﾈｯﾄ", num: r => r.gn, fmt: jkSen, color: true },
+  { key: "kn",   label: "買残ﾈｯﾄ", num: r => r.kn, fmt: jkSen, color: true },
+  { key: "un",   label: "売残ﾈｯﾄ", num: r => r.un, fmt: jkSen },
+];
+const JK_GROUPS = {
+  jun:   { cols: JK_MONTH_COLS, defKey: "i2", unit: "万株" },
+  jul:   { cols: JK_MONTH_COLS, defKey: "i2", unit: "万株" },
+  diff:  { cols: JK_DIFF_COLS,  defKey: "i4d", unit: "pt" },
+  daily: { cols: JK_DAILY_COLS, defKey: "date", unit: "千株" },
+};
+let jkData = null, jkGroup = "jul", jkSortKey = "i2", jkSortAsc = false, jkInited = false;
+
+function jkBuildRows() {
+  if (!jkData) return [];
+  if (jkGroup === "daily") {
+    const code = document.getElementById("jkStockSel").value;
+    return jkData.daily.filter(r => !code || r.code === code);
+  }
+  if (jkGroup === "diff") {
+    return jkData.stocks.map(s => {
+      const o = { code: s.code, name: s.name, market: s.market };
+      for (const k of ["i2", "i3", "i4", "i5"]) {
+        o[k + "jun"] = s.jun[k];
+        o[k + "jul"] = s.jul[k];
+        o[k + "d"] = +(s.jul[k] - s.jun[k]).toFixed(3);
+      }
+      return o;
+    });
+  }
+  return jkData.stocks.map(s => {
+    const m = s[jkGroup];
+    return {
+      code: s.code, name: s.name, market: s.market, shares: s.shares_man,
+      i1: m.i1, i1flag: Math.abs(m.i4) < 0.05,
+      i2: m.i2, i3: m.i3, i4: m.i4, i5: m.i5,
+      gn: m.gn, kn: m.kn, un: m.un, sk: m.sk, turn: m.turn,
+    };
+  });
+}
+
+function jkSyncSortSel() {
+  const sel = document.getElementById("jkSortSel");
+  const cols = JK_GROUPS[jkGroup].cols;
+  sel.innerHTML = "";
+  for (const c of cols) {
+    const o = document.createElement("option");
+    o.value = c.key;
+    o.textContent = c.label;
+    sel.appendChild(o);
+  }
+  sel.value = jkSortKey;
+  document.getElementById("jkOrderSel").value = jkSortAsc ? "asc" : "desc";
+}
+
+function jkBuildHead() {
+  const tr = document.getElementById("jkHeadRow");
+  tr.innerHTML = "";
+  for (const c of JK_GROUPS[jkGroup].cols) {
+    const th = document.createElement("th");
+    th.textContent = c.label;
+    if (c.left) th.classList.add("tl");
+    if (c.key === jkSortKey) {
+      const a = document.createElement("span");
+      a.className = "arw";
+      a.textContent = jkSortAsc ? "▲" : "▼";
+      th.appendChild(a);
+    }
+    th.onclick = () => {
+      if (jkSortKey === c.key) jkSortAsc = !jkSortAsc;
+      else { jkSortKey = c.key; jkSortAsc = false; }
+      jkSyncSortSel();
+      jkRenderTable();
+    };
+    tr.appendChild(th);
+  }
+}
+
+function jkRenderCards() {
+  if (!jkData) return;
+  const el = document.getElementById("jkCards");
+  if (jkGroup === "daily") {
+    el.innerHTML =
+      '<div class="card overall"><div class="ttl">日次データ</div>' +
+      '<div class="big flat">' + jkData.daily.length + '行</div>' +
+      '<div class="sub">15銘柄 × 44営業日（6月22日 + 7月22日）<br>単位は<b>千株</b>。日々の 買い合計 = 売り合計 = 出来高 を全行で検算済み</div></div>';
+    return;
+  }
+  const rows = jkBuildRows();
+  const cards = [];
+  if (jkGroup === "diff") {
+    const up4 = rows.filter(r => r.i4d > 0).length;
+    const worst = rows.slice().sort((a, b) => b.i4d - a.i4d)[0];
+    const hot = rows.slice().sort((a, b) => b.i2d - a.i2d)[0];
+    cards.push('<div class="card overall"><div class="ttl">買い残ネットが増えた銘柄</div>' +
+      '<div class="big flat">' + up4 + ' / ' + rows.length + '</div>' +
+      '<div class="sub">④が6月より増加＝信用買い残が滞留し始めた銘柄数<br>最大は <b>' + worst.name + '</b>（' + jkPt(worst.i4d) + '）</div></div>');
+    cards.push('<div class="card"><div class="ttl">新規買の加速が最大</div>' +
+      '<div class="big up">' + hot.name + '</div>' +
+      '<div class="sub">②が ' + jkPct(hot.i2jun) + ' → ' + jkPct(hot.i2jul) + '（' + jkPt(hot.i2d) + '）</div></div>');
+  } else {
+    const lbl = jkGroup === "jul" ? "2026年7月" : "2026年6月";
+    const byI2 = rows.slice().sort((a, b) => b.i2 - a.i2);
+    const byI4 = rows.slice().sort((a, b) => b.i4 - a.i4);
+    const zero = rows.filter(r => Math.abs(r.i4) < 1).length;
+    cards.push('<div class="card overall"><div class="ttl">' + lbl + '　新規買 ÷ 発行済 が最大</div>' +
+      '<div class="big up">' + byI2[0].name + '</div>' +
+      '<div class="sub">' + jkPct(byI2[0].i2) + '。2位 <b>' + byI2[1].name + '</b> ' + jkPct(byI2[1].i2) +
+      ' / 3位 <b>' + byI2[2].name + '</b> ' + jkPct(byI2[2].i2) + '</div></div>');
+    cards.push('<div class="card"><div class="ttl">買い残ネット ÷ 発行済 が最大</div>' +
+      '<div class="big ' + signCls(byI4[0].i4) + '">' + byI4[0].name + '</div>' +
+      '<div class="sub">' + jkPct(byI4[0].i4) + '。プラスに大きいほど信用買い残が滞留＝上値のシコリ</div></div>');
+    cards.push('<div class="card"><div class="ttl">買い残がほぼ溜まっていない銘柄</div>' +
+      '<div class="big flat">' + zero + ' / ' + rows.length + '</div>' +
+      '<div class="sub">|④| &lt; 1% の銘柄数。現物の買い越しを受けているのが<br>信用買いではなく売り建て側、という構図</div></div>');
+  }
+  el.innerHTML = cards.join("");
+}
+
+function jkRenderTable() {
+  if (!jkData) return;
+  jkBuildHead();
+  const cols = JK_GROUPS[jkGroup].cols;
+  const col = cols.find(c => c.key === jkSortKey) || cols[0];
+  const q = (document.getElementById("jkQ").value || "").trim().toLowerCase();
+  let rows = jkBuildRows();
+  if (q) rows = rows.filter(r => String(r.code).toLowerCase().includes(q) || String(r.name).toLowerCase().includes(q));
+  rows.sort((a, b) => {
+    let r;
+    if (col.num) r = col.num(a) - col.num(b);
+    else r = String(a[col.key]).localeCompare(String(b[col.key]), "ja");
+    if (r === 0) r = String(a.code).localeCompare(String(b.code), "ja");
+    return jkSortAsc ? r : -r;
+  });
+  const tb = document.getElementById("jkBody");
+  tb.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  for (const s of rows) {
+    const tr = document.createElement("tr");
+    for (const c of cols) {
+      const v = s[c.key];
+      const td = document.createElement("td");
+      if (c.code) {
+        td.className = "code tl";
+        const a = document.createElement("a");
+        a.href = "https://kabutan.jp/stock/chart?code=" + encodeURIComponent(v) + "&ashi=4";
+        a.target = "_blank"; a.rel = "noopener";
+        a.textContent = v;
+        td.appendChild(a);
+      } else {
+        if (c.color) td.className = signCls(v);
+        else if (c.cls) td.className = c.cls;
+        td.textContent = c.fmt ? c.fmt(v, s) : (v == null ? "-" : v);
+      }
+      tr.appendChild(td);
+    }
+    frag.appendChild(tr);
+  }
+  tb.appendChild(frag);
+  const unit = JK_GROUPS[jkGroup].unit;
+  document.getElementById("jkStat").innerHTML =
+    "全 <b>" + rows.length + "</b> 行（数量の単位: " + unit + "）";
+}
+
+async function jkInit() {
+  try {
+    const res = await fetch("data_jukyu/analysis.json", { cache: "no-cache" });
+    jkData = await res.json();
+    document.getElementById("jkBanner").innerHTML =
+      "対象: <b>15銘柄</b> × " + jkData.period_jun + " / " + jkData.period_jul +
+      " ／ データ源: " + jkData.source + " ／ 発行済株式数: " + jkData.shares_asof;
+    const stockSel = document.getElementById("jkStockSel");
+    for (const s of jkData.stocks) {
+      const o = document.createElement("option");
+      o.value = s.code;
+      o.textContent = s.code + " " + s.name;
+      stockSel.appendChild(o);
+    }
+    const gSel = document.getElementById("jkGroupSel");
+    gSel.onchange = () => {
+      jkGroup = gSel.value;
+      jkSortKey = JK_GROUPS[jkGroup].defKey;
+      jkSortAsc = false;
+      document.getElementById("jkStockWrap").hidden = (jkGroup !== "daily");
+      jkSyncSortSel();
+      jkRenderCards();
+      jkRenderTable();
+    };
+    document.getElementById("jkSortSel").onchange = e => { jkSortKey = e.target.value; jkRenderTable(); };
+    document.getElementById("jkOrderSel").onchange = e => { jkSortAsc = (e.target.value === "asc"); jkRenderTable(); };
+    stockSel.onchange = () => jkRenderTable();
+    document.getElementById("jkQ").oninput = () => jkRenderTable();
+    jkSyncSortSel();
+    jkRenderCards();
+    jkRenderTable();
+  } catch (e) {
+    document.getElementById("jkBanner").innerHTML = '<span class="err">読み込みエラー: ' + e + '</span>';
+  }
+}
+
 /* ---- 52週新高値ブレイク ---- */
 const NH_COLS = [
   { key: "code",       label: "コード",   code: true, left: true },
@@ -1768,7 +2062,7 @@ const VIEW_ID = {
   yori: "view-yori", minute: "view-minute", sector: "view-sector",
   stop: "view-stop", stoplow: "view-stoplow", streaks: "view-streaks",
   pts: "view-pts", watch: "view-watch", shinyo: "view-shinyo",
-  newhigh: "view-newhigh", lowvolume: "view-lowvolume",
+  newhigh: "view-newhigh", lowvolume: "view-lowvolume", jukyu: "view-jukyu",
 };
 function switchTab(name) {
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
@@ -1781,6 +2075,7 @@ function switchTab(name) {
   if (name === "split" && !spInited) { spInited = true; spInit(); }
   if (name === "newhigh" && !nhInited) { nhInited = true; nhInit(); }
   if (name === "lowvolume" && !lvInited) { lvInited = true; lvInit(); }
+  if (name === "jukyu" && !jkInited) { jkInited = true; jkInit(); }
   // 外部サイトのiframeは初回表示時に遅延読み込み
   const view = document.getElementById(VIEW_ID[name]);
   const ifr = view.querySelector("iframe[data-src]");
@@ -1809,6 +2104,7 @@ const FEEDS = {
   pts:      { kind: "index", url: "/buffett-code-pts-ranking/data/index.json", freq: "daily" },
   shinyo:   { kind: "index", url: "./data_shinyo/index.json", freq: "weekly" },
   split:    { kind: "field", url: "./data_split/analysis.json", field: "generated", freq: "ended" },
+  jukyu:    { kind: "field", url: "./data_jukyu/analysis.json", field: "generated", freq: "ended" },
 };
 
 /* バッジは「前回そのタブを開いたときより新しいデータがあるか」で判定する。
