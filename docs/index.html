@@ -413,7 +413,7 @@ footer a { color: var(--accent); }
         <option value="jul">2026年7月 累計（22営業日）</option>
         <option value="jun">2026年6月 累計（22営業日）</option>
         <option value="diff">6月 → 7月 の変化</option>
-        <option value="daily">日次データ（全660行）</option>
+        <option value="daily">日次データ（全行）</option>
       </select></span>
       <span id="jkSortWrap"><label>並び替え</label><select id="jkSortSel"></select>
         <select id="jkOrderSel">
@@ -427,8 +427,8 @@ footer a { color: var(--accent); }
     <div class="banner" id="jkBanner">読み込み中…</div>
     <div class="cards" id="jkCards"></div>
     <div class="hintRow">
-      <div class="hint"><b>松井証券アプリの「売買分析 → 過去情報」</b>から、15銘柄について <b>2026年6月・7月の各22営業日</b>の売買内訳(現物買/新規買/返済買/現物売/新規売/返済売/空売り、千株)を1日ずつ読み取り、信用需給の指標を集計した一度きりの調査データです(2026-08-02作成、毎日更新はされません)。<br>
-      <b>ネットの定義</b> … 現物ネット = 現物買 − 現物売 / 買い残ネット = 新規買 − 返済売 / 売り残ネット = 空売り + 新規売 − 返済買。日々の「買い合計 = 売り合計 = 出来高」および累計の「現物ネット + 買残ネット − 売残ネット = 0」を<b>全15銘柄 × 44営業日で検算済み</b>です。<br>
+      <div class="hint"><b>松井証券アプリの「売買分析 → 過去情報」</b>から、20銘柄について <b>2026年6月・7月の各22営業日</b>の売買内訳(現物買/新規買/返済買/現物売/新規売/返済売/空売り、千株)を1日ずつ読み取り、信用需給の指標を集計したデータです(自動取得ではなく手動読み取りのため、銘柄を足したときだけ更新されます)。<br>
+      <b>ネットの定義</b> … 現物ネット = 現物買 − 現物売 / 買い残ネット = 新規買 − 返済売 / 売り残ネット = 空売り + 新規売 − 返済買。日々の「買い合計 = 売り合計 = 出来高」および累計の「現物ネット + 買残ネット − 売残ネット = 0」を<b>全20銘柄 × 44営業日で検算済み</b>です。<br>
       <b>指標の見方</b> … <b>②新規買÷発行済</b>はその月にどれだけ信用買いが回転したかの熱量。<b>③現物ネット÷発行済</b>は現物の実需買い越しの厚み。<b>④買残ネット÷発行済</b>が<b>プラスに大きいほど信用買い残が滞留</b>していて上値のシコリになります。ほぼ全銘柄で④はゼロ近傍＝現物の買い越しを受けているのは信用買いではなく売り建て側、という構図です。<b>①現物ネット÷買残ネット</b>は④がゼロ近傍だと分母割れで発散するため、<b>|④| &lt; 0.05% の銘柄には * を付けて参考値</b>としています。<br>
       <b>注意</b> … 「空売り」列は当日中に買い戻される高頻度売買を多く含むため、⑤売り残ネットをそのまま信用売り残高の増加として読むことはできません。実残高は週次公表の信用残で別途確認してください。またこのデータは松井証券内の約定ではなく、<b>市場全体の出来高を按分した当日推計値</b>です。<br>
       <b>並び替え</b> … 上の「並び替え」＋「降順／昇順」のプルダウン、または<b>列見出しクリック</b>(もう一度クリックで昇順/降順切替)のどちらでも並べ替えられます。データ群を切り替えると、その表の列に合わせて並び替え候補も入れ替わります。</div>
@@ -1462,7 +1462,7 @@ async function spInit() {
   }
 }
 
-/* ---- 信用需給分析(15銘柄・2026年6月/7月) ---- */
+/* ---- 信用需給分析(2026年6月/7月・銘柄数は analysis.json 依存) ---- */
 function jkPct(v) { return v == null ? "-" : v.toFixed(3) + "%"; }
 function jkPt(v) { return v == null ? "-" : (v > 0 ? "+" : "") + v.toFixed(3) + "pt"; }
 function jkMan(v) { return v == null ? "-" : Math.round(v).toLocaleString("ja-JP"); }
@@ -1602,7 +1602,7 @@ function jkRenderCards() {
     el.innerHTML =
       '<div class="card overall"><div class="ttl">日次データ</div>' +
       '<div class="big flat">' + jkData.daily.length + '行</div>' +
-      '<div class="sub">15銘柄 × 44営業日（6月22日 + 7月22日）<br>単位は<b>千株</b>。日々の 買い合計 = 売り合計 = 出来高 を全行で検算済み</div></div>';
+      '<div class="sub">' + jkData.stocks.length + '銘柄 × 44営業日（6月22日 + 7月22日）<br>単位は<b>千株</b>。日々の 買い合計 = 売り合計 = 出来高 を全行で検算済み</div></div>';
     return;
   }
   const rows = jkBuildRows();
@@ -1686,8 +1686,10 @@ async function jkInit() {
     const res = await fetch("data_jukyu/analysis.json", { cache: "no-cache" });
     jkData = await res.json();
     document.getElementById("jkBanner").innerHTML =
-      "対象: <b>15銘柄</b> × " + jkData.period_jun + " / " + jkData.period_jul +
+      "対象: <b>" + jkData.stocks.length + "銘柄</b> × " + jkData.period_jun + " / " + jkData.period_jul +
       " ／ データ源: " + jkData.source + " ／ 発行済株式数: " + jkData.shares_asof;
+    document.querySelector('#jkGroupSel option[value="daily"]').textContent =
+      "日次データ（全" + jkData.daily.length + "行）";
     const stockSel = document.getElementById("jkStockSel");
     for (const s of jkData.stocks) {
       const o = document.createElement("option");

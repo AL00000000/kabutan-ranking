@@ -1,0 +1,126 @@
+{
+ "shares_asof": "2026-07-31（株探）",
+ "source": "松井証券アプリ 銘柄詳細→売買分析→過去情報（当日推計・千株）",
+ "stocks": [
+  {
+   "code": "6976",
+   "name": "太陽誘電",
+   "market": "東P",
+   "shares": 135422595
+  },
+  {
+   "code": "278A",
+   "name": "テラドローン",
+   "market": "東G",
+   "shares": 9827800
+  },
+  {
+   "code": "285A",
+   "name": "キオクシアHD",
+   "market": "東P",
+   "shares": 548015088
+  },
+  {
+   "code": "3436",
+   "name": "SUMCO",
+   "market": "東P",
+   "shares": 350175139
+  },
+  {
+   "code": "6227",
+   "name": "AIメカテック",
+   "market": "東S",
+   "shares": 18849000
+  },
+  {
+   "code": "6526",
+   "name": "ソシオネクスト",
+   "market": "東P",
+   "shares": 179989255
+  },
+  {
+   "code": "6315",
+   "name": "TOWA",
+   "market": "東P",
+   "shares": 75157367
+  },
+  {
+   "code": "485A",
+   "name": "パワーエックス",
+   "market": "東G",
+   "shares": 114768750
+  },
+  {
+   "code": "6525",
+   "name": "KOKUSAIエレ",
+   "market": "東P",
+   "shares": 238115614
+  },
+  {
+   "code": "6590",
+   "name": "芝浦メカトロニクス",
+   "market": "東P",
+   "shares": 69859500
+  },
+  {
+   "code": "7203",
+   "name": "トヨタ自動車",
+   "market": "東P",
+   "shares": 14594987460
+  },
+  {
+   "code": "8306",
+   "name": "三菱UFJFG",
+   "market": "東P",
+   "shares": 11867710920
+  },
+  {
+   "code": "9984",
+   "name": "ソフトバンクG",
+   "market": "東P",
+   "shares": 5711848120
+  },
+  {
+   "code": "8316",
+   "name": "三井住友FG",
+   "market": "東P",
+   "shares": 3829143493
+  },
+  {
+   "code": "8035",
+   "name": "東京エレクトロン",
+   "market": "東P",
+   "shares": 468032733
+  },
+  {
+   "code": "464A",
+   "name": "QPSホールディングス",
+   "market": "東G",
+   "shares": 55931000
+  },
+  {
+   "code": "290A",
+   "name": "Synspective",
+   "market": "東G",
+   "shares": 132935900
+  },
+  {
+   "code": "9348",
+   "name": "ispace",
+   "market": "東G",
+   "shares": 146311623
+  },
+  {
+   "code": "186A",
+   "name": "アストロスケールHD",
+   "market": "東G",
+   "shares": 141780800
+  },
+  {
+   "code": "402A",
+   "name": "アクセルスペースHD",
+   "market": "東G",
+   "shares": 66641000
+  }
+ ]
+}
