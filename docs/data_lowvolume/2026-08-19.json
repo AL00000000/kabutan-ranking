@@ -1,0 +1,45 @@
+{
+  "date": "2026-08-19",
+  "as_of": "2026-08-19 16:00",
+  "updated": "2026-08-19",
+  "generated": "2026-08-19T16:45:39+09:00",
+  "min_value": 1000,
+  "window_days": 365,
+  "ma_days": 5,
+  "counts": {
+    "scanned": 700,
+    "universe": 653,
+    "hit": 1,
+    "day_low": 0,
+    "ma_low": 1,
+    "watch": 0,
+    "failed": 0,
+    "stale": 0,
+    "skipped": 2
+  },
+  "failed": [],
+  "stocks": [
+    {
+      "rank": 342,
+      "code": "4506",
+      "name": "住友ファーマ",
+      "market": "東Ｐ",
+      "close": 1350.5,
+      "change_pct": -1.78,
+      "value": 3392.0,
+      "watch": null,
+      "volume": 2499000.0,
+      "prev_min": 2181800.0,
+      "ma": 2489960,
+      "ma_prev_min": 2509500,
+      "is_low": false,
+      "ma_low": true,
+      "avg52": 8710114,
+      "vs_avg_pct": 28.7,
+      "prev_date": "2026-07-09",
+      "gap": 27,
+      "hist_days": 244,
+      "short_hist": false
+    }
+  ]
+}
