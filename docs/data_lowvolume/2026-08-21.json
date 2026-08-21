@@ -1,0 +1,45 @@
+{
+  "date": "2026-08-21",
+  "as_of": "2026-08-21 16:00",
+  "updated": "2026-08-21",
+  "generated": "2026-08-21T16:45:37+09:00",
+  "min_value": 1000,
+  "window_days": 365,
+  "ma_days": 5,
+  "counts": {
+    "scanned": 650,
+    "universe": 603,
+    "hit": 1,
+    "day_low": 0,
+    "ma_low": 1,
+    "watch": 1,
+    "failed": 0,
+    "stale": 0,
+    "skipped": 2
+  },
+  "failed": [],
+  "stocks": [
+    {
+      "rank": 16,
+      "code": "6146",
+      "name": "ディスコ",
+      "market": "東Ｐ",
+      "close": 61360.0,
+      "change_pct": 1.72,
+      "value": 61137.0,
+      "watch": "AI半導体/SPE",
+      "volume": 1012100.0,
+      "prev_min": 833300.0,
+      "ma": 1128500,
+      "ma_prev_min": 1175480,
+      "is_low": false,
+      "ma_low": true,
+      "avg52": 2585952,
+      "vs_avg_pct": 39.1,
+      "prev_date": "2026-08-17",
+      "gap": 4,
+      "hist_days": 244,
+      "short_hist": false
+    }
+  ]
+}
