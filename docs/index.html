@@ -564,6 +564,9 @@ footer a { color: var(--accent); }
       <div class="hint"><b>東証3市場(プライム・スタンダード・グロース)の1日の売買代金</b>です。相場が活況か閑散かを測る最も基本的な指標で、<b>売買代金が細ると値動きも出にくくなります</b>。棒が日々の合計、折れ線が5日移動平均です。<br>
       数値は<b>JPXが引け後に公表する確定値</b>(立会内)です。ToSTNeT(立会外)・ETF・REITは含みません。「1位」「2位」はその日に最も売買代金の大きかった銘柄で、3市場を通した順位です。<br>
       <b>JPXは市況を5営業日ぶん、売買代金ランキングを1営業日ぶんしか公開していません</b>。過去に遡って取り直せないため、毎営業日18:30に取得してこのサイトに積み上げています。そのため<b>集計開始は2026年8月19日</b>で、それ以前のデータはありません。銘柄の1位2位も、記録を始めた日より前の分は空欄になります。<br>
+      「値上がり」「値下がり」は3市場合計の銘柄数です(セルにカーソルを乗せると市場別の内訳が出ます)。売買代金が膨らんでいても値下がり銘柄のほうが多ければ、一部の主力株に売買が集中しているだけで<b>物色の広がりは無い</b>と読めます。<br>
+      「最高比」は<b>1日の売買代金の過去最高に対して、その日が何%か</b>です。基準は東証プライムが<b>2026年5月29日の16兆3127億円</b>(MSCIリバランス日)、キオクシアが<b>2026年6月24日の4兆6833億円</b>(単一銘柄の過去最高)。いずれも報道で確認した値を初期値に置き、以後このサイトの観測値がそれを上回れば自動で更新します。<br>
+      <b>プライムの基準値には留保があります。</b>6月24日はキオクシア1銘柄だけで4.68兆円が商われた日で、5月14日の比率(キオクシア2.4兆円がプライム12.0兆円の約2割)を当てはめるとプライム全体では16兆円を超えていた可能性があります。ただしその日のプライム全体の売買代金を報じた記事は見つけられませんでした。より大きい確定値が判明したら基準を差し替えます。<br>
       表は新しい日が上です。「前日比」は合計売買代金の前営業日からの増減率。</div>
     </div>
     <div class="tablecard">
@@ -2243,9 +2246,23 @@ function tvRenderChart(rows, ma) {
   el.innerHTML = out;
 }
 
-const TV_COLS = ["日付", "合計", "前日比", "プライム", "スタンダード", "グロース", "1位", "2位"];
+const TV_COLS = ["日付", "合計", "前日比", "値上がり", "値下がり",
+  "プライム", "スタンダード", "グロース", "キオクシア", "1位", "2位"];
+
+const tvSum = (r, suf) => ["prime", "standard", "growth"]
+  .reduce((n, k) => n + (r[k + suf] || 0), 0);
+const tvBreak = (r, suf) => ["prime", "standard", "growth"]
+  .map((k, i) => ["プライム", "スタンダード", "グロース"][i] + " " + (r[k + suf] || 0)).join(" / ");
+
+// 過去最高売買代金に対する当日の達成率。records は data.json に入っている
+function tvRatio(val, rec) {
+  if (!rec || !rec.value || val == null) return "";
+  return '<span class="tvsub">最高比 ' + ((val / rec.value) * 100).toFixed(1) + '%</span>';
+}
+const tvTwoLine = (main, sub) => main + (sub ? "<br>" + sub : "");
 
 function tvRenderTable(rows) {
+  const rec = (tvData.records || {});
   document.getElementById("tvHeadRow").innerHTML =
     TV_COLS.map((c, i) => '<th' + (i === 0 ? ' class="tl"' : '') + '>' + c + '</th>').join("");
   const desc = rows.slice().reverse();
@@ -2255,15 +2272,21 @@ function tvRenderTable(rows) {
     const prev = i > 0 ? rows[i - 1].total : null;
     const dod = prev ? ((r.total - prev) / prev) * 100 : null;
     const top = r.top || [];
-    const cell = k => (top[k] ? top[k].name + "<br><span class=\"tvsub\">" + tvOku(top[k].turnover) + "</span>" : "—");
+    const cell = k => (top[k] ? tvTwoLine(top[k].name, '<span class="tvsub">' + tvOku(top[k].turnover) + '</span>') : "—");
+    const kio = rec.kioxia && rec.kioxia.code
+      ? top.find(t => t.code === rec.kioxia.code) : null;
     return '<tr><td class="tl">' + tvMd(r.date) + '</td>' +
       '<td><b>' + tvOku(r.total) + '</b></td>' +
       '<td class="' + tvCls(dod) + '">' + tvPct(dod) + '</td>' +
-      '<td>' + tvOku(r.prime) + '</td><td>' + tvOku(r.standard) + '</td><td>' + tvOku(r.growth) + '</td>' +
+      '<td class="up" title="' + tvBreak(r, "_risen") + '">' + tvSum(r, "_risen").toLocaleString() + '</td>' +
+      '<td class="down" title="' + tvBreak(r, "_fallen") + '">' + tvSum(r, "_fallen").toLocaleString() + '</td>' +
+      '<td>' + tvTwoLine(tvOku(r.prime), tvRatio(r.prime, rec.prime)) + '</td>' +
+      '<td>' + tvOku(r.standard) + '</td><td>' + tvOku(r.growth) + '</td>' +
+      '<td>' + (kio ? tvTwoLine(tvOku(kio.turnover), tvRatio(kio.turnover, rec.kioxia)) : "—") + '</td>' +
       '<td class="tl">' + cell(0) + '</td><td class="tl">' + cell(1) + '</td></tr>';
   }).join("");
   document.getElementById("tvBody").innerHTML = body ||
-    '<tr><td class="loading" colspan="8">データがありません</td></tr>';
+    '<tr><td class="loading" colspan="11">データがありません</td></tr>';
 }
 
 function tvRenderCards(all, maAll) {
@@ -2272,13 +2295,21 @@ function tvRenderCards(all, maAll) {
   const dod = prev ? ((last.total - prev.total) / prev.total) * 100 : null;
   const ma = maAll[maAll.length - 1];
   const vsMa = ma ? ((last.total - ma) / ma) * 100 : null;
+  const rec = tvData.records || {};
   const cards = [
-    ['<div class="card overall"><div class="ttl">' + tvMd(last.date) + ' 合計売買代金</div><div class="big">' +
-      tvCho(last.total) + '</div></div>'],
-    ['<div class="card"><div class="ttl">前日比</div><div class="big ' + tvCls(dod) + '">' + tvPct(dod) + '</div></div>'],
-    ['<div class="card"><div class="ttl">5日平均比</div><div class="big ' + tvCls(vsMa) + '">' + tvPct(vsMa) +
-      '</div></div>'],
+    '<div class="card overall"><div class="ttl">' + tvMd(last.date) + ' 合計売買代金</div><div class="big">' +
+      tvCho(last.total) + '</div></div>',
+    '<div class="card"><div class="ttl">前日比</div><div class="big ' + tvCls(dod) + '">' + tvPct(dod) + '</div></div>',
+    '<div class="card"><div class="ttl">5日平均比</div><div class="big ' + tvCls(vsMa) + '">' + tvPct(vsMa) + '</div></div>',
   ];
+  const kio = rec.kioxia && rec.kioxia.code
+    ? (last.top || []).find(t => t.code === rec.kioxia.code) : null;
+  for (const [val, r] of [[last.prime, rec.prime], [kio && kio.turnover, rec.kioxia]]) {
+    if (!r || !r.value || val == null) continue;
+    cards.push('<div class="card"><div class="ttl">' + r.label + ' 過去最高比</div><div class="big">' +
+      ((val / r.value) * 100).toFixed(1) + '%</div><div class="tvsub">最高 ' + tvOku(r.value) + '円　' +
+      tvMd(r.date) + '</div></div>');
+  }
   document.getElementById("tvCards").innerHTML = cards.join("");
 }
 
