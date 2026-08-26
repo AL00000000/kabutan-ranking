@@ -15,7 +15,14 @@
    "growth": 139438.0,
    "growth_volume": 45472.21,
    "growth_risen": 125.0,
-   "growth_fallen": 442.0
+   "growth_fallen": 442.0,
+   "total_volume": 351543.21,
+   "stocks": {
+    "285A": {
+     "name": "キオクシア",
+     "volume": 48076900.0
+    }
+   }
   },
   {
    "date": "2026-08-20",
@@ -31,7 +38,14 @@
    "growth": 147324.0,
    "growth_volume": 44421.35,
    "growth_risen": 479.0,
-   "growth_fallen": 78.0
+   "growth_fallen": 78.0,
+   "total_volume": 319838.35,
+   "stocks": {
+    "285A": {
+     "name": "キオクシア",
+     "volume": 44620700.0
+    }
+   }
   },
   {
    "date": "2026-08-21",
@@ -47,7 +61,14 @@
    "growth": 156584.0,
    "growth_volume": 50749.48,
    "growth_risen": 237.0,
-   "growth_fallen": 315.0
+   "growth_fallen": 315.0,
+   "total_volume": 330639.48,
+   "stocks": {
+    "285A": {
+     "name": "キオクシア",
+     "volume": 39845000.0
+    }
+   }
   },
   {
    "date": "2026-08-24",
@@ -63,7 +84,14 @@
    "growth": 179074.0,
    "growth_volume": 47775.96,
    "growth_risen": 281.0,
-   "growth_fallen": 256.0
+   "growth_fallen": 256.0,
+   "total_volume": 293197.96,
+   "stocks": {
+    "285A": {
+     "name": "キオクシア",
+     "volume": 32745000.0
+    }
+   }
   },
   {
    "date": "2026-08-25",
@@ -80,6 +108,7 @@
    "growth_volume": 49082.62,
    "growth_risen": 293.0,
    "growth_fallen": 249.0,
+   "total_volume": 296345.62,
    "top": [
     {
      "code": "285A",
@@ -141,7 +170,14 @@
      "market": "プライム",
      "turnover": 117160.0
     }
-   ]
+   ],
+   "stocks": {
+    "285A": {
+     "name": "キオクシア",
+     "volume": 30502000.0,
+     "turnover": 1535832.0
+    }
+   }
   },
   {
    "date": "2026-08-26",
@@ -158,6 +194,7 @@
    "growth_volume": 44467.79,
    "growth_risen": 276.0,
    "growth_fallen": 265.0,
+   "total_volume": 283578.79,
    "top": [
     {
      "code": "285A",
@@ -219,23 +256,48 @@
      "market": "プライム",
      "turnover": 94594.0
     }
-   ]
+   ],
+   "stocks": {
+    "285A": {
+     "name": "キオクシア",
+     "volume": 23640300.0,
+     "turnover": 1190714.0
+    }
+   }
   }
  ],
- "unit": "売買代金=百万円 / 出来高=万株",
+ "unit": "売買代金=百万円 / 市場の売買高=万株 / 銘柄の売買高=株",
  "records": {
   "prime": {
    "label": "東証プライム",
-   "value": 16312700,
-   "date": "2026-05-29",
-   "source": "日本経済新聞「東証売買代金が初の16兆円超え」(MSCIリバランス日)"
+   "turnover": {
+    "value": 16312700,
+    "unit": "百万円",
+    "date": "2026-05-29",
+    "source": "日本経済新聞(MSCIリバランス日。東証1部時代を含め過去最大)"
+   },
+   "volume": {
+    "value": 765514,
+    "unit": "万株",
+    "date": "2013-05-23",
+    "source": "東証1部・アベノミクス相場調整日(前記録は2013-04-05の64億4912万株)"
+   }
   },
-  "kioxia": {
+  "285A": {
    "label": "キオクシア",
    "code": "285A",
-   "value": 4683300,
-   "date": "2026-06-24",
-   "source": "MONEY PLUS「キオクシアの売買代金が4兆円超え」"
+   "turnover": {
+    "value": 4683300,
+    "unit": "百万円",
+    "date": "2026-06-24",
+    "source": "MONEY PLUS(単一銘柄の過去最高)"
+   },
+   "volume": {
+    "value": 91539100,
+    "unit": "株",
+    "date": "2026-07-30",
+    "source": "株探・Yahooファイナンスの日足全期間(2024-12-18の上場来)"
+   }
   }
  }
 }

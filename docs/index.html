@@ -565,8 +565,13 @@ footer a { color: var(--accent); }
       数値は<b>JPXが引け後に公表する確定値</b>(立会内)です。ToSTNeT(立会外)・ETF・REITは含みません。「1位」「2位」はその日に最も売買代金の大きかった銘柄で、3市場を通した順位です。<br>
       <b>JPXは市況を5営業日ぶん、売買代金ランキングを1営業日ぶんしか公開していません</b>。過去に遡って取り直せないため、毎営業日18:30に取得してこのサイトに積み上げています。そのため<b>集計開始は2026年8月19日</b>で、それ以前のデータはありません。銘柄の1位2位も、記録を始めた日より前の分は空欄になります。<br>
       「値上がり」「値下がり」は3市場合計の銘柄数です(セルにカーソルを乗せると市場別の内訳が出ます)。売買代金が膨らんでいても値下がり銘柄のほうが多ければ、一部の主力株に売買が集中しているだけで<b>物色の広がりは無い</b>と読めます。<br>
-      「最高比」は<b>1日の売買代金の過去最高に対して、その日が何%か</b>です。基準は東証プライムが<b>2026年5月29日の16兆3127億円</b>(MSCIリバランス日)、キオクシアが<b>2026年6月24日の4兆6833億円</b>(単一銘柄の過去最高)。いずれも報道で確認した値を初期値に置き、以後このサイトの観測値がそれを上回れば自動で更新します。<br>
-      <b>プライムの基準値には留保があります。</b>6月24日はキオクシア1銘柄だけで4.68兆円が商われた日で、5月14日の比率(キオクシア2.4兆円がプライム12.0兆円の約2割)を当てはめるとプライム全体では16兆円を超えていた可能性があります。ただしその日のプライム全体の売買代金を報じた記事は見つけられませんでした。より大きい確定値が判明したら基準を差し替えます。<br>
+      「最高比」は<b>1日の売買代金・売買高それぞれの過去最高に対して、その日が何%か</b>です。<b>売買高(株数)のほうが素直な活況度の指標です</b>。売買代金は株価水準が上がるだけで膨らむので、株価が5倍になれば同じ株数でも代金は5倍になります。Discord通知には売買高ベースの最高比だけを載せています。<br>
+      基準は次の4つ。いずれも報道・時系列データで確認した値を初期値に置き、以後このサイトの観測値が上回れば自動で更新します。<br>
+      ・東証プライム 売買代金 … <b>2026年5月29日 16兆3127億円</b>(MSCIリバランス日。東証1部時代を含めて過去最大)<br>
+      ・東証プライム 売買高 … <b>2013年5月23日 76億5514万株</b>(東証1部・アベノミクス相場の急落日。前記録は2013年4月5日の64億4912万株)<br>
+      ・キオクシア 売買代金 … <b>2026年6月24日 4兆6833億円</b>(単一銘柄の過去最高)<br>
+      ・キオクシア 売買高 … <b>2026年7月30日 9,154万株</b>(2024年12月18日の上場来。上場日の5,860万株も下回る)<br>
+      <b>2つの留保があります。</b>(1)プライムの売買代金の基準値は過小の可能性があります。6月24日はキオクシア1銘柄で4.68兆円が商われた日で、5月14日の比率(キオクシア2.4兆円がプライム12.0兆円の約2割)を当てはめるとプライム全体は16兆円を超えていた可能性がありますが、その日の全体値を報じた記事は見つけられませんでした。(2)プライムの売買高の基準値は<b>2013年の東証1部</b>のもので、市場区分も銘柄数も今と違います。当時は低位株の商いが中心で、同じ売買代金でも株数はずっと多く出ました。株数ベースの過去比較は代金ベースより歪みが大きい点に留意してください。<br>
       表は新しい日が上です。「前日比」は合計売買代金の前営業日からの増減率。</div>
     </div>
     <div class="tablecard">
@@ -2246,23 +2251,52 @@ function tvRenderChart(rows, ma) {
   el.innerHTML = out;
 }
 
-const TV_COLS = ["日付", "合計", "前日比", "値上がり", "値下がり",
-  "プライム", "スタンダード", "グロース", "キオクシア", "1位", "2位"];
+const TV_COLS = ["日付", "合計", "前日比", "合計売買高", "値上がり", "値下がり",
+  "プライム", "プライム売買高", "スタンダード", "グロース",
+  "キオクシア", "キオクシア売買高", "1位", "2位"];
+
+// 万株 -> '18億5350万株' / '2,364万株'
+function tvMan(man) {
+  if (man == null) return "—";
+  const m = Math.round(man);
+  if (m >= 10000) return Math.floor(m / 10000) + "億" + String(m % 10000).padStart(4, "0") + "万株";
+  return m.toLocaleString() + "万株";
+}
+// records の unit に従って整形する(市場の売買高は万株、銘柄の売買高は株)
+function tvFmt(v, unit) {
+  if (v == null) return "—";
+  if (unit === "株") return tvMan(v / 10000);
+  if (unit === "万株") return tvMan(v);
+  return tvOku(v);   // 表内は他の金額セルに合わせて「円」を付けない
+}
 
 const tvSum = (r, suf) => ["prime", "standard", "growth"]
   .reduce((n, k) => n + (r[k + suf] || 0), 0);
 const tvBreak = (r, suf) => ["prime", "standard", "growth"]
   .map((k, i) => ["プライム", "スタンダード", "グロース"][i] + " " + (r[k + suf] || 0)).join(" / ");
 
-// 過去最高売買代金に対する当日の達成率。records は data.json に入っている
-function tvRatio(val, rec) {
-  if (!rec || !rec.value || val == null) return "";
-  return '<span class="tvsub">最高比 ' + ((val / rec.value) * 100).toFixed(1) + '%</span>';
+// その日の観測値。subject は "prime" か銘柄コード
+function tvVal(day, subject, metric) {
+  if (subject === "prime") return metric === "turnover" ? day.prime : day.prime_volume;
+  const st = (day.stocks || {})[subject];
+  return st ? st[metric] : null;
+}
+// 過去最高に対する達成率
+function tvRec(key, metric) {
+  const r = (tvData.records || {})[key];
+  return r && r[metric] && r[metric].value ? r[metric] : null;
+}
+function tvRatioCell(day, key, metric) {
+  const rec = tvRec(key, metric);
+  if (!rec) return "—";
+  const v = tvVal(day, ((tvData.records || {})[key] || {}).code || key, metric);
+  if (v == null) return "—";
+  return tvFmt(v, rec.unit) + '<br><span class="tvsub">最高比 ' +
+    ((v / rec.value) * 100).toFixed(1) + '%</span>';
 }
 const tvTwoLine = (main, sub) => main + (sub ? "<br>" + sub : "");
 
 function tvRenderTable(rows) {
-  const rec = (tvData.records || {});
   document.getElementById("tvHeadRow").innerHTML =
     TV_COLS.map((c, i) => '<th' + (i === 0 ? ' class="tl"' : '') + '>' + c + '</th>').join("");
   const desc = rows.slice().reverse();
@@ -2272,21 +2306,23 @@ function tvRenderTable(rows) {
     const prev = i > 0 ? rows[i - 1].total : null;
     const dod = prev ? ((r.total - prev) / prev) * 100 : null;
     const top = r.top || [];
-    const cell = k => (top[k] ? tvTwoLine(top[k].name, '<span class="tvsub">' + tvOku(top[k].turnover) + '</span>') : "—");
-    const kio = rec.kioxia && rec.kioxia.code
-      ? top.find(t => t.code === rec.kioxia.code) : null;
+    const cell = k => (top[k]
+      ? tvTwoLine(top[k].name, '<span class="tvsub">' + tvOku(top[k].turnover) + '</span>') : "—");
     return '<tr><td class="tl">' + tvMd(r.date) + '</td>' +
       '<td><b>' + tvOku(r.total) + '</b></td>' +
       '<td class="' + tvCls(dod) + '">' + tvPct(dod) + '</td>' +
+      '<td>' + tvMan(r.total_volume) + '</td>' +
       '<td class="up" title="' + tvBreak(r, "_risen") + '">' + tvSum(r, "_risen").toLocaleString() + '</td>' +
       '<td class="down" title="' + tvBreak(r, "_fallen") + '">' + tvSum(r, "_fallen").toLocaleString() + '</td>' +
-      '<td>' + tvTwoLine(tvOku(r.prime), tvRatio(r.prime, rec.prime)) + '</td>' +
+      '<td>' + tvRatioCell(r, "prime", "turnover") + '</td>' +
+      '<td>' + tvRatioCell(r, "prime", "volume") + '</td>' +
       '<td>' + tvOku(r.standard) + '</td><td>' + tvOku(r.growth) + '</td>' +
-      '<td>' + (kio ? tvTwoLine(tvOku(kio.turnover), tvRatio(kio.turnover, rec.kioxia)) : "—") + '</td>' +
+      '<td>' + tvRatioCell(r, "285A", "turnover") + '</td>' +
+      '<td>' + tvRatioCell(r, "285A", "volume") + '</td>' +
       '<td class="tl">' + cell(0) + '</td><td class="tl">' + cell(1) + '</td></tr>';
   }).join("");
   document.getElementById("tvBody").innerHTML = body ||
-    '<tr><td class="loading" colspan="11">データがありません</td></tr>';
+    '<tr><td class="loading" colspan="14">データがありません</td></tr>';
 }
 
 function tvRenderCards(all, maAll) {
@@ -2295,20 +2331,28 @@ function tvRenderCards(all, maAll) {
   const dod = prev ? ((last.total - prev.total) / prev.total) * 100 : null;
   const ma = maAll[maAll.length - 1];
   const vsMa = ma ? ((last.total - ma) / ma) * 100 : null;
-  const rec = tvData.records || {};
   const cards = [
     '<div class="card overall"><div class="ttl">' + tvMd(last.date) + ' 合計売買代金</div><div class="big">' +
-      tvCho(last.total) + '</div></div>',
+      tvCho(last.total) + '</div><div class="tvsub">売買高 ' + tvMan(last.total_volume) + '</div></div>',
     '<div class="card"><div class="ttl">前日比</div><div class="big ' + tvCls(dod) + '">' + tvPct(dod) + '</div></div>',
     '<div class="card"><div class="ttl">5日平均比</div><div class="big ' + tvCls(vsMa) + '">' + tvPct(vsMa) + '</div></div>',
   ];
-  const kio = rec.kioxia && rec.kioxia.code
-    ? (last.top || []).find(t => t.code === rec.kioxia.code) : null;
-  for (const [val, r] of [[last.prime, rec.prime], [kio && kio.turnover, rec.kioxia]]) {
-    if (!r || !r.value || val == null) continue;
-    cards.push('<div class="card"><div class="ttl">' + r.label + ' 過去最高比</div><div class="big">' +
-      ((val / r.value) * 100).toFixed(1) + '%</div><div class="tvsub">最高 ' + tvOku(r.value) + '円　' +
-      tvMd(r.date) + '</div></div>');
+  // 過去最高比は売買高を先に出す。売買代金は株価水準に押し上げられるので、
+  // 商いの厚さを見るには株数のほうが素直
+  for (const key of ["prime", "285A"]) {
+    const meta = (tvData.records || {})[key];
+    if (!meta) continue;
+    for (const metric of ["volume", "turnover"]) {
+      const rec = tvRec(key, metric);
+      if (!rec) continue;
+      const v = tvVal(last, meta.code || key, metric);
+      if (v == null) continue;
+      cards.push('<div class="card"><div class="ttl">' + meta.label +
+        (metric === "volume" ? " 売買高" : " 売買代金") + ' 最高比</div><div class="big">' +
+        ((v / rec.value) * 100).toFixed(1) + '%</div><div class="tvsub">最高 ' +
+        tvFmt(rec.value, rec.unit) + (rec.unit === "百万円" ? "円" : "") + '　' +
+        tvMd(rec.date) + '</div></div>');
+    }
   }
   document.getElementById("tvCards").innerHTML = cards.join("");
 }
