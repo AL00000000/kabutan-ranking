@@ -1,0 +1,226 @@
+{
+ "updated": "2026-08-26",
+ "days": [
+  {
+   "date": "2026-08-19",
+   "total": 10479122.0,
+   "prime": 10115175.0,
+   "prime_volume": 251136.0,
+   "prime_risen": 362.0,
+   "prime_fallen": 1155.0,
+   "standard": 224509.0,
+   "standard_volume": 54935.0,
+   "standard_risen": 303.0,
+   "standard_fallen": 1097.0,
+   "growth": 139438.0,
+   "growth_volume": 45472.21,
+   "growth_risen": 125.0,
+   "growth_fallen": 442.0
+  },
+  {
+   "date": "2026-08-20",
+   "total": 8929389.0,
+   "prime": 8603446.0,
+   "prime_volume": 225115.0,
+   "prime_risen": 1320.0,
+   "prime_fallen": 204.0,
+   "standard": 178619.0,
+   "standard_volume": 50302.0,
+   "standard_risen": 1040.0,
+   "standard_fallen": 315.0,
+   "growth": 147324.0,
+   "growth_volume": 44421.35,
+   "growth_risen": 479.0,
+   "growth_fallen": 78.0
+  },
+  {
+   "date": "2026-08-21",
+   "total": 8251926.0,
+   "prime": 7913432.0,
+   "prime_volume": 220859.0,
+   "prime_risen": 883.0,
+   "prime_fallen": 622.0,
+   "standard": 181910.0,
+   "standard_volume": 59031.0,
+   "standard_risen": 724.0,
+   "standard_fallen": 593.0,
+   "growth": 156584.0,
+   "growth_volume": 50749.48,
+   "growth_risen": 237.0,
+   "growth_fallen": 315.0
+  },
+  {
+   "date": "2026-08-24",
+   "total": 7416228.0,
+   "prime": 7063630.0,
+   "prime_volume": 188234.0,
+   "prime_risen": 843.0,
+   "prime_fallen": 662.0,
+   "standard": 173524.0,
+   "standard_volume": 57188.0,
+   "standard_risen": 855.0,
+   "standard_fallen": 506.0,
+   "growth": 179074.0,
+   "growth_volume": 47775.96,
+   "growth_risen": 281.0,
+   "growth_fallen": 256.0
+  },
+  {
+   "date": "2026-08-25",
+   "total": 7399132.0,
+   "prime": 7009903.0,
+   "prime_volume": 190118.0,
+   "prime_risen": 846.0,
+   "prime_fallen": 647.0,
+   "standard": 192490.0,
+   "standard_volume": 57145.0,
+   "standard_risen": 752.0,
+   "standard_fallen": 589.0,
+   "growth": 196739.0,
+   "growth_volume": 49082.62,
+   "growth_risen": 293.0,
+   "growth_fallen": 249.0,
+   "top": [
+    {
+     "code": "285A",
+     "name": "ｷｵｸｼｱHD",
+     "market": "プライム",
+     "turnover": 1535832.0
+    },
+    {
+     "code": "5803",
+     "name": "フジクラ",
+     "market": "プライム",
+     "turnover": 369148.0
+    },
+    {
+     "code": "6857",
+     "name": "ｱﾄﾞﾊﾞﾝﾃ",
+     "market": "プライム",
+     "turnover": 299323.0
+    },
+    {
+     "code": "6976",
+     "name": "太陽誘電",
+     "market": "プライム",
+     "turnover": 204921.0
+    },
+    {
+     "code": "5801",
+     "name": "古河電",
+     "market": "プライム",
+     "turnover": 160465.0
+    },
+    {
+     "code": "9984",
+     "name": "ｿﾌﾄﾊﾞﾝｸG",
+     "market": "プライム",
+     "turnover": 142508.0
+    },
+    {
+     "code": "4062",
+     "name": "ｲﾋﾞﾃﾞﾝ",
+     "market": "プライム",
+     "turnover": 137027.0
+    },
+    {
+     "code": "6981",
+     "name": "村田製",
+     "market": "プライム",
+     "turnover": 130876.0
+    },
+    {
+     "code": "8035",
+     "name": "東ｴﾚｸ",
+     "market": "プライム",
+     "turnover": 124330.0
+    },
+    {
+     "code": "6146",
+     "name": "ﾃﾞｨｽｺ",
+     "market": "プライム",
+     "turnover": 117160.0
+    }
+   ]
+  },
+  {
+   "date": "2026-08-26",
+   "total": 7086820.0,
+   "prime": 6705719.0,
+   "prime_volume": 185350.0,
+   "prime_risen": 978.0,
+   "prime_fallen": 518.0,
+   "standard": 165355.0,
+   "standard_volume": 53761.0,
+   "standard_risen": 822.0,
+   "standard_fallen": 552.0,
+   "growth": 215746.0,
+   "growth_volume": 44467.79,
+   "growth_risen": 276.0,
+   "growth_fallen": 265.0,
+   "top": [
+    {
+     "code": "285A",
+     "name": "ｷｵｸｼｱHD",
+     "market": "プライム",
+     "turnover": 1190714.0
+    },
+    {
+     "code": "6857",
+     "name": "ｱﾄﾞﾊﾞﾝﾃ",
+     "market": "プライム",
+     "turnover": 307423.0
+    },
+    {
+     "code": "5803",
+     "name": "フジクラ",
+     "market": "プライム",
+     "turnover": 285110.0
+    },
+    {
+     "code": "6976",
+     "name": "太陽誘電",
+     "market": "プライム",
+     "turnover": 248628.0
+    },
+    {
+     "code": "9984",
+     "name": "ｿﾌﾄﾊﾞﾝｸG",
+     "market": "プライム",
+     "turnover": 168337.0
+    },
+    {
+     "code": "6981",
+     "name": "村田製",
+     "market": "プライム",
+     "turnover": 136631.0
+    },
+    {
+     "code": "8035",
+     "name": "東ｴﾚｸ",
+     "market": "プライム",
+     "turnover": 136184.0
+    },
+    {
+     "code": "4062",
+     "name": "ｲﾋﾞﾃﾞﾝ",
+     "market": "プライム",
+     "turnover": 123757.0
+    },
+    {
+     "code": "5801",
+     "name": "古河電",
+     "market": "プライム",
+     "turnover": 99568.0
+    },
+    {
+     "code": "6146",
+     "name": "ﾃﾞｨｽｺ",
+     "market": "プライム",
+     "turnover": 94594.0
+    }
+   ]
+  }
+ ],
+ "unit": "売買代金=百万円 / 出来高=万株"
+}
