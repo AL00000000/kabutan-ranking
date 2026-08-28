@@ -27,8 +27,9 @@ import json
 import statistics
 import sys
 import time
+import re
 import urllib.request
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 BASE = Path(__file__).parent
@@ -36,6 +37,8 @@ RANK = BASE / "docs" / "data"
 OUT = BASE / "docs" / "data_period"
 CACHE = BASE / "cache_period" / "bars.json"
 GROUPS_CSV = BASE / "groups_623.csv"
+SHARES = BASE / "cache_period" / "shares.json"        # 発行済株式数(株探)
+RAWCLOSE = BASE / "cache_period" / "raw_close.json"   # 未調整の最新終値
 OUT623 = BASE / "docs" / "data_623"
 START_623 = "2026-06-23"   # 「6.23-」タブの固定開始日
 
@@ -49,6 +52,17 @@ RETRY = 3
 
 # 横断比較用のベンチマーク(指数現物は取りにくいので流動性のあるETFで代理)
 BENCH = [("1306", "TOPIX"), ("1321", "日経225"), ("2516", "グロース250")]
+
+# 時価総額 = 未調整の最新終値 × 発行済株式数。
+# 株式数は株探の銘柄ページから取る。めったに変わらないので取り直しは間引く。
+KABUTAN_URL = "https://kabutan.jp/stock/?code={code}"
+KABUTAN_SLEEP = 0.9
+SHARES_RE = re.compile(r"発行済株式数</th>\s*<td>([\d,]+)")
+SHARES_MAX_AGE = 30        # 何日たったら取り直すか
+SHARES_DEFAULT_LIMIT = 150 # 1回の実行で取り直す上限(日次実行を長引かせないため)
+
+# 未調整の最新終値。fetch_bars が埋める(時価総額の計算にだけ使う)
+RAW_CLOSE = {}
 
 
 def compact_price(v):
@@ -101,7 +115,7 @@ def period_return(bars, start):
     return (c1 / c0 - 1) * 100, d0, d1
 
 
-def write_623(cache, groups):
+def write_623(cache, groups, caps):
     """「6.23-」タブ用。開始日は固定、終了日は取得できた最新営業日まで伸びる。"""
     if not groups:
         return
@@ -149,7 +163,7 @@ def write_623(cache, groups):
         for x in rets:
             out_stocks.append([gi, x["code"], x["name"], x["ret"], x["val"],
                                "" if x["from"] == base else x["from"],
-                               excess(x["ret"], x["from"])])
+                               excess(x["ret"], x["from"]), caps.get(x["code"])])
 
     bench = []
     for code, label in BENCH:
@@ -195,7 +209,7 @@ def fetch_bars(sym):
     ts = res["timestamp"]
     q = res["indicators"]["quote"][0]
     adj = (res["indicators"].get("adjclose") or [{}])[0].get("adjclose")
-    bars = []
+    bars, last_raw = [], None
     for i, t in enumerate(ts):
         c = q["close"][i]
         if c is None:
@@ -203,13 +217,104 @@ def fetch_bars(sym):
         a = adj[i] if adj and adj[i] is not None else c
         bars.append([datetime.fromtimestamp(t, JST).strftime("%Y-%m-%d"),
                      round(a, 2), q["volume"][i] or 0])
+        last_raw = c
+    if bars and last_raw:
+        # 調整後終値は配当ぶん割り引かれているので、時価総額には未調整終値を使う
+        RAW_CLOSE[sym.split(".")[0]] = [bars[-1][0], round(last_raw, 2)]
     return bars
+
+
+KEEP_BARS = 140   # キャッシュに残す日足の本数(6か月=約123本+余裕)
+
+
+def merge_bars(old, new):
+    """取得できた日足で上書きしつつ、今回返ってこなかった日は消さない。
+
+    データ提供側が直近の1日を一時的に落とすことがある(2026-08-29にYahooで発生し、
+    8/28の日足が全銘柄から消えた)。単純に置き換えると、その日を永久に失って
+    公開済みの数字まで巻き戻ってしまうため、日付をキーにマージする。
+    分割・併合で過去の調整値が変わったときは新しい値が勝つ。"""
+    if not old:
+        return new[-KEEP_BARS:]
+    m = {d: [d, c, v] for d, c, v in old}
+    for d, c, v in new:
+        m[d] = [d, c, v]
+    return [m[d] for d in sorted(m)][-KEEP_BARS:]
+
+
+def fetch_shares(code):
+    """株探の銘柄ページから発行済株式数を取る。取れなければ None。"""
+    req = urllib.request.Request(KABUTAN_URL.format(code=code),
+                                 headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=25) as r:
+        html = r.read().decode("utf-8", "replace")
+    m = SHARES_RE.search(html)
+    return int(m.group(1).replace(",", "")) if m else None
+
+
+def update_shares(codes, limit):
+    """発行済株式数のキャッシュを更新する。未取得の銘柄を優先し、
+    古いものは limit 件までしか取り直さない(日次実行を長引かせないため)。"""
+    shares = load_json(SHARES, {}) or {}
+    today = datetime.now(JST).date()
+    stale = []
+    for code in codes:
+        rec = shares.get(code)
+        if not rec:
+            stale.append((0, code))            # 未取得は最優先
+        else:
+            age = (today - to_date(rec["d"])).days
+            if age >= SHARES_MAX_AGE:
+                stale.append((1, code))
+    stale.sort()
+    todo = [c for _, c in stale][:limit]
+    if not todo:
+        return shares
+    print(f"shares: {len(todo)} 銘柄を取得(未取得 "
+          f"{sum(1 for k, _ in stale if k == 0)} / 期限切れ "
+          f"{sum(1 for k, _ in stale if k == 1)})", flush=True)
+    for i, code in enumerate(todo, 1):
+        n = None
+        for attempt in range(RETRY):
+            try:
+                n = fetch_shares(code)
+                break
+            except Exception as e:
+                if attempt == RETRY - 1:
+                    print(f"  FAIL shares {code}: {e}", flush=True)
+                else:
+                    time.sleep(2)
+        # 取れなかった銘柄も日付だけ記録して、毎回叩き直さないようにする
+        shares[code] = {"n": n, "d": today.isoformat()}
+        time.sleep(KABUTAN_SLEEP)
+        if i % 100 == 0:
+            save_json(SHARES, shares, compact=True)
+            print(f"  shares {i}/{len(todo)}", flush=True)
+    save_json(SHARES, shares, compact=True)
+    return shares
+
+
+def to_date(ymd):
+    y, m, d = (int(x) for x in ymd.split("-"))
+    return date(y, m, d)
+
+
+def market_caps(shares, raw):
+    """時価総額(億円)。株式数・終値のどちらかが無ければ入れない。"""
+    out = {}
+    for code, rec in shares.items():
+        n, r = rec.get("n"), raw.get(code)
+        if n and r and r[1]:
+            out[code] = round(r[1] * n / 1e8, 1)
+    return out
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-fetch", action="store_true",
                     help="取得せずキャッシュから prices.json を作り直す")
+    ap.add_argument("--shares-limit", type=int, default=SHARES_DEFAULT_LIMIT,
+                    help="発行済株式数を取り直す上限件数(0で取得しない)")
     args = ap.parse_args()
 
     meta, rank = universe()
@@ -225,7 +330,7 @@ def main():
         for i, code in enumerate(targets, 1):
             for attempt in range(RETRY):
                 try:
-                    cache[code] = fetch_bars(f"{code}.T")
+                    cache[code] = merge_bars(cache.get(code), fetch_bars(f"{code}.T"))
                     break
                 except Exception as e:
                     if attempt == RETRY - 1:
@@ -237,6 +342,15 @@ def main():
                 save_json(CACHE, cache, compact=True)
                 print(f"{i}/{len(targets)}", flush=True)
         save_json(CACHE, cache, compact=True)
+
+    # 時価総額は「6.23-」タブでしか使わないので、対象はグループ銘柄だけでよい
+    shares = update_shares(gcodes, args.shares_limit) if args.shares_limit else         (load_json(SHARES, {}) or {})
+    raw = load_json(RAWCLOSE, {}) or {}
+    raw.update(RAW_CLOSE)
+    if RAW_CLOSE:
+        save_json(RAWCLOSE, raw, compact=True)
+    caps = market_caps(shares, raw)
+    print(f"時価総額: {len(caps)}/{len(gcodes)} 銘柄", flush=True)
 
     # 全銘柄の営業日を統合(ETFしか動かない日などは無いが、念のため和集合)
     dates = sorted({b[0] for code in codes for b in cache.get(code, [])})
@@ -283,7 +397,7 @@ def main():
     print(f"wrote {len(stocks)} stocks / {len(dates)} days "
           f"({dates[0]}〜{dates[-1]}) {size:.2f}MB", flush=True)
 
-    write_623(cache, groups)
+    write_623(cache, groups, caps)
     return 0
 
 

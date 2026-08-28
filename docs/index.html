@@ -602,6 +602,11 @@ footer a { color: var(--accent); }
         <option value="val">平均売買代金(降順)</option>
       </select></span>
       <span><label>平均売買代金 ≧</label><input id="g6MinTv" class="streakMin" type="number" min="0" step="1" placeholder="0"><label style="margin-left:4px">億円</label></span>
+      <span><label>時価総額</label><input id="g6Mc" class="streakMin" type="number" min="0" step="50" value="300" list="g6McList"><datalist id="g6McList"><option value="100"><option value="300"><option value="500"><option value="1000"><option value="3000"><option value="10000"></datalist><label style="margin:0 4px">億円</label><select id="g6McMode">
+        <option value="">すべて</option>
+        <option value="ge">以上のみ</option>
+        <option value="le">以下のみ</option>
+      </select></span>
       <span><label>表示件数</label><select id="g6LimitSel">
         <option value="100">上位100件</option>
         <option value="300">上位300件</option>
@@ -617,12 +622,13 @@ footer a { color: var(--accent); }
       カードの「平均」は等ウェイト(全銘柄を同じ金額ずつ買った場合)、「主要20」は平均売買代金の上位20銘柄だけの平均です。<b>平均と中央値が近いほど全面高</b>、主要20だけが高い場合は大型株が牽引していることを意味します。「対TOPIX」= 同期間のTOPIX(1306)の騰落率を引いた超過リターン。<br>
       <b>母集団の作り方</b> … SaaS・コンサル・エンタメは株探のテーマ別銘柄一覧(エンタメはゲーム/アニメ/音楽/映画/コンテンツ/キャラクター/アミューズメント/テーマパーク/玩具/劇場の10テーマの和集合)、地銀はJPXの「銀行業」からメガ3・りそな・三井住友トラスト・ゆうちょ・セブン銀・楽天銀・SBI新生・あおぞらを除いたもの、建設はJPXの「建設業」全社、非TOPIXは「TOPIX入替」タブと同じリスト、2026IPOは株探の「2026年のIPO」テーマ(Yahooに株価があるもののみ)、女性消費関連はMTG・サンリオ・Aiロボティクス・フルッタフルッタに、化粧品・美容の専業銘柄(資生堂・コーセー・ポーラ・ヤーマン・I-ne等)とファッション/ブランドリユース(ハニーズ・パルHD・アダストリア・コメ兵等)を加えたものです(ドラッグストア・化粧品原料の化学メーカー・日用品大手は含めていません)。<br>
       <b>起点日</b>の列は、その銘柄の騰落率を「いつから」測っているかです。6/23より後に上場した銘柄(2026IPOなど)は6/23の株価が存在しないため<b>上場日が起点</b>になり、行を<span class="lateNote">黄色</span>で区別しています。起点が違うと他銘柄と同じ土俵で比べられないので、<b>カードの集計値からは除外</b>しています(カードに「+n銘柄は上場日起点」と表示)。<br>
+      <b>時価総額</b>のプルダウンで「◯億円以上のみ / 以下のみ」に絞り込めます(既定300億円)。<b>絞り込みは表だけでなくカードの集計値にも反映されます</b>ので、「大型だけ」「小型だけ」で平均・中央値・上昇下落数がどう変わるかを見比べられます(平均売買代金の絞り込みも同じくカードに反映されます)。時価総額は<b>直近終値 × 発行済株式数</b>で、株式数は株探の銘柄ページから取得しています。株式数が取れない銘柄は「-」で、絞り込みをオンにすると対象外になります。<br>
       <b>株探のテーマは範囲が広い点に注意。</b>SaaSにはNTT・KDDI・NEC・富士通が、コンサルには七十七銀・百五銀といった地銀まで含まれます。1銘柄が複数グループに入ることがあります。列見出しクリックでも並び替えできます。</div>
     </div>
     <div class="tablecard">
       <table id="g6Tbl">
         <thead><tr id="g6HeadRow"></tr></thead>
-        <tbody id="g6Body"><tr><td class="loading" colspan="7">読み込み中…</td></tr></tbody>
+        <tbody id="g6Body"><tr><td class="loading" colspan="8">読み込み中…</td></tr></tbody>
       </table>
     </div>
     <footer>
@@ -2736,6 +2742,9 @@ const G6_COLS = [
   { key: "ret", label: "騰落率",   num: r => r.ret, color: true, fmt: v => fmtPct2(v) },
   { key: "ex",  label: "対TOPIX",  num: r => r.ex == null ? -Infinity : r.ex, color: true, fmt: v => fmtPct2(v) },
   { key: "val", label: "平均売買代金", num: r => r.val, fmt: v => fmtOku(v) },
+  // 時価総額は億円で持っている。fmtOku は百万円を取るので100倍して渡す
+  { key: "mc",  label: "時価総額", num: r => (r.mc == null ? -Infinity : r.mc),
+    fmt: v => (v == null ? "-" : fmtOku(v * 100)) },
   { key: "from", label: "起点日", left: true, num: null },
 ];
 
@@ -2744,17 +2753,40 @@ function fmtPct2(v) {
   return (v > 0 ? "+" : "") + v.toFixed(2) + "%";
 }
 
-function g6Rows() {
+function g6All() {
+  if (!g6Data._rows) {
+    g6Data._rows = g6Data.stocks.map(a => ({
+      gi: a[0], g: g6Data.groups[a[0]].name, code: a[1], name: a[2],
+      ret: a[3], val: a[4], ex: a[6], mc: a[7] == null ? null : a[7],
+      from: a[5] || g6Data.base, late: !!a[5],
+    }));
+  }
+  return g6Data._rows;
+}
+
+/* 母集団の絞り込み(時価総額・平均売買代金)。表とカードの両方がこれを通す。
+   グループ選択と銘柄検索は「見え方」なのでここには入れない。 */
+function g6Universe() {
+  const minTv = (+document.getElementById("g6MinTv").value || 0) * 100; // 億円→百万円
+  const mode = document.getElementById("g6McMode").value;
+  const mc = +document.getElementById("g6Mc").value;
+  let unknown = 0;
+  const rows = g6All().filter(r => {
+    if (minTv && r.val < minTv) return false;
+    if (mode && Number.isFinite(mc)) {
+      if (r.mc == null) { unknown++; return false; }   // 株式数が取れない銘柄
+      if (mode === "ge" && r.mc < mc) return false;
+      if (mode === "le" && r.mc > mc) return false;
+    }
+    return true;
+  });
+  return { rows, unknown };
+}
+
+function g6Rows(base) {
   const q = document.getElementById("g6Q").value.trim().toLowerCase();
   const g = document.getElementById("g6GroupSel").value;
-  const minTv = (+document.getElementById("g6MinTv").value || 0) * 100; // 億円→百万円
-  const topix = g6Data.topix;
-  let rows = g6Data.stocks
-    .map(a => ({ gi: a[0], g: g6Data.groups[a[0]].name, code: a[1], name: a[2],
-                 ret: a[3], val: a[4], ex: a[6],
-                 from: a[5] || g6Data.base, late: !!a[5] }))
-    .filter(r => (!g || r.g === g)
-              && (!minTv || r.val >= minTv)
+  let rows = base.filter(r => (!g || r.g === g)
               && (!q || r.name.toLowerCase().includes(q) || r.code.toLowerCase().includes(q)));
 
   const col = G6_COLS.find(c => c.key === g6Sort) || G6_COLS[3];
@@ -2793,9 +2825,49 @@ function g6BuildHead() {
   }
 }
 
-function g6RenderCards() {
+function g6Median(vals) {
+  const a = vals.slice().sort((x, y) => x - y);
+  const h = a.length >> 1;
+  return a.length % 2 ? a[h] : (a[h - 1] + a[h]) / 2;
+}
+
+/* カードの集計。サーバ側(fetch_period.py)と同じ定義:
+   起点日が基準日と違う銘柄(late)は土俵が違うので集計から外す。 */
+function g6Stats(rows) {
+  const out = g6Data.groups.map(x => ({ name: x.name, n: 0, late: 0, mean: null,
+                                        median: null, top20: null, up: 0, down: 0, flat: 0 }));
+  const buckets = out.map(() => []);
+  for (const r of rows) {
+    const o = out[r.gi];
+    if (!o) continue;
+    if (r.late) { o.late++; continue; }
+    buckets[r.gi].push(r);
+  }
+  buckets.forEach((list, i) => {
+    const o = out[i];
+    o.n = list.length;
+    if (!list.length) return;
+    const vals = list.map(r => r.ret);
+    const top = list.slice().sort((a, b) => b.val - a.val).slice(0, 20);
+    o.mean = vals.reduce((s, v) => s + v, 0) / vals.length;
+    o.median = g6Median(vals);
+    o.top20 = top.reduce((s, r) => s + r.ret, 0) / top.length;
+    o.up = vals.filter(v => v > 0).length;
+    o.down = vals.filter(v => v < 0).length;
+    o.flat = vals.filter(v => v === 0).length;
+  });
+  return out;
+}
+
+function g6RenderCards(rows) {
   const sel = document.getElementById("g6GroupSel").value;
-  const html = g6Data.groups.map(x => {
+  const html = g6Stats(rows).map(x => {
+    if (!x.n) {
+      return '<div class="card" data-g="' + x.name + '" style="cursor:pointer">'
+        + '<div class="ttl">' + x.name + '（0銘柄）</div>'
+        + '<div class="big flat">—</div>'
+        + '<div class="sub">絞り込みに該当する銘柄がありません</div></div>';
+    }
     const cls = x.mean > 0 ? "up" : x.mean < 0 ? "down" : "flat";
     const on = sel === x.name ? " overall" : "";
     return '<div class="card' + on + '" data-g="' + x.name + '" style="cursor:pointer">'
@@ -2822,8 +2894,9 @@ function g6RenderCards() {
 function g6Render() {
   if (!g6Data) return;
   g6BuildHead();
-  g6RenderCards();
-  const { rows, total } = g6Rows();
+  const uni = g6Universe();
+  g6RenderCards(uni.rows);
+  const { rows, total } = g6Rows(uni.rows);
   const tb = document.getElementById("g6Body");
   tb.innerHTML = "";
   const frag = document.createDocumentFragment();
@@ -2852,7 +2925,8 @@ function g6Render() {
   }
   tb.appendChild(frag);
   document.getElementById("g6Stat").innerHTML =
-    "表示 <b>" + rows.length + "</b> / " + total + " 件";
+    "表示 <b>" + rows.length + "</b> / " + total + " 件"
+    + (uni.unknown ? ' <span class="lateNote">(時価総額不明 ' + uni.unknown + "件を除外)</span>" : "");
 }
 
 async function g6Init() {
@@ -2864,7 +2938,7 @@ async function g6Init() {
     document.getElementById("g6Banner").innerHTML =
       '<span class="err">読み込みに失敗しました: ' + e.message + "</span>";
     document.getElementById("g6Body").innerHTML =
-      '<tr><td class="loading" colspan="7">データがありません</td></tr>';
+      '<tr><td class="loading" colspan="8">データがありません</td></tr>';
     return;
   }
   const bt = (g6Data.benchmarks || []).find(b => b.name === "TOPIX");
@@ -2883,6 +2957,8 @@ async function g6Init() {
   document.getElementById("g6Q").oninput = g6Render;
   document.getElementById("g6GroupSel").onchange = g6Render;
   document.getElementById("g6MinTv").oninput = g6Render;
+  document.getElementById("g6Mc").oninput = g6Render;
+  document.getElementById("g6McMode").onchange = g6Render;
   document.getElementById("g6LimitSel").onchange = g6Render;
   document.getElementById("g6SortSel").onchange = e => {
     const v = e.target.value;
