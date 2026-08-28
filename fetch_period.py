@@ -105,6 +105,16 @@ def write_623(cache, groups):
     """「6.23-」タブ用。開始日は固定、終了日は取得できた最新営業日まで伸びる。"""
     if not groups:
         return
+    # 対TOPIXは銘柄ごとに「その銘柄と同じ起点日」で計算する。
+    # 6/23より後に上場した銘柄を6/23起点のTOPIXと比べると意味が壊れるため。
+    tpx = {d: c for d, c, _ in (cache.get("1306") or [])}
+    tpx_last = max(tpx) if tpx else None
+
+    def excess(ret, d0):
+        if not tpx_last or d0 not in tpx or not tpx[d0]:
+            return None
+        return round(ret - (tpx[tpx_last] / tpx[d0] - 1) * 100, 2)
+
     out_groups, out_stocks, end = [], [], ""
     for gi, (gname, members) in enumerate(groups.items()):
         rets = []
@@ -112,18 +122,23 @@ def write_623(cache, groups):
             r = period_return(cache.get(code) or [], START_623)
             if r is None:
                 continue
-            ret, _, d1 = r
+            ret, d0, d1 = r
             end = max(end, d1)
             bars = cache[code]
             tail = [c * v / 1e6 for d, c, v in bars if d >= START_623][-20:]
             tv = round(sum(tail) / len(tail), 1) if tail else 0.0
-            rets.append({"code": code, "name": name, "ret": round(ret, 2), "val": tv})
+            rets.append({"code": code, "name": name, "ret": round(ret, 2),
+                         "val": tv, "from": d0})
         if not rets:
             continue
-        vals = [x["ret"] for x in rets]
-        top20 = sorted(rets, key=lambda x: -x["val"])[:20]
+        # 6/23より後に上場した銘柄は起点が自分の上場日になるため、
+        # グループの集計からは外す(表には出すが色を変えて区別する)
+        base = min(x["from"] for x in rets)
+        onbase = [x for x in rets if x["from"] == base]
+        vals = [x["ret"] for x in onbase]
+        top20 = sorted(onbase, key=lambda x: -x["val"])[:20]
         out_groups.append({
-            "name": gname, "n": len(rets),
+            "name": gname, "n": len(onbase), "late": len(rets) - len(onbase),
             "mean": round(statistics.mean(vals), 1),
             "median": round(statistics.median(vals), 1),
             "top20": round(statistics.mean([x["ret"] for x in top20]), 1),
@@ -132,7 +147,9 @@ def write_623(cache, groups):
             "flat": sum(1 for v in vals if v == 0),
         })
         for x in rets:
-            out_stocks.append([gi, x["code"], x["name"], x["ret"], x["val"]])
+            out_stocks.append([gi, x["code"], x["name"], x["ret"], x["val"],
+                               "" if x["from"] == base else x["from"],
+                               excess(x["ret"], x["from"])])
 
     bench = []
     for code, label in BENCH:
@@ -140,8 +157,10 @@ def write_623(cache, groups):
         if r:
             bench.append({"name": label, "ret": round(r[0], 1)})
 
+    # 全グループ共通の基準起点日(6/23以降で最初に市場が開いた日)
+    base_all = min((s[5] or START_623) for s in out_stocks) if out_stocks else START_623
     save_json(OUT623 / "data.json",
-              {"start": START_623, "end": end, "updated": end,
+              {"start": START_623, "base": base_all, "end": end, "updated": end,
                "benchmarks": bench, "groups": out_groups, "stocks": out_stocks},
               compact=True)
     save_json(OUT623 / "index.json", {"updated": end, "count": len(out_stocks)})

@@ -229,6 +229,9 @@ footer a { color: var(--accent); }
 @media (max-width: 720px) {
   .embed { height: calc(100vh - 210px); }
 }
+#g6Tbl tr.late td { background: #2a230f66; }
+#g6Tbl tr.late td:last-child { color: var(--new); font-weight: 600; }
+.lateNote { color: var(--new); }
 </style>
 </head>
 <body>
@@ -612,13 +615,14 @@ footer a { color: var(--accent); }
     <div class="hintRow">
       <div class="hint"><b>2026-06-23を起点にした、テーマ別の騰落率</b>です。開始日は6/23で固定、終了日は毎営業日いちばん新しい日まで伸びます(下のカードと表は毎日更新されます)。<br>
       カードの「平均」は等ウェイト(全銘柄を同じ金額ずつ買った場合)、「主要20」は平均売買代金の上位20銘柄だけの平均です。<b>平均と中央値が近いほど全面高</b>、主要20だけが高い場合は大型株が牽引していることを意味します。「対TOPIX」= 同期間のTOPIX(1306)の騰落率を引いた超過リターン。<br>
-      <b>母集団の作り方</b> … SaaS・コンサル・エンタメは株探のテーマ別銘柄一覧(エンタメはゲーム/アニメ/音楽/映画/コンテンツ/キャラクター/アミューズメント/テーマパーク/玩具/劇場の10テーマの和集合)、地銀はJPXの「銀行業」からメガ3・りそな・三井住友トラスト・ゆうちょ・セブン銀・楽天銀・SBI新生・あおぞらを除いたもの、建設はJPXの「建設業」全社、非TOPIXは「TOPIX入替候補監視」タブと同じリストです。<br>
+      <b>母集団の作り方</b> … SaaS・コンサル・エンタメは株探のテーマ別銘柄一覧(エンタメはゲーム/アニメ/音楽/映画/コンテンツ/キャラクター/アミューズメント/テーマパーク/玩具/劇場の10テーマの和集合)、地銀はJPXの「銀行業」からメガ3・りそな・三井住友トラスト・ゆうちょ・セブン銀・楽天銀・SBI新生・あおぞらを除いたもの、建設はJPXの「建設業」全社、非TOPIXは「TOPIX入替」タブと同じリスト、2026IPOは株探の「2026年のIPO」テーマ(Yahooに株価があるもののみ)、女性消費関連はMTG・サンリオ・Aiロボティクス・フルッタフルッタに、化粧品・美容の専業銘柄(資生堂・コーセー・ポーラ・ヤーマン・I-ne等)とファッション/ブランドリユース(ハニーズ・パルHD・アダストリア・コメ兵等)を加えたものです(ドラッグストア・化粧品原料の化学メーカー・日用品大手は含めていません)。<br>
+      <b>起点日</b>の列は、その銘柄の騰落率を「いつから」測っているかです。6/23より後に上場した銘柄(2026IPOなど)は6/23の株価が存在しないため<b>上場日が起点</b>になり、行を<span class="lateNote">黄色</span>で区別しています。起点が違うと他銘柄と同じ土俵で比べられないので、<b>カードの集計値からは除外</b>しています(カードに「+n銘柄は上場日起点」と表示)。<br>
       <b>株探のテーマは範囲が広い点に注意。</b>SaaSにはNTT・KDDI・NEC・富士通が、コンサルには七十七銀・百五銀といった地銀まで含まれます。1銘柄が複数グループに入ることがあります。列見出しクリックでも並び替えできます。</div>
     </div>
     <div class="tablecard">
       <table id="g6Tbl">
         <thead><tr id="g6HeadRow"></tr></thead>
-        <tbody id="g6Body"><tr><td class="loading" colspan="6">読み込み中…</td></tr></tbody>
+        <tbody id="g6Body"><tr><td class="loading" colspan="7">読み込み中…</td></tr></tbody>
       </table>
     </div>
     <footer>
@@ -2730,8 +2734,9 @@ const G6_COLS = [
   { key: "code", label: "コード",  left: true, code: true, num: null },
   { key: "name", label: "銘柄名",  left: true, cls: "name tl", num: null },
   { key: "ret", label: "騰落率",   num: r => r.ret, color: true, fmt: v => fmtPct2(v) },
-  { key: "ex",  label: "対TOPIX",  num: r => r.ex,  color: true, fmt: v => fmtPct2(v) },
+  { key: "ex",  label: "対TOPIX",  num: r => r.ex == null ? -Infinity : r.ex, color: true, fmt: v => fmtPct2(v) },
   { key: "val", label: "平均売買代金", num: r => r.val, fmt: v => fmtOku(v) },
+  { key: "from", label: "起点日", left: true, num: null },
 ];
 
 function fmtPct2(v) {
@@ -2746,7 +2751,8 @@ function g6Rows() {
   const topix = g6Data.topix;
   let rows = g6Data.stocks
     .map(a => ({ gi: a[0], g: g6Data.groups[a[0]].name, code: a[1], name: a[2],
-                 ret: a[3], val: a[4], ex: Math.round((a[3] - topix) * 100) / 100 }))
+                 ret: a[3], val: a[4], ex: a[6],
+                 from: a[5] || g6Data.base, late: !!a[5] }))
     .filter(r => (!g || r.g === g)
               && (!minTv || r.val >= minTv)
               && (!q || r.name.toLowerCase().includes(q) || r.code.toLowerCase().includes(q)));
@@ -2797,7 +2803,9 @@ function g6RenderCards() {
       + '<div class="big ' + cls + '">' + fmtPct2(x.mean) + '</div>'
       + '<div class="sub">中央値 <b>' + fmtPct2(x.median) + '</b> ・ 主要20 <b>' + fmtPct2(x.top20) + '</b><br>'
       + '上昇 <span class="u">' + x.up + '</span> / 下落 <span class="d">' + x.down + '</span>'
-      + (x.flat ? ' / 変わらず ' + x.flat : '') + '</div></div>';
+      + (x.flat ? ' / 変わらず ' + x.flat : '')
+      + (x.late ? '<br><span class="lateNote">+' + x.late + '銘柄は上場日起点(集計外)</span>' : '')
+      + '</div></div>';
   }).join("");
   const box = document.getElementById("g6Cards");
   box.innerHTML = html;
@@ -2821,6 +2829,7 @@ function g6Render() {
   const frag = document.createDocumentFragment();
   for (const r of rows) {
     const tr = document.createElement("tr");
+    if (r.late) tr.className = "late";
     for (const c of G6_COLS) {
       const td = document.createElement("td");
       const v = r[c.key];
@@ -2855,7 +2864,7 @@ async function g6Init() {
     document.getElementById("g6Banner").innerHTML =
       '<span class="err">読み込みに失敗しました: ' + e.message + "</span>";
     document.getElementById("g6Body").innerHTML =
-      '<tr><td class="loading" colspan="6">データがありません</td></tr>';
+      '<tr><td class="loading" colspan="7">データがありません</td></tr>';
     return;
   }
   const bt = (g6Data.benchmarks || []).find(b => b.name === "TOPIX");
