@@ -21,8 +21,10 @@ Yahoo は分割調整済み終値(adjclose)を返すため、期間中に分割�
   py fetch_period.py --no-fetch  … キャッシュのまま prices.json を作り直す
 """
 import argparse
+import csv
 import glob
 import json
+import statistics
 import sys
 import time
 import urllib.request
@@ -33,6 +35,9 @@ BASE = Path(__file__).parent
 RANK = BASE / "docs" / "data"
 OUT = BASE / "docs" / "data_period"
 CACHE = BASE / "cache_period" / "bars.json"
+GROUPS_CSV = BASE / "groups_623.csv"
+OUT623 = BASE / "docs" / "data_623"
+START_623 = "2026-06-23"   # 「6.23-」タブの固定開始日
 
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
@@ -69,6 +74,80 @@ def save_json(path, obj, compact=False):
         else:
             json.dump(obj, f, ensure_ascii=False, indent=2)
         f.write("\n")
+
+
+def load_groups():
+    """groups_623.csv を {グループ名: [(コード, 銘柄名), ...]} で返す(CSVの並び順を保つ)。"""
+    if not GROUPS_CSV.exists():
+        return {}
+    groups = {}
+    with GROUPS_CSV.open(encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            g = (row.get("グループ") or "").strip()
+            code = (row.get("コード") or "").strip()
+            if g and code:
+                groups.setdefault(g, []).append((code, (row.get("銘柄名") or "").strip()))
+    return groups
+
+
+def period_return(bars, start):
+    """start以降の最初の終値から最新終値までの騰落率(%)と、使った日付を返す。"""
+    pts = [(d, c) for d, c, _ in bars if d >= start and c]
+    if len(pts) < 2:
+        return None
+    (d0, c0), (d1, c1) = pts[0], pts[-1]
+    if not c0:
+        return None
+    return (c1 / c0 - 1) * 100, d0, d1
+
+
+def write_623(cache, groups):
+    """「6.23-」タブ用。開始日は固定、終了日は取得できた最新営業日まで伸びる。"""
+    if not groups:
+        return
+    out_groups, out_stocks, end = [], [], ""
+    for gi, (gname, members) in enumerate(groups.items()):
+        rets = []
+        for code, name in members:
+            r = period_return(cache.get(code) or [], START_623)
+            if r is None:
+                continue
+            ret, _, d1 = r
+            end = max(end, d1)
+            bars = cache[code]
+            tail = [c * v / 1e6 for d, c, v in bars if d >= START_623][-20:]
+            tv = round(sum(tail) / len(tail), 1) if tail else 0.0
+            rets.append({"code": code, "name": name, "ret": round(ret, 2), "val": tv})
+        if not rets:
+            continue
+        vals = [x["ret"] for x in rets]
+        top20 = sorted(rets, key=lambda x: -x["val"])[:20]
+        out_groups.append({
+            "name": gname, "n": len(rets),
+            "mean": round(statistics.mean(vals), 1),
+            "median": round(statistics.median(vals), 1),
+            "top20": round(statistics.mean([x["ret"] for x in top20]), 1),
+            "up": sum(1 for v in vals if v > 0),
+            "down": sum(1 for v in vals if v < 0),
+            "flat": sum(1 for v in vals if v == 0),
+        })
+        for x in rets:
+            out_stocks.append([gi, x["code"], x["name"], x["ret"], x["val"]])
+
+    bench = []
+    for code, label in BENCH:
+        r = period_return(cache.get(code) or [], START_623)
+        if r:
+            bench.append({"name": label, "ret": round(r[0], 1)})
+
+    save_json(OUT623 / "data.json",
+              {"start": START_623, "end": end, "updated": end,
+               "benchmarks": bench, "groups": out_groups, "stocks": out_stocks},
+              compact=True)
+    save_json(OUT623 / "index.json", {"updated": end, "count": len(out_stocks)})
+    size = (OUT623 / "data.json").stat().st_size / 1024
+    print(f"wrote 6.23- tab: {len(out_groups)} groups / {len(out_stocks)} rows "
+          f"({START_623}〜{end}) {size:.0f}KB", flush=True)
 
 
 def universe():
@@ -116,11 +195,14 @@ def main():
 
     meta, rank = universe()
     codes = sorted(meta)
-    print(f"universe: {len(codes)} codes", flush=True)
+    groups = load_groups()
+    gcodes = sorted({c for members in groups.values() for c, _ in members})
+    print(f"universe: {len(codes)} codes / groups: {len(gcodes)} codes "
+          f"(union {len(set(codes) | set(gcodes))})", flush=True)
 
     cache = load_json(CACHE, {}) or {}
     if not args.no_fetch:
-        targets = codes + [c for c, _ in BENCH]
+        targets = sorted(set(codes) | set(gcodes)) + [c for c, _ in BENCH]
         for i, code in enumerate(targets, 1):
             for attempt in range(RETRY):
                 try:
@@ -181,6 +263,8 @@ def main():
     size = (OUT / "prices.json").stat().st_size / 1e6
     print(f"wrote {len(stocks)} stocks / {len(dates)} days "
           f"({dates[0]}〜{dates[-1]}) {size:.2f}MB", flush=True)
+
+    write_623(cache, groups)
     return 0
 
 

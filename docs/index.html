@@ -258,6 +258,7 @@ footer a { color: var(--accent); }
         <button class="tab" data-tab="pts">PTS株価</button>
         <button class="tab" data-tab="watch">監視銘柄リスト</button>
         <button class="tab" data-tab="period">期間騰落率</button>
+        <button class="tab" data-tab="g623">6.23-</button>
       </div>
     </div>
     <div class="tabgroup">
@@ -588,6 +589,43 @@ footer a { color: var(--accent); }
       本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
     </footer>
   </div><!-- /view-period -->
+
+  <div id="view-g623" hidden>
+    <div class="toolbar">
+      <span><label>グループ</label><select id="g6GroupSel"><option value="">すべて</option></select></span>
+      <span><label>並び</label><select id="g6SortSel">
+        <option value="ret">騰落率(降順)</option>
+        <option value="retAsc">騰落率(昇順)</option>
+        <option value="val">平均売買代金(降順)</option>
+      </select></span>
+      <span><label>平均売買代金 ≧</label><input id="g6MinTv" class="streakMin" type="number" min="0" step="1" placeholder="0"><label style="margin-left:4px">億円</label></span>
+      <span><label>表示件数</label><select id="g6LimitSel">
+        <option value="100">上位100件</option>
+        <option value="300">上位300件</option>
+        <option value="0" selected>すべて</option>
+      </select></span>
+      <input id="g6Q" type="search" placeholder="銘柄名・コードで絞り込み">
+      <span class="stat" id="g6Stat"></span>
+    </div>
+    <div class="banner" id="g6Banner">読み込み中…</div>
+    <div class="cards" id="g6Cards"></div>
+    <div class="hintRow">
+      <div class="hint"><b>2026-06-23を起点にした、テーマ別の騰落率</b>です。開始日は6/23で固定、終了日は毎営業日いちばん新しい日まで伸びます(下のカードと表は毎日更新されます)。<br>
+      カードの「平均」は等ウェイト(全銘柄を同じ金額ずつ買った場合)、「主要20」は平均売買代金の上位20銘柄だけの平均です。<b>平均と中央値が近いほど全面高</b>、主要20だけが高い場合は大型株が牽引していることを意味します。「対TOPIX」= 同期間のTOPIX(1306)の騰落率を引いた超過リターン。<br>
+      <b>母集団の作り方</b> … SaaS・コンサル・エンタメは株探のテーマ別銘柄一覧(エンタメはゲーム/アニメ/音楽/映画/コンテンツ/キャラクター/アミューズメント/テーマパーク/玩具/劇場の10テーマの和集合)、地銀はJPXの「銀行業」からメガ3・りそな・三井住友トラスト・ゆうちょ・セブン銀・楽天銀・SBI新生・あおぞらを除いたもの、建設はJPXの「建設業」全社、非TOPIXは「TOPIX入替候補監視」タブと同じリストです。<br>
+      <b>株探のテーマは範囲が広い点に注意。</b>SaaSにはNTT・KDDI・NEC・富士通が、コンサルには七十七銀・百五銀といった地銀まで含まれます。1銘柄が複数グループに入ることがあります。列見出しクリックでも並び替えできます。</div>
+    </div>
+    <div class="tablecard">
+      <table id="g6Tbl">
+        <thead><tr id="g6HeadRow"></tr></thead>
+        <tbody id="g6Body"><tr><td class="loading" colspan="6">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+    <footer>
+      銘柄選定: <a href="https://kabutan.jp/themes/" target="_blank" rel="noopener">株探のテーマ別銘柄</a>およびJPXの業種区分 / 株価: <a href="https://finance.yahoo.com/" target="_blank" rel="noopener">Yahoo Finance</a>(分割・配当調整済み終値) / 市場休場日は更新されません。<br>
+      本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
+    </footer>
+  </div><!-- /view-g623 -->
 
   <div id="view-turnover" hidden>
     <div class="toolbar">
@@ -2684,6 +2722,168 @@ async function pdInit() {
   }
 }
 
+// ===== 6.23- タブ(グループ別 期間騰落率) =====
+let g6Inited = false, g6Data = null, g6Sort = "ret", g6Asc = false;
+
+const G6_COLS = [
+  { key: "g",   label: "グループ", left: true, num: null },
+  { key: "code", label: "コード",  left: true, code: true, num: null },
+  { key: "name", label: "銘柄名",  left: true, cls: "name tl", num: null },
+  { key: "ret", label: "騰落率",   num: r => r.ret, color: true, fmt: v => fmtPct2(v) },
+  { key: "ex",  label: "対TOPIX",  num: r => r.ex,  color: true, fmt: v => fmtPct2(v) },
+  { key: "val", label: "平均売買代金", num: r => r.val, fmt: v => fmtOku(v) },
+];
+
+function fmtPct2(v) {
+  if (v == null) return "-";
+  return (v > 0 ? "+" : "") + v.toFixed(2) + "%";
+}
+
+function g6Rows() {
+  const q = document.getElementById("g6Q").value.trim().toLowerCase();
+  const g = document.getElementById("g6GroupSel").value;
+  const minTv = (+document.getElementById("g6MinTv").value || 0) * 100; // 億円→百万円
+  const topix = g6Data.topix;
+  let rows = g6Data.stocks
+    .map(a => ({ gi: a[0], g: g6Data.groups[a[0]].name, code: a[1], name: a[2],
+                 ret: a[3], val: a[4], ex: Math.round((a[3] - topix) * 100) / 100 }))
+    .filter(r => (!g || r.g === g)
+              && (!minTv || r.val >= minTv)
+              && (!q || r.name.toLowerCase().includes(q) || r.code.toLowerCase().includes(q)));
+
+  const col = G6_COLS.find(c => c.key === g6Sort) || G6_COLS[3];
+  rows.sort((a, b) => {
+    let d;
+    if (col.num) d = col.num(a) - col.num(b);
+    else d = String(a[col.key]).localeCompare(String(b[col.key]), "ja");
+    if (d === 0) d = b.ret - a.ret;
+    return g6Asc ? d : -d;
+  });
+  const lim = +document.getElementById("g6LimitSel").value;
+  return { rows: lim ? rows.slice(0, lim) : rows, total: rows.length };
+}
+
+function g6BuildHead() {
+  const tr = document.getElementById("g6HeadRow");
+  tr.innerHTML = "";
+  for (const c of G6_COLS) {
+    const th = document.createElement("th");
+    th.textContent = c.label;
+    if (c.left) th.classList.add("tl");
+    if (c.key === g6Sort) {
+      const a = document.createElement("span");
+      a.className = "arw";
+      a.textContent = g6Asc ? "▲" : "▼";
+      th.appendChild(a);
+    }
+    th.onclick = () => {
+      if (g6Sort === c.key) g6Asc = !g6Asc;
+      else { g6Sort = c.key; g6Asc = !c.num; }
+      document.getElementById("g6SortSel").value =
+        g6Sort === "ret" ? (g6Asc ? "retAsc" : "ret") : (g6Sort === "val" ? "val" : "");
+      g6Render();
+    };
+    tr.appendChild(th);
+  }
+}
+
+function g6RenderCards() {
+  const sel = document.getElementById("g6GroupSel").value;
+  const html = g6Data.groups.map(x => {
+    const cls = x.mean > 0 ? "up" : x.mean < 0 ? "down" : "flat";
+    const on = sel === x.name ? " overall" : "";
+    return '<div class="card' + on + '" data-g="' + x.name + '" style="cursor:pointer">'
+      + '<div class="ttl">' + x.name + '（' + x.n + '銘柄）</div>'
+      + '<div class="big ' + cls + '">' + fmtPct2(x.mean) + '</div>'
+      + '<div class="sub">中央値 <b>' + fmtPct2(x.median) + '</b> ・ 主要20 <b>' + fmtPct2(x.top20) + '</b><br>'
+      + '上昇 <span class="u">' + x.up + '</span> / 下落 <span class="d">' + x.down + '</span>'
+      + (x.flat ? ' / 変わらず ' + x.flat : '') + '</div></div>';
+  }).join("");
+  const box = document.getElementById("g6Cards");
+  box.innerHTML = html;
+  box.querySelectorAll(".card").forEach(el => {
+    el.onclick = () => {
+      const g = el.dataset.g;
+      const s = document.getElementById("g6GroupSel");
+      s.value = (s.value === g) ? "" : g;
+      g6Render();
+    };
+  });
+}
+
+function g6Render() {
+  if (!g6Data) return;
+  g6BuildHead();
+  g6RenderCards();
+  const { rows, total } = g6Rows();
+  const tb = document.getElementById("g6Body");
+  tb.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  for (const r of rows) {
+    const tr = document.createElement("tr");
+    for (const c of G6_COLS) {
+      const td = document.createElement("td");
+      const v = r[c.key];
+      if (c.code) {
+        td.className = "code tl";
+        const a = document.createElement("a");
+        a.href = "https://kabutan.jp/stock/?code=" + encodeURIComponent(v);
+        a.target = "_blank"; a.rel = "noopener";
+        a.textContent = v;
+        td.appendChild(a);
+      } else {
+        if (c.cls) td.className = c.cls;
+        else if (c.left) td.className = "tl";
+        else if (c.color) td.className = v > 0 ? "up" : v < 0 ? "down" : "flat";
+        td.textContent = c.fmt ? c.fmt(v) : (v == null ? "-" : v);
+      }
+      tr.appendChild(td);
+    }
+    frag.appendChild(tr);
+  }
+  tb.appendChild(frag);
+  document.getElementById("g6Stat").innerHTML =
+    "表示 <b>" + rows.length + "</b> / " + total + " 件";
+}
+
+async function g6Init() {
+  try {
+    const res = await fetch("data_623/data.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    g6Data = await res.json();
+  } catch (e) {
+    document.getElementById("g6Banner").innerHTML =
+      '<span class="err">読み込みに失敗しました: ' + e.message + "</span>";
+    document.getElementById("g6Body").innerHTML =
+      '<tr><td class="loading" colspan="6">データがありません</td></tr>';
+    return;
+  }
+  const bt = (g6Data.benchmarks || []).find(b => b.name === "TOPIX");
+  g6Data.topix = bt ? bt.ret : 0;
+
+  const sel = document.getElementById("g6GroupSel");
+  sel.innerHTML = '<option value="">すべて</option>'
+    + g6Data.groups.map(x => '<option value="' + x.name + '">' + x.name + "</option>").join("");
+
+  document.getElementById("g6Banner").innerHTML =
+    "期間: <b>" + g6Data.start + "</b> 〜 <b>" + g6Data.end + "</b>"
+    + " / 同期間 " + (g6Data.benchmarks || []).map(b =>
+        b.name + " <b>" + fmtPct2(b.ret) + "</b>").join(" ・ ")
+    + " / 全 <b>" + g6Data.stocks.length + "</b> 件（" + g6Data.groups.length + "グループ）";
+
+  document.getElementById("g6Q").oninput = g6Render;
+  document.getElementById("g6GroupSel").onchange = g6Render;
+  document.getElementById("g6MinTv").oninput = g6Render;
+  document.getElementById("g6LimitSel").onchange = g6Render;
+  document.getElementById("g6SortSel").onchange = e => {
+    const v = e.target.value;
+    g6Sort = (v === "val") ? "val" : "ret";
+    g6Asc = (v === "retAsc");
+    g6Render();
+  };
+  g6Render();
+}
+
 const VIEW_ID = {
   ranking: "view-ranking", intraday: "view-intraday", split: "view-split",
   yori: "view-yori", minute: "view-minute", min5: "view-min5", sector: "view-sector",
@@ -2691,6 +2891,7 @@ const VIEW_ID = {
   pts: "view-pts", watch: "view-watch", shinyo: "view-shinyo",
   newhigh: "view-newhigh", lowvolume: "view-lowvolume", jukyu: "view-jukyu",
   uchu: "view-uchu", turnover: "view-turnover", period: "view-period",
+  g623: "view-g623",
 };
 function switchTab(name) {
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
@@ -2705,6 +2906,7 @@ function switchTab(name) {
   if (name === "lowvolume" && !lvInited) { lvInited = true; lvInit(); }
   if (name === "turnover" && !tvInited) { tvInited = true; tvInit(); }
   if (name === "period" && !pdInited) { pdInited = true; pdInit(); }
+  if (name === "g623" && !g6Inited) { g6Inited = true; g6Init(); }
   const jv = JK_VIEWS[name];
   if (jv && !jv.inited) { jv.inited = true; jv.init(); }
   // 外部サイトのiframeは初回表示時に遅延読み込み
@@ -2733,6 +2935,7 @@ const FEEDS = {
   turnover: { kind: "field", url: "./data_turnover/data.json", field: "updated", freq: "daily" },
   // prices.json は1MB近いので、最終更新日だけを書いた軽い index.json を見る
   period:   { kind: "field", url: "./data_period/index.json", field: "updated", freq: "daily" },
+  g623:     { kind: "field", url: "./data_623/index.json", field: "updated", freq: "daily" },
   stoplow:  { kind: "field", url: "./data_stoplow/data.json", field: "updated", freq: "daily" },
   streaks:  { kind: "field", url: "./data_streaks/data.json", field: "updated", freq: "daily" },
   pts:      { kind: "index", url: "/buffett-code-pts-ranking/data/index.json", freq: "daily" },
