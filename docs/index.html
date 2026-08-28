@@ -130,6 +130,7 @@ td.flat { color: var(--muted); }
 .tvsub { color: var(--muted); font-size: .8em; }
 td.new { color: var(--new); font-weight: 700; }
 td.code a { color: var(--accent); text-decoration: none; }
+svg.pdspark { display: block; }
 td.code a:hover { text-decoration: underline; }
 td.name { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
 .value-cell { font-weight: 600; }
@@ -256,6 +257,7 @@ footer a { color: var(--accent); }
         <button class="tab" data-tab="streaks">指数連騰日数</button>
         <button class="tab" data-tab="pts">PTS株価</button>
         <button class="tab" data-tab="watch">監視銘柄リスト</button>
+        <button class="tab" data-tab="period">期間騰落率</button>
       </div>
     </div>
     <div class="tabgroup">
@@ -544,6 +546,48 @@ footer a { color: var(--accent); }
       本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
     </footer>
   </div><!-- /view-lowvolume -->
+
+  <div id="view-period" hidden>
+    <div class="toolbar">
+      <span><label>期間</label><select id="pdPresetSel">
+        <option value="2026-06-23">2026-06-23から</option>
+        <option value="5">直近5営業日</option>
+        <option value="20">直近20営業日</option>
+        <option value="60">直近60営業日</option>
+        <option value="all">保存されている全期間</option>
+        <option value="custom">カスタム</option>
+      </select></span>
+      <span><label>開始日</label><select id="pdFromSel"></select></span>
+      <span><label>終了日</label><select id="pdToSel"></select></span>
+      <span><label>市場</label><select id="pdMarketSel"><option value="">すべて</option></select></span>
+      <span><label>平均売買代金 ≧</label><input id="pdMinTv" class="streakMin" type="number" min="0" step="1" placeholder="0"><label style="margin-left:4px">億円</label></span>
+      <span><label>表示件数</label><select id="pdLimitSel">
+        <option value="100">上位100件</option>
+        <option value="200">上位200件</option>
+        <option value="0">すべて</option>
+      </select></span>
+      <input id="pdQ" type="search" placeholder="銘柄名・コードで絞り込み">
+      <span class="stat" id="pdStat"></span>
+    </div>
+    <div class="banner" id="pdBanner">読み込み中…</div>
+    <div class="cards" id="pdCards"></div>
+    <div class="hintRow">
+      <div class="hint">売買代金ランキング(上位500位)に<b>一度でも登場した銘柄</b>を母集団に、<b>開始日の終値を100として</b>終了日の終値までの騰落率を並べたものです。株価はYahoo Financeの<b>調整済み終値</b>なので、期間中に株式分割・併合があっても騰落率は壊れません(配当・分配金も再投資したものとして調整された値です。指数の代理ETFも同じ調整値なので、「対TOPIX」は同じ土俵での比較になります)。<br>
+      「対TOPIX」= 同じ期間のTOPIX(1306)の騰落率を引いた超過リターン。地合いぶんを除いてどれだけ強かったかを見るための列です。「期間高値」は開始日〜終了日の終値ベースの最高値、「高値比」は終値がそこからどれだけ下がったか(0%なら期間の最高値で引けている)、「最大上昇率」は開始日から期間高値までの上昇率です。<b>高値比が大きくマイナスの銘柄は、期間中に急騰したあと大きく戻している</b>ことを意味します。<br>
+      「平均売買代金」は直近20営業日の平均(終値×出来高)。小型株のノイズを外したいときは下限を入れて絞り込めます。「代金順位」は最新営業日の売買代金ランキング順位で、空欄は現在500位圏外の銘柄です。<br>
+      <b>開始日より前に上場していない銘柄・その日の株価が取れない銘柄は除外されます。</b>列見出しクリックで並び替えできます(既定は騰落率の降順)。</div>
+    </div>
+    <div class="tablecard">
+      <table id="pdTbl">
+        <thead><tr id="pdHeadRow"></tr></thead>
+        <tbody id="pdBody"><tr><td class="loading" colspan="13">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+    <footer>
+      母集団: <a href="https://kabutan.jp/warning/trading_value_ranking" target="_blank" rel="noopener">株探(kabutan.jp)</a>の売買代金ランキング保存分の和集合 / 株価: <a href="https://finance.yahoo.com/" target="_blank" rel="noopener">Yahoo Finance</a>(分割調整済み終値) / 市場休場日は更新されません。<br>
+      本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
+    </footer>
+  </div><!-- /view-period -->
 
   <div id="view-turnover" hidden>
     <div class="toolbar">
@@ -2382,13 +2426,271 @@ async function tvInit() {
   }
 }
 
+/* ---- 期間騰落率(任意の期間の上昇率ランキング) ---- */
+let pdData = null, pdInited = false, pdRows = [], pdSortKey = "chg", pdSortAsc = false;
+const PD_DEFAULT_FROM = "2026-06-23";
+
+// 指定インデックス以前で直近の値を返す(その日が欠損でも遡って拾う)
+function pdAt(arr, i) {
+  for (let k = Math.min(i, arr.length - 1); k >= 0; k--) if (arr[k] != null) return arr[k];
+  return null;
+}
+
+function pdSpark(c, si, ei) {
+  const vals = [];
+  for (let i = si; i <= ei; i++) if (c[i] != null) vals.push(c[i]);
+  if (vals.length < 2) return "";
+  const W = 88, H = 22, lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1;
+  const pts = vals.map((v, i) =>
+    (W * i / (vals.length - 1)).toFixed(1) + "," + (H - 2 - (v - lo) / span * (H - 4)).toFixed(1));
+  const up = vals[vals.length - 1] >= vals[0];
+  return '<svg class="pdspark" viewBox="0 0 ' + W + " " + H + '" width="' + W + '" height="' + H +
+    '" preserveAspectRatio="none"><polyline points="' + pts.join(" ") +
+    '" fill="none" stroke="var(--' + (up ? "up" : "down") + ')" stroke-width="1.5"/></svg>';
+}
+
+const PD_COLS = [
+  { key: "rank",   label: "順位",     num: s => s.rank },
+  { key: "code",   label: "コード",   code: true, left: true },
+  { key: "n",      label: "銘柄名",   left: true, cls: "name tl" },
+  { key: "m",      label: "市場",     left: true },
+  { key: "from",   label: "開始値",   num: s => s.from, fmt: fmtPrice },
+  { key: "to",     label: "終値",     num: s => s.to, fmt: fmtPrice },
+  { key: "chg",    label: "騰落率",   num: s => s.chg, color: true, fmt: fmtPct },
+  { key: "excess", label: "対TOPIX",  num: s => s.excess ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "hi",     label: "期間高値", num: s => s.hi, fmt: fmtPrice },
+  { key: "maxUp",  label: "最大上昇率", num: s => s.maxUp, color: true, fmt: fmtPct },
+  { key: "fromHi", label: "高値比",   num: s => s.fromHi, color: true, fmt: fmtPct },
+  { key: "tv",     label: "平均売買代金", num: s => s.tv ?? -Infinity,
+    fmt: v => (v == null ? "-" : fmtOku(v)) },
+  { key: "r",      label: "代金順位", num: s => s.r ?? Infinity, fmt: v => (v == null ? "" : v) },
+  { key: "spark",  label: "推移",     num: s => s.chg, html: true, fmt: (v, s) => s.spark },
+];
+
+function pdIdx(sel) { return pdData.dates.indexOf(sel.value); }
+
+// ベンチマーク(TOPIX/日経225/グロース250)の同期間騰落率
+function pdBenchChg(si, ei) {
+  const out = {};
+  for (const [code, b] of Object.entries(pdData.bench || {})) {
+    const a = pdAt(b.c, si), z = pdAt(b.c, ei);
+    out[code] = { name: b.n, chg: (a && z) ? (z / a - 1) * 100 : null };
+  }
+  return out;
+}
+
+function pdCompute() {
+  const si = pdIdx(document.getElementById("pdFromSel"));
+  const ei = pdIdx(document.getElementById("pdToSel"));
+  if (si < 0 || ei < 0 || si >= ei) { pdRows = []; return { si, ei, bench: {}, skipped: 0 }; }
+
+  const bench = pdBenchChg(si, ei);
+  const topix = bench["1306"] ? bench["1306"].chg : null;
+  const rows = [];
+  let skipped = 0;
+  for (const [code, s] of Object.entries(pdData.stocks)) {
+    const c = s.c;
+    const from = pdAt(c, si), to = pdAt(c, ei);
+    // 開始日に株価が無い = その時点で未上場。騰落率が出せないので除外する
+    if (from == null || to == null || from <= 0) { skipped++; continue; }
+    let hi = -Infinity;
+    for (let i = si; i <= ei; i++) if (c[i] != null && c[i] > hi) hi = c[i];
+    if (!isFinite(hi)) hi = Math.max(from, to);
+    const chg = (to / from - 1) * 100;
+    rows.push({
+      code, n: s.n, m: s.m, r: s.r ?? null, tv: s.tv ?? null,
+      from, to, hi, chg,
+      excess: topix == null ? null : chg - topix,
+      maxUp: (hi / from - 1) * 100,
+      fromHi: (to / hi - 1) * 100,
+      spark: pdSpark(c, si, ei),
+    });
+  }
+  pdRows = rows;
+  return { si, ei, bench, skipped };
+}
+
+function pdBuildHead() {
+  const tr = document.getElementById("pdHeadRow");
+  tr.innerHTML = "";
+  for (const col of PD_COLS) {
+    const th = document.createElement("th");
+    th.textContent = col.label;
+    if (col.left) th.classList.add("tl");
+    if (col.key === pdSortKey) {
+      const a = document.createElement("span");
+      a.className = "arw";
+      a.textContent = pdSortAsc ? "▲" : "▼";
+      th.appendChild(a);
+    }
+    th.onclick = () => {
+      if (pdSortKey === col.key) pdSortAsc = !pdSortAsc;
+      else { pdSortKey = col.key; pdSortAsc = false; }
+      pdRender();
+    };
+    tr.appendChild(th);
+  }
+}
+
+function pdRenderCards(bench, shown) {
+  const card = (ttl, big, sub, cls) =>
+    '<div class="card"><div class="ttl">' + ttl + '</div><div class="big ' + (cls || "") + '">' +
+    big + '</div><div class="sub">' + sub + '</div></div>';
+  const up = pdRows.filter(s => s.chg > 0).length;
+  const down = pdRows.filter(s => s.chg < 0).length;
+  const avg = pdRows.length ? pdRows.reduce((n, s) => n + s.chg, 0) / pdRows.length : null;
+  const bcards = Object.values(bench).map(b =>
+    card(b.name, b.chg == null ? "-" : fmtPct(b.chg), "同期間の指数(ETF)", signCls(b.chg))).join("");
+  document.getElementById("pdCards").innerHTML =
+    card("上昇", up + " 銘柄", "母集団 " + pdRows.length + " 銘柄中(表示 " + shown + " 件)", "up") +
+    card("下落", down + " 銘柄", "変わらず " + (pdRows.length - up - down) + " 銘柄", "down") +
+    card("平均騰落率", avg == null ? "-" : fmtPct(avg), "母集団の単純平均", signCls(avg)) +
+    bcards;
+}
+
+function pdRender() {
+  if (!pdData) return;
+  pdBuildHead();
+  const { si, ei, bench, skipped } = pdCompute();
+  const from = document.getElementById("pdFromSel").value;
+  const to = document.getElementById("pdToSel").value;
+  const banner = document.getElementById("pdBanner");
+  if (si < 0 || ei < 0 || si >= ei) {
+    banner.innerHTML = '<span class="err">開始日は終了日より前の日付を選んでください</span>';
+    document.getElementById("pdBody").innerHTML =
+      '<tr><td class="loading" colspan="' + PD_COLS.length + '">期間を選び直してください</td></tr>';
+    document.getElementById("pdCards").innerHTML = "";
+    document.getElementById("pdStat").textContent = "";
+    return;
+  }
+
+  const market = document.getElementById("pdMarketSel").value;
+  const minTv = parseFloat(document.getElementById("pdMinTv").value);
+  const q = document.getElementById("pdQ").value.trim().toLowerCase();
+  const limit = parseInt(document.getElementById("pdLimitSel").value, 10) || 0;
+
+  // 「順位」列は騰落率の降順で振る(並べ替えても本来の順位が分かるように)
+  pdRows.slice().sort((a, b) => b.chg - a.chg).forEach((s, i) => { s.rank = i + 1; });
+
+  let rows = pdRows.filter(s => {
+    if (market && s.m !== market) return false;
+    // tv は百万円、入力は億円
+    if (Number.isFinite(minTv) && minTv > 0 && !(s.tv != null && s.tv / 100 >= minTv)) return false;
+    if (q && !(s.n.toLowerCase().includes(q) || s.code.toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  const col = PD_COLS.find(c => c.key === pdSortKey) || PD_COLS[6];
+  rows = rows.slice().sort((a, b) => {
+    let r = col.num ? col.num(a) - col.num(b)
+                    : String(a[col.key] ?? "").localeCompare(String(b[col.key] ?? ""), "ja");
+    if (r === 0) r = b.chg - a.chg;
+    return pdSortAsc ? r : -r;
+  });
+
+  const total = rows.length;
+  if (limit > 0) rows = rows.slice(0, limit);
+
+  const tb = document.getElementById("pdBody");
+  tb.innerHTML = "";
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td class="loading" colspan="' + PD_COLS.length + '">該当する銘柄がありません</td></tr>';
+  } else {
+    const frag = document.createDocumentFragment();
+    for (const s of rows) {
+      const tr = document.createElement("tr");
+      for (const col of PD_COLS) {
+        const v = s[col.key];
+        const td = document.createElement("td");
+        if (col.code) {
+          td.className = "code tl";
+          const a = document.createElement("a");
+          a.href = "https://kabutan.jp/stock/chart?code=" + encodeURIComponent(v);
+          a.target = "_blank"; a.rel = "noopener";
+          a.textContent = v;
+          td.appendChild(a);
+        } else if (col.html) {
+          td.innerHTML = col.fmt(v, s);
+        } else {
+          if (col.cls) td.className = col.cls;
+          else if (col.left) td.className = "tl";
+          else if (col.color) td.className = signCls(v);
+          td.textContent = col.fmt ? col.fmt(v, s) : (v == null ? "-" : v);
+        }
+        tr.appendChild(td);
+      }
+      frag.appendChild(tr);
+    }
+    tb.appendChild(frag);
+  }
+
+  banner.innerHTML = "<b>" + from + "</b> の終値 → <b>" + to + "</b> の終値(" + (ei - si) + "営業日)" +
+    " / 母集団 <b>" + pdRows.length + "</b> 銘柄" +
+    (skipped ? " / 開始日に株価が無く除外 " + skipped + " 銘柄" : "") +
+    " / データ更新: " + pdData.updated;
+  document.getElementById("pdStat").innerHTML =
+    "表示 <b>" + rows.length + "</b> / 該当 " + total + " 銘柄";
+  pdRenderCards(bench, rows.length);
+}
+
+// プリセット(固定日・直近N営業日・全期間)から開始日を決める
+function pdApplyPreset() {
+  const v = document.getElementById("pdPresetSel").value;
+  if (v === "custom") return;
+  const dates = pdData.dates;
+  document.getElementById("pdToSel").value = dates[dates.length - 1];
+  let ymd;
+  if (v === "all") ymd = dates[0];
+  else if (/^\d{4}-/.test(v)) ymd = dates.find(d => d >= v) || dates[0];   // 休場ならその後の営業日
+  else ymd = dates[Math.max(0, dates.length - 1 - parseInt(v, 10))];
+  document.getElementById("pdFromSel").value = ymd;
+}
+
+async function pdInit() {
+  try {
+    const res = await fetch("data_period/prices.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error("prices.json " + res.status);
+    pdData = await res.json();
+    const dates = pdData.dates;
+    const opts = dates.map(d => '<option value="' + d + '">' + d + "</option>").join("");
+    document.getElementById("pdFromSel").innerHTML = opts;
+    document.getElementById("pdToSel").innerHTML = opts;
+
+    const markets = [...new Set(Object.values(pdData.stocks).map(s => s.m).filter(Boolean))].sort();
+    document.getElementById("pdMarketSel").innerHTML =
+      '<option value="">すべて</option>' + markets.map(m => "<option>" + m + "</option>").join("");
+
+    // 既定は 2026-06-23 から最新営業日まで。その日より前のデータしか無ければ全期間
+    document.getElementById("pdPresetSel").value =
+      dates.some(d => d >= PD_DEFAULT_FROM) ? PD_DEFAULT_FROM : "all";
+    pdApplyPreset();
+
+    document.getElementById("pdPresetSel").onchange = () => { pdApplyPreset(); pdRender(); };
+    for (const id of ["pdFromSel", "pdToSel"]) {
+      document.getElementById(id).onchange = () => {
+        document.getElementById("pdPresetSel").value = "custom";
+        pdRender();
+      };
+    }
+    document.getElementById("pdMarketSel").onchange = pdRender;
+    document.getElementById("pdLimitSel").onchange = pdRender;
+    document.getElementById("pdMinTv").oninput = pdRender;
+    document.getElementById("pdQ").oninput = pdRender;
+    pdRender();
+  } catch (e) {
+    document.getElementById("pdBanner").innerHTML = '<span class="err">読み込みエラー: ' + e + "</span>";
+    document.getElementById("pdBody").innerHTML =
+      '<tr><td class="loading" colspan="' + PD_COLS.length + '">読み込めませんでした</td></tr>';
+  }
+}
+
 const VIEW_ID = {
   ranking: "view-ranking", intraday: "view-intraday", split: "view-split",
   yori: "view-yori", minute: "view-minute", min5: "view-min5", sector: "view-sector",
   stop: "view-stop", stoplow: "view-stoplow", streaks: "view-streaks",
   pts: "view-pts", watch: "view-watch", shinyo: "view-shinyo",
   newhigh: "view-newhigh", lowvolume: "view-lowvolume", jukyu: "view-jukyu",
-  uchu: "view-uchu", turnover: "view-turnover",
+  uchu: "view-uchu", turnover: "view-turnover", period: "view-period",
 };
 function switchTab(name) {
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
@@ -2402,6 +2704,7 @@ function switchTab(name) {
   if (name === "newhigh" && !nhInited) { nhInited = true; nhInit(); }
   if (name === "lowvolume" && !lvInited) { lvInited = true; lvInit(); }
   if (name === "turnover" && !tvInited) { tvInited = true; tvInit(); }
+  if (name === "period" && !pdInited) { pdInited = true; pdInit(); }
   const jv = JK_VIEWS[name];
   if (jv && !jv.inited) { jv.inited = true; jv.init(); }
   // 外部サイトのiframeは初回表示時に遅延読み込み
@@ -2428,6 +2731,8 @@ const FEEDS = {
   newhigh:  { kind: "index", url: "./data_newhigh/index.json", freq: "daily" },
   lowvolume: { kind: "index", url: "./data_lowvolume/index.json", freq: "daily" },
   turnover: { kind: "field", url: "./data_turnover/data.json", field: "updated", freq: "daily" },
+  // prices.json は1MB近いので、最終更新日だけを書いた軽い index.json を見る
+  period:   { kind: "field", url: "./data_period/index.json", field: "updated", freq: "daily" },
   stoplow:  { kind: "field", url: "./data_stoplow/data.json", field: "updated", freq: "daily" },
   streaks:  { kind: "field", url: "./data_streaks/data.json", field: "updated", freq: "daily" },
   pts:      { kind: "index", url: "/buffett-code-pts-ranking/data/index.json", freq: "daily" },

@@ -5,3 +5,4 @@ SETUP_GUIDE.txt
 daily_intraday.log
 daily_watch.log
 cache_bars/
+cache_period/
