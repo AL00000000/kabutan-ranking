@@ -753,7 +753,10 @@ footer a { color: var(--accent); }
     <div class="hintRow">
       <div class="hint">上が<b>東証3市場(プライム・スタンダード・グロース)の合計売買代金</b>、下が<b>キオクシア1銘柄の売買代金</b>です。どちらもJPXが引け後に公表する確定値(立会内)。<br>
       <b>縦軸は0からではなく、期間内の最小値の少し下から始めています。</b>売買代金は7兆円と8兆円のように「大きな数字の中の差」で動くため、0から描くと棒の高さがほとんど揃ってしまい変化が読めなくなるからです。軸の下端はグラフ左下に表示しています。0起点で見たいときはツールバーの「0から表示」にチェックを入れてください。<br>
-      折れ線は5日移動平均。棒にカーソルを乗せると日付と金額が出ます。詳しい内訳(市場別・値上がり値下がり銘柄数・過去最高比)は「市場活況度」タブにあります。</div>
+      折れ線は5日移動平均。棒にカーソルを乗せると日付と金額が出ます。<br>
+      グラフ右端の<b>「最大÷最小」は、表示中の期間で一番多かった日が一番少なかった日の何%増しか</b>です。縦軸を切っていると棒の高さの比がそのままの倍率に見えないため、数字でも出しています。対象の2日は棒を黄色で囲み、点線でつないでいます。<br>
+      <b>キオクシアは2026年8月25日より前が空いています。</b>JPXは市況(市場全体)を5営業日ぶん公開する一方、<b>銘柄別の売買代金ランキングは最新と1営業日前しか公開していません</b>。このタブの集計を始めたのが8月27日だったため、銘柄別はそこから2営業日ぶんしか遡れませんでした。以降は毎営業日取得しているので空きは生じません。<br>
+      詳しい内訳(市場別・値上がり値下がり銘柄数・過去最高比)は「市場活況度」タブにあります。</div>
     </div>
     <footer>
       データ取得元: <a href="https://www.jpx.co.jp/markets/equities/summary/index.html" target="_blank" rel="noopener">JPX 株式・債券市況</a> / <a href="https://www.jpx.co.jp/markets/equities/ranking/index.html" target="_blank" rel="noopener">JPX 売買代金ランキング</a>(情報提供: QUICK)。<br>
@@ -3248,7 +3251,8 @@ function bbChart(elId, rows, pick, fmt) {
   const pts = rows.map(pick);
   const vals = pts.filter(v => v != null);
   if (!vals.length) { el.innerHTML = '<text x="20" y="30" fill="var(--muted)" font-size="13">データがありません</text>'; return; }
-  const W = 1000, H = 250, PL = 82, PR = 14, PT = 16, PB = 34;
+  // 右側に「最大と最小の差」を出すぶん、右の余白を広めに取る
+  const W = 1000, H = 250, PL = 82, PR = 116, PT = 16, PB = 34;
   const { lo, hi } = bbScale(vals);
   const bw = (W - PL - PR) / rows.length;
   const cx = i => PL + bw * (i + 0.5);
@@ -3262,14 +3266,26 @@ function bbChart(elId, rows, pick, fmt) {
       '<text x="' + (PL - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="12" fill="var(--muted)">' +
       fmt(v) + "</text>";
   }
+
+  // 期間内の最大・最小の位置(欠損日は飛ばす)
+  let iMax = -1, iMin = -1;
+  pts.forEach((v, i) => {
+    if (v == null) return;
+    if (iMax < 0 || v > pts[iMax]) iMax = i;
+    if (iMin < 0 || v < pts[iMin]) iMin = i;
+  });
+
   const barW = Math.max(1, bw * 0.62);
   rows.forEach((r, i) => {
     const v = pts[i]; if (v == null) return;
     const y = cy(v);
+    const mark = i === iMax || i === iMin;
     out += '<rect x="' + (cx(i) - barW / 2) + '" y="' + y + '" width="' + barW + '" height="' +
-      Math.max(0, H - PB - y) + '" fill="var(--accent)" opacity="0.72"><title>' + tvMd(r.date) + " " +
-      tvOku(v) + "円</title></rect>";
+      Math.max(0, H - PB - y) + '" fill="var(--accent)" opacity="' + (mark ? "0.95" : "0.72") + '"' +
+      (mark ? ' stroke="var(--new)" stroke-width="1.5"' : "") + '><title>' + tvMd(r.date) + " " +
+      tvOku(v) + "円" + (i === iMax ? "(期間内の最大)" : i === iMin ? "(期間内の最小)" : "") + "</title></rect>";
   });
+
   // 5日移動平均
   const ma = pts.map((_, i) => {
     if (i < 4) return null;
@@ -3278,6 +3294,7 @@ function bbChart(elId, rows, pick, fmt) {
   });
   const line = ma.map((v, i) => (v == null ? null : cx(i) + "," + cy(v))).filter(Boolean);
   if (line.length > 1) out += '<polyline points="' + line.join(" ") + '" fill="none" stroke="var(--new)" stroke-width="2"/>';
+
   const step = Math.max(1, Math.ceil(rows.length / 9));
   rows.forEach((r, i) => {
     if (i % step) return;
@@ -3285,6 +3302,28 @@ function bbChart(elId, rows, pick, fmt) {
       tvMd(r.date).replace(/\(.\)/, "") + "</text>";
   });
   if (lo > 0) out += '<text x="6" y="' + (H - 12) + '" font-size="11" fill="var(--muted)">軸下端 ' + fmt(lo) + "</text>";
+
+  // 最大と最小が何%違うか。棒の高さの差は軸を切っていると読み違えやすいので数字で出す
+  if (iMax >= 0 && iMin >= 0 && iMax !== iMin && pts[iMin] > 0) {
+    const vMax = pts[iMax], vMin = pts[iMin];
+    const yH = cy(vMax), yL = cy(vMin);
+    const bx = W - PR + 30, mid = (yH + yL) / 2;
+    const pct = ((vMax / vMin - 1) * 100).toFixed(1);
+    const guide = (i, y) => '<line x1="' + cx(i) + '" y1="' + y + '" x2="' + bx + '" y2="' + y +
+      '" stroke="var(--new)" stroke-width="1" stroke-dasharray="3 3" opacity="0.45"/>';
+    out += guide(iMax, yH) + guide(iMin, yL);
+    out += '<line x1="' + bx + '" y1="' + yH + '" x2="' + bx + '" y2="' + yL +
+      '" stroke="var(--new)" stroke-width="1.5"/>';
+    for (const y of [yH, yL]) {
+      out += '<line x1="' + (bx - 5) + '" y1="' + y + '" x2="' + (bx + 5) + '" y2="' + y +
+        '" stroke="var(--new)" stroke-width="1.5"/>';
+    }
+    out += '<g><title>期間内の最大 ' + tvOku(vMax) + "円(" + tvMd(rows[iMax].date) + ") / 最小 " +
+      tvOku(vMin) + "円(" + tvMd(rows[iMin].date) + ")</title>" +
+      '<text x="' + (bx + 9) + '" y="' + (mid - 1) + '" font-size="15" font-weight="700" fill="var(--new)">+' +
+      pct + '%</text>' +
+      '<text x="' + (bx + 9) + '" y="' + (mid + 13) + '" font-size="10" fill="var(--muted)">最大÷最小</text></g>';
+  }
   el.innerHTML = out;
 }
 
