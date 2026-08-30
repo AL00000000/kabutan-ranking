@@ -20,7 +20,9 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 48076900.0
+     "volume": 48076900.0,
+     "turnover": 2433797.0,
+     "turnover_basis": "kabutan1524"
     }
    }
   },
@@ -43,7 +45,9 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 44620700.0
+     "volume": 44620700.0,
+     "turnover": 2312810.0,
+     "turnover_basis": "kabutan1524"
     }
    }
   },
@@ -66,7 +70,9 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 39845000.0
+     "volume": 39845000.0,
+     "turnover": 2133466.0,
+     "turnover_basis": "kabutan1524"
     }
    }
   },
@@ -89,7 +95,9 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 32745000.0
+     "volume": 32745000.0,
+     "turnover": 1687341.0,
+     "turnover_basis": "kabutan1524"
     }
    }
   },

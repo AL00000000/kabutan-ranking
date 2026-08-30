@@ -747,7 +747,7 @@ footer a { color: var(--accent); }
       <svg id="bbChartAll" viewBox="0 0 1000 250" style="width:100%;height:auto;display:block"></svg>
     </div>
     <div class="tablecard" style="padding:12px 6px 4px;margin-top:10px">
-      <div class="chartTtl">キオクシア(285A)の売買代金</div>
+      <div class="chartTtl">キオクシア(285A)の売買代金<span id="bbKioNote" class="tvsub" style="font-weight:400;margin-left:10px">斜線の棒 = 株探15:24時点の概算(確定値より1〜2%低め)</span></div>
       <svg id="bbChartKio" viewBox="0 0 1000 250" style="width:100%;height:auto;display:block"></svg>
     </div>
     <div class="hintRow">
@@ -755,7 +755,7 @@ footer a { color: var(--accent); }
       <b>縦軸は0からではなく、期間内の最小値の少し下から始めています。</b>売買代金は7兆円と8兆円のように「大きな数字の中の差」で動くため、0から描くと棒の高さがほとんど揃ってしまい変化が読めなくなるからです。軸の下端はグラフ左下に表示しています。0起点で見たいときはツールバーの「0から表示」にチェックを入れてください。<br>
       折れ線は5日移動平均。棒にカーソルを乗せると日付と金額が出ます。<br>
       グラフ右端の<b>「最大÷最小」は、表示中の期間で一番多かった日が一番少なかった日の何%増しか</b>です。縦軸を切っていると棒の高さの比がそのままの倍率に見えないため、数字でも出しています。対象の2日は棒を黄色で囲み、点線でつないでいます。<br>
-      <b>キオクシアは2026年8月25日より前が空いています。</b>JPXは市況(市場全体)を5営業日ぶん公開する一方、<b>銘柄別の売買代金ランキングは最新と1営業日前しか公開していません</b>。このタブの集計を始めたのが8月27日だったため、銘柄別はそこから2営業日ぶんしか遡れませんでした。以降は毎営業日取得しているので空きは生じません。<br>
+      <b>キオクシアの2026年8月25日より前は概算値です(斜線の棒)。</b>JPXは市況(市場全体)を5営業日ぶん公開する一方、<b>銘柄別の売買代金ランキングは最新と1営業日前しか公開していません</b>。このタブの集計を始めたのが8月27日だったため、銘柄別はそこから2営業日ぶんしか遡れませんでした。空いた8/19〜8/24は株探の日次アーカイブで埋めていますが、そちらは<b>15:24時点のスナップショット</b>で引け確定値ではありません。両方ある4日で比べると<b>確定値より1.1〜2.4%低く出ます</b>。以降は毎営業日JPXから取得しているので、概算が混ざるのはこの4日だけです。<br>
       詳しい内訳(市場別・値上がり値下がり銘柄数・過去最高比)は「市場活況度」タブにあります。</div>
     </div>
     <footer>
@@ -3246,7 +3246,7 @@ function bbScale(vals) {
   return { lo: Math.max(0, min - pad), hi: max + (span > 0 ? span * 0.15 : max * 0.05) };
 }
 
-function bbChart(elId, rows, pick, fmt) {
+function bbChart(elId, rows, pick, fmt, isEst) {
   const el = document.getElementById(elId);
   const pts = rows.map(pick);
   const vals = pts.filter(v => v != null);
@@ -3258,7 +3258,10 @@ function bbChart(elId, rows, pick, fmt) {
   const cx = i => PL + bw * (i + 0.5);
   const cy = v => H - PB - ((v - lo) / Math.max(hi - lo, 1)) * (H - PT - PB);
 
-  let out = "";
+  const hatchId = "est-" + elId;
+  let out = '<defs><pattern id="' + hatchId + '" width="7" height="7" patternUnits="userSpaceOnUse"' +
+    ' patternTransform="rotate(45)"><rect width="7" height="7" fill="var(--accent)" opacity="0.16"/>' +
+    '<line x1="0" y1="0" x2="0" y2="7" stroke="var(--accent)" stroke-width="3" opacity="0.8"/></pattern></defs>';
   for (let t = 0; t <= 4; t++) {
     const v = lo + ((hi - lo) / 4) * t, y = cy(v);
     out += '<line x1="' + PL + '" y1="' + y + '" x2="' + (W - PR) + '" y2="' + y +
@@ -3280,10 +3283,15 @@ function bbChart(elId, rows, pick, fmt) {
     const v = pts[i]; if (v == null) return;
     const y = cy(v);
     const mark = i === iMax || i === iMin;
+    // 概算で埋めた日は斜線のハッチにして確定値と区別する(薄さだけだと見分けにくい)
+    const est = isEst ? isEst(r) : false;
+    const stroke = mark ? ' stroke="var(--new)" stroke-width="1.5"'
+      : est ? ' stroke="var(--muted)" stroke-width="1"' : "";
     out += '<rect x="' + (cx(i) - barW / 2) + '" y="' + y + '" width="' + barW + '" height="' +
-      Math.max(0, H - PB - y) + '" fill="var(--accent)" opacity="' + (mark ? "0.95" : "0.72") + '"' +
-      (mark ? ' stroke="var(--new)" stroke-width="1.5"' : "") + '><title>' + tvMd(r.date) + " " +
-      tvOku(v) + "円" + (i === iMax ? "(期間内の最大)" : i === iMin ? "(期間内の最小)" : "") + "</title></rect>";
+      Math.max(0, H - PB - y) + '" fill="' + (est ? "url(#" + hatchId + ")" : "var(--accent)") +
+      '" opacity="' + (est ? "1" : mark ? "0.95" : "0.72") + '"' + stroke + '><title>' +
+      tvMd(r.date) + " " + tvOku(v) + "円" + (est ? "(概算: 株探15:24時点)" : "") +
+      (i === iMax ? "(期間内の最大)" : i === iMin ? "(期間内の最小)" : "") + "</title></rect>";
   });
 
   // 5日移動平均
@@ -3328,6 +3336,8 @@ function bbChart(elId, rows, pick, fmt) {
 }
 
 const bbKio = r => { const s = (r.stocks || {})["285A"]; return s ? s.turnover : null; };
+// 株探の15:24スナップショットで埋めた日(JPXの銘柄別ランキングが遡れないぶん)
+const bbKioEst = r => (((r.stocks || {})["285A"] || {}).turnover_basis === "kabutan1524");
 
 function bbRender() {
   const all = bbData.days.slice().sort((a, b) => (a.date < b.date ? -1 : 1));
@@ -3336,7 +3346,8 @@ function bbRender() {
   const cho = v => (v / 1000000).toFixed(1) + "兆";
   const oku = v => Math.round(v / 100).toLocaleString() + "億";
   bbChart("bbChartAll", rows, r => r.total, cho);
-  bbChart("bbChartKio", rows, bbKio, oku);
+  bbChart("bbChartKio", rows, bbKio, oku, bbKioEst);
+  document.getElementById("bbKioNote").style.display = rows.some(bbKioEst) ? "" : "none";
 
   const last = rows[rows.length - 1];
   const prev = rows.length > 1 ? rows[rows.length - 2] : null;
