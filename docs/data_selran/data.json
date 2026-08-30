@@ -1,60 +1,60 @@
 {
- "updated": "2026-08-30",
+ "updated": "2026-08-31",
  "apps": {
-  "6448311069": {
-   "name": "ChatGPT",
-   "release": "2023-05-25",
-   "seller": "OpenAI OpCo, LLC"
-  },
   "1015521325": {
    "name": "Fate/Grand Order",
    "release": "2015-08-12",
    "seller": "Aniplex Inc."
-  },
-  "1322310031": {
-   "name": "ONE PIECE バウンティラッシュ - アクションゲーム",
-   "release": "2018-03-29",
-   "seller": "Bandai Namco Entertainment Inc."
-  },
-  "6479970832": {
-   "name": "Pokémon TCG Pocket",
-   "release": "2024-10-30",
-   "seller": "The Pokemon Company"
-  },
-  "1117270703": {
-   "name": "eFootball™",
-   "release": "2017-05-24",
-   "seller": "Konami Digital Entertainment Co., Ltd."
-  },
-  "951627670": {
-   "name": "ドラゴンボールZ ドッカンバトル",
-   "release": "2015-02-18",
-   "seller": "Bandai Namco Entertainment Inc."
-  },
-  "493470467": {
-   "name": "パズル＆ドラゴンズ",
-   "release": "2012-02-20",
-   "seller": "GungHo Online Entertainment, INC."
   },
   "1091496983": {
    "name": "ピッコマ",
    "release": "2016-04-20",
    "seller": "Kakao piccoma Corp."
   },
-  "940320341": {
-   "name": "プロ野球スピリッツＡ",
-   "release": "2015-10-21",
+  "1117270703": {
+   "name": "eFootball™",
+   "release": "2017-05-24",
    "seller": "Konami Digital Entertainment Co., Ltd."
+  },
+  "1322310031": {
+   "name": "ONE PIECE バウンティラッシュ - アクションゲーム",
+   "release": "2018-03-29",
+   "seller": "Bandai Namco Entertainment Inc."
+  },
+  "1599719154": {
+   "name": "崩壊：スターレイル",
+   "release": "2023-04-22",
+   "seller": "COGNOSPHERE PTE. LTD."
+  },
+  "493470467": {
+   "name": "パズル＆ドラゴンズ",
+   "release": "2012-02-20",
+   "seller": "GungHo Online Entertainment, INC."
+  },
+  "6448311069": {
+   "name": "ChatGPT",
+   "release": "2023-05-25",
+   "seller": "OpenAI OpCo, LLC"
+  },
+  "6479970832": {
+   "name": "Pokémon TCG Pocket",
+   "release": "2024-10-30",
+   "seller": "The Pokemon Company"
   },
   "6756641135": {
    "name": "ホロライブドリームス",
    "release": "2026-07-22",
    "seller": "QualiArts, Inc."
   },
-  "1599719154": {
-   "name": "崩壊：スターレイル",
-   "release": "2023-04-22",
-   "seller": "COGNOSPHERE PTE. LTD."
+  "940320341": {
+   "name": "プロ野球スピリッツＡ",
+   "release": "2015-10-21",
+   "seller": "Konami Digital Entertainment Co., Ltd."
+  },
+  "951627670": {
+   "name": "ドラゴンボールZ ドッカンバトル",
+   "release": "2015-02-18",
+   "seller": "Bandai Namco Entertainment Inc."
   }
  },
  "days": [
@@ -721,10 +721,10 @@
    "apps": {
     "6756641135": {
      "name": "ホロライブドリームス",
-     "last": 4,
+     "last": 6,
      "high": 2,
-     "low": 4,
-     "samples": 255
+     "low": 6,
+     "samples": 288
     }
    },
    "top1": {
@@ -737,6 +737,22 @@
      "apid": "493470467"
     }
    ]
+  },
+  {
+   "date": "2026-08-31",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 7,
+     "high": 6,
+     "low": 7,
+     "samples": 102
+    }
+   },
+   "top1": {
+    "name": "ドラゴンボールZ ドッカンバトル",
+    "apid": "951627670"
+   }
   }
  ]
 }
