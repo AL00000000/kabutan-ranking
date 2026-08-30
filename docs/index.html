@@ -128,6 +128,7 @@ td.up { color: var(--up); }
 td.down { color: var(--down); }
 td.flat { color: var(--muted); }
 .tvsub { color: var(--muted); font-size: .8em; }
+.chartTtl { color: var(--accent); font-size: .82rem; font-weight: 700; margin: 0 0 6px 10px; }
 td.new { color: var(--new); font-weight: 700; }
 td.code a { color: var(--accent); text-decoration: none; }
 svg.pdspark { display: block; }
@@ -248,6 +249,9 @@ footer a { color: var(--accent); }
       <div class="tabgroup-items">
         <button class="tab active" data-tab="ranking">売買代金ランキング</button>
         <button class="tab" data-tab="turnover">市場活況度</button>
+        <button class="tab" data-tab="baibai">売買代金</button>
+        <button class="tab" data-tab="search">株探検索ランキング</button>
+        <button class="tab" data-tab="selran">セルラン</button>
         <button class="tab" data-tab="intraday">15:24→引け 分析</button>
         <button class="tab" data-tab="yori">寄付からの値上がり率</button>
         <button class="tab" data-tab="minute">分足チャート記録</button>
@@ -677,6 +681,106 @@ footer a { color: var(--accent); }
       本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
     </footer>
   </div><!-- /view-turnover -->
+
+  <div id="view-selran" hidden>
+    <div class="toolbar">
+      <span><label>期間</label><select id="srRangeSel">
+        <option value="30">直近30日</option>
+        <option value="90">直近90日</option>
+        <option value="0">すべて</option>
+      </select></span>
+      <span class="stat" id="srStat"></span>
+    </div>
+    <div class="banner" id="srBanner">読み込み中…</div>
+    <div class="cards" id="srCards"></div>
+    <div class="tablecard" style="padding:10px 6px 4px">
+      <svg id="srChart" viewBox="0 0 1000 260" style="width:100%;height:auto;display:block"></svg>
+    </div>
+    <div class="hintRow">
+      <div class="hint"><b>iOS App Store のセールスランキング(セルラン)</b>の日次記録です。「総合1位」はその日の最後に1位だったアプリ、「日中1位」は同じ日に一時的に1位を取った別のアプリ。グラフは監視アプリの順位推移で、<b>上が上位</b>(1位が一番上)です。<br>
+      アプリ名の下はいずれも<b>App Store の配信開始日</b>です(App Store Lookup API から取得)。<br>
+      順位は<b>5分ごとの観測</b>から集計しています。「終値」はその日の最後の観測、「最高」「最低」はその日の中での最上位・最下位、「観測」はその日に取れたサンプル数(通常288)。取得元が落ちていた時間があると観測数が減ります。<br>
+      Game-i は5分粒度を直近24時間、日次も当月ぶんしか返さないため、<b>この記録は監視ボットの実行ログを集計して作っています</b>。一度ここに書いた日はそのまま残るので、ログを整理しても過去は消えません。集計開始は2026年7月29日です。</div>
+    </div>
+    <div class="tablecard">
+      <table id="srTbl">
+        <thead><tr id="srHeadRow"></tr></thead>
+        <tbody id="srBody"><tr><td class="loading" colspan="6">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="hintRow"><div class="hint"><b>登場したアプリ一覧</b></div></div>
+    <div class="tablecard">
+      <table id="srAppTbl">
+        <thead><tr><th class="tl">アプリ</th><th class="tl">配信開始</th><th class="tl">提供元</th><th>1位だった日数</th></tr></thead>
+        <tbody id="srAppBody"></tbody>
+      </table>
+    </div>
+    <footer>
+      データ取得元: <a href="https://game-i.daa.jp/" target="_blank" rel="noopener">Game-i セルラン分析サイト</a> / 配信日: <a href="https://performance-partners.apple.com/search-api" target="_blank" rel="noopener">Apple App Store Lookup API</a>。<br>
+      本サイトのデータの正確性は保証されません。
+    </footer>
+  </div><!-- /view-selran -->
+
+  <div id="view-baibai" hidden>
+    <div class="toolbar">
+      <span><label>期間</label><select id="bbRangeSel">
+        <option value="30">直近30営業日</option>
+        <option value="90">直近90営業日</option>
+        <option value="0">すべて</option>
+      </select></span>
+      <span><label for="bbZero">0から表示</label><input id="bbZero" class="chk" type="checkbox"></span>
+      <span class="stat" id="bbStat"></span>
+    </div>
+    <div class="banner" id="bbBanner">読み込み中…</div>
+    <div class="cards" id="bbCards"></div>
+    <div class="tablecard" style="padding:12px 6px 4px">
+      <div class="chartTtl">東証3市場の売買代金</div>
+      <svg id="bbChartAll" viewBox="0 0 1000 250" style="width:100%;height:auto;display:block"></svg>
+    </div>
+    <div class="tablecard" style="padding:12px 6px 4px;margin-top:10px">
+      <div class="chartTtl">キオクシア(285A)の売買代金</div>
+      <svg id="bbChartKio" viewBox="0 0 1000 250" style="width:100%;height:auto;display:block"></svg>
+    </div>
+    <div class="hintRow">
+      <div class="hint">上が<b>東証3市場(プライム・スタンダード・グロース)の合計売買代金</b>、下が<b>キオクシア1銘柄の売買代金</b>です。どちらもJPXが引け後に公表する確定値(立会内)。<br>
+      <b>縦軸は0からではなく、期間内の最小値の少し下から始めています。</b>売買代金は7兆円と8兆円のように「大きな数字の中の差」で動くため、0から描くと棒の高さがほとんど揃ってしまい変化が読めなくなるからです。軸の下端はグラフ左下に表示しています。0起点で見たいときはツールバーの「0から表示」にチェックを入れてください。<br>
+      折れ線は5日移動平均。棒にカーソルを乗せると日付と金額が出ます。詳しい内訳(市場別・値上がり値下がり銘柄数・過去最高比)は「市場活況度」タブにあります。</div>
+    </div>
+    <footer>
+      データ取得元: <a href="https://www.jpx.co.jp/markets/equities/summary/index.html" target="_blank" rel="noopener">JPX 株式・債券市況</a> / <a href="https://www.jpx.co.jp/markets/equities/ranking/index.html" target="_blank" rel="noopener">JPX 売買代金ランキング</a>(情報提供: QUICK)。<br>
+      本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
+    </footer>
+  </div><!-- /view-baibai -->
+
+  <div id="view-search" hidden>
+    <div class="toolbar">
+      <span><label>月</label><select id="skMonthSel"></select></span>
+      <span class="stat" id="skStat"></span>
+    </div>
+    <div class="banner" id="skBanner">読み込み中…</div>
+    <div class="hintRow">
+      <div class="hint"><b>株探トップページに出ている「検索ランキング」上位5銘柄</b>を、毎営業日20:00に記録したものです。株探サイト内で検索された回数の順で、その日に個人投資家の関心がどこに向いていたかの手掛かりになります。<br>
+      表示中の月を切り替えるとその月の日別一覧に変わります。右の表は<b>記録した全期間での登場回数</b>で、月の切り替えとは連動しません。<br>
+      このランキングは<b>ページを開いた時点の値しか取れず、後から遡れません</b>。記録開始は2026年8月30日です。</div>
+    </div>
+    <div class="tablecard">
+      <table id="skTbl">
+        <thead><tr><th class="tl">日付</th><th class="tl">1位</th><th class="tl">2位</th><th class="tl">3位</th><th class="tl">4位</th><th class="tl">5位</th></tr></thead>
+        <tbody id="skBody"><tr><td class="loading" colspan="6">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="hintRow"><div class="hint"><b>銘柄ごとの登場回数(全期間)</b></div></div>
+    <div class="tablecard">
+      <table id="skCountTbl">
+        <thead><tr><th>順</th><th class="tl">コード</th><th class="tl">銘柄名</th><th>登場</th><th>1位</th><th class="tl">最後に登場</th></tr></thead>
+        <tbody id="skCountBody"></tbody>
+      </table>
+    </div>
+    <footer>
+      データ取得元: <a href="https://kabutan.jp/" target="_blank" rel="noopener">株探(kabutan.jp)</a> トップページの検索ランキング。<br>
+      本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
+    </footer>
+  </div><!-- /view-search -->
 
   <div id="view-yori" hidden>
     <div class="embed-note">寄付からの値上がり率ランキング(別サイトを埋め込み表示) — <a href="/Yoritsukikaranoneagari-ranking/" target="_blank" rel="noopener">別タブで開く ↗</a></div>
@@ -2969,6 +3073,309 @@ async function g6Init() {
   g6Render();
 }
 
+/* ================= セルラン ================= */
+let srData = null, srInited = false, srRange = 30;
+
+const srMd = ymd => { const [y, m, d] = ymd.split("-").map(Number);
+  return m + "/" + d + "(" + TV_WD[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] + ")"; };
+const srRel = apid => {
+  const a = (srData.apps || {})[apid];
+  return a && a.release ? a.release : null;
+};
+// アプリ名 + 配信開始日(2行)。記録するアプリには必ず配信日を添える
+function srApp(name, apid) {
+  if (!name) return "—";
+  const rel = apid ? srRel(apid) : null;
+  const label = apid
+    ? '<a href="https://game-i.daa.jp/?cmd=app_minute&apid=' + apid + '" target="_blank" rel="noopener">' + name + "</a>"
+    : name;
+  return label + (rel ? '<br><span class="tvsub">配信 ' + rel + "</span>" : "");
+}
+
+function srRows() {
+  const all = srData.days.slice().sort((a, b) => (a.date < b.date ? -1 : 1));
+  const n = srRange > 0 ? Math.min(srRange, all.length) : all.length;
+  return { all, rows: all.slice(all.length - n) };
+}
+
+// 監視アプリ(現在はホロドリのみ)。日々のレコードに出てくる apid を拾う
+function srWatched(all) {
+  const seen = new Map();
+  for (const d of all) for (const [k, v] of Object.entries(d.apps || {})) seen.set(k, v.name);
+  return [...seen.entries()].map(([apid, name]) => ({ apid, name }));
+}
+
+// 順位は小さいほど上位なので、縦軸を反転して1位を上に描く
+function srRenderChart(rows, watched) {
+  const el = document.getElementById("srChart");
+  const key = watched.length ? watched[0].apid : null;
+  const pts = rows.map(r => (key && r.apps && r.apps[key] ? r.apps[key] : null));
+  if (!key || !pts.some(Boolean)) { el.innerHTML = ""; return; }
+  const W = 1000, H = 260, PL = 56, PR = 14, PT = 16, PB = 34;
+  const vals = pts.filter(Boolean);
+  const worst = Math.max(...vals.map(p => p.low));
+  const best = Math.min(...vals.map(p => p.high));
+  const lo = Math.max(1, best - Math.ceil((worst - best) * 0.1) - 1);
+  const hi = worst + Math.ceil((worst - best) * 0.1) + 1;
+  const cx = i => PL + ((W - PL - PR) / Math.max(rows.length, 1)) * (i + 0.5);
+  const cy = v => PT + ((v - lo) / Math.max(hi - lo, 1)) * (H - PT - PB);
+
+  let out = "";
+  for (let t = 0; t <= 4; t++) {
+    const v = Math.round(lo + ((hi - lo) / 4) * t), y = cy(v);
+    out += '<line x1="' + PL + '" y1="' + y + '" x2="' + (W - PR) + '" y2="' + y +
+      '" stroke="var(--border)" stroke-width="1"/>' +
+      '<text x="' + (PL - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="12" fill="var(--muted)">' +
+      v + '位</text>';
+  }
+  // 最高〜最低の帯と終値の折れ線
+  rows.forEach((r, i) => {
+    const p = r.apps && r.apps[key]; if (!p) return;
+    out += '<line x1="' + cx(i) + '" y1="' + cy(p.high) + '" x2="' + cx(i) + '" y2="' + cy(p.low) +
+      '" stroke="var(--accent)" stroke-width="3" opacity="0.45"><title>' + srMd(r.date) +
+      ' 最高' + p.high + '位 / 最低' + p.low + '位</title></line>';
+  });
+  const line = rows.map((r, i) => (r.apps && r.apps[key] ? cx(i) + "," + cy(r.apps[key].last) : null)).filter(Boolean);
+  if (line.length > 1) out += '<polyline points="' + line.join(" ") + '" fill="none" stroke="var(--new)" stroke-width="2"/>';
+  const step = Math.max(1, Math.ceil(rows.length / 9));
+  rows.forEach((r, i) => {
+    if (i % step) return;
+    out += '<text x="' + cx(i) + '" y="' + (H - 12) + '" text-anchor="middle" font-size="12" fill="var(--muted)">' +
+      srMd(r.date).replace(/\(.\)/, "") + '</text>';
+  });
+  el.innerHTML = out;
+}
+
+function srRenderTable(rows, watched) {
+  const head = ['<th class="tl">日付</th>', '<th class="tl">総合1位</th>', '<th class="tl">日中1位</th>'];
+  for (const w of watched) head.push('<th class="tl">' + w.name + '</th>', "<th>最高</th>", "<th>最低</th>", "<th>観測</th>");
+  document.getElementById("srHeadRow").innerHTML = head.join("");
+
+  const body = rows.slice().reverse().map(r => {
+    const cells = ['<td class="tl">' + srMd(r.date) + "</td>",
+      '<td class="tl">' + (r.top1 ? srApp(r.top1.name, r.top1.apid) : "—") + "</td>",
+      '<td class="tl">' + ((r.top1_others || []).length
+        ? r.top1_others.map(o => srApp(o.name, o.apid)).join("<br>") : "—") + "</td>"];
+    for (const w of watched) {
+      const p = (r.apps || {})[w.apid];
+      cells.push('<td class="tl">' + (p ? "<b>" + p.last + "位</b>" : "—") + "</td>",
+        "<td>" + (p ? p.high + "位" : "—") + "</td>",
+        "<td>" + (p ? p.low + "位" : "—") + "</td>",
+        '<td class="' + (p && p.samples < 280 ? "flat" : "") + '">' + (p ? p.samples : "—") + "</td>");
+    }
+    return "<tr>" + cells.join("") + "</tr>";
+  }).join("");
+  document.getElementById("srBody").innerHTML = body ||
+    '<tr><td class="loading" colspan="7">データがありません</td></tr>';
+}
+
+function srRenderApps(all) {
+  const top1Days = {};
+  for (const d of all) if (d.top1 && d.top1.apid) top1Days[d.top1.apid] = (top1Days[d.top1.apid] || 0) + 1;
+  const rows = Object.entries(srData.apps || {})
+    .sort((a, b) => (a[1].release || "") < (b[1].release || "") ? -1 : 1)
+    .map(([apid, m]) => '<tr><td class="tl">' + srApp(m.name, apid).split("<br>")[0] +
+      '</td><td class="tl">' + (m.release || "—") + '</td><td class="tl">' + (m.seller || "—") +
+      "</td><td>" + (top1Days[apid] || 0) + "</td></tr>").join("");
+  document.getElementById("srAppBody").innerHTML = rows ||
+    '<tr><td class="loading" colspan="4">データがありません</td></tr>';
+}
+
+function srRenderCards(all, watched) {
+  const last = all[all.length - 1];
+  const cards = [];
+  if (last.top1) cards.push('<div class="card overall"><div class="ttl">' + srMd(last.date) +
+    ' 総合1位</div><div class="big" style="font-size:1.15rem">' + last.top1.name +
+    '</div><div class="tvsub">配信 ' + (srRel(last.top1.apid) || "—") + "</div></div>");
+  for (const w of watched) {
+    const p = (last.apps || {})[w.apid]; if (!p) continue;
+    cards.push('<div class="card"><div class="ttl">' + w.name + '</div><div class="big">' + p.last +
+      '位</div><div class="tvsub">最高 ' + p.high + "位 / 最低 " + p.low + "位　配信 " +
+      (srRel(w.apid) || "—") + "</div></div>");
+  }
+  document.getElementById("srCards").innerHTML = cards.join("");
+}
+
+function srRender() {
+  const { all, rows } = srRows();
+  const watched = srWatched(all);
+  srRenderCards(all, watched);
+  srRenderChart(rows, watched);
+  srRenderTable(rows, watched);
+  srRenderApps(all);
+  document.getElementById("srStat").textContent = "表示 " + rows.length + " 日 / 記録 " + all.length + " 日";
+}
+
+async function srInit() {
+  try {
+    const res = await fetch("data_selran/data.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    srData = await res.json();
+    if (!srData.days || !srData.days.length) throw new Error("データが空です");
+    const sel = document.getElementById("srRangeSel");
+    sel.onchange = () => { srRange = Number(sel.value); srRender(); };
+    document.getElementById("srBanner").innerHTML = "最新: <b>" + srData.updated +
+      "</b> / 集計開始: <b>" + srData.days[0].date + "</b>";
+    srRender();
+  } catch (e) {
+    document.getElementById("srBanner").innerHTML = '<span class="err">読み込みエラー: ' + e + "</span>";
+  }
+}
+
+/* ================= 売買代金(グラフ) ================= */
+let bbData = null, bbInited = false, bbRange = 30, bbZero = false;
+
+// 0起点だと「7兆と8兆」の差が潰れるので、既定では最小値の少し下を軸の下端にする
+function bbScale(vals) {
+  const max = Math.max(...vals), min = Math.min(...vals);
+  if (bbZero || min <= 0) return { lo: 0, hi: max * 1.08 };
+  const span = max - min;
+  const pad = span > 0 ? span * 0.35 : max * 0.05;
+  return { lo: Math.max(0, min - pad), hi: max + (span > 0 ? span * 0.15 : max * 0.05) };
+}
+
+function bbChart(elId, rows, pick, fmt) {
+  const el = document.getElementById(elId);
+  const pts = rows.map(pick);
+  const vals = pts.filter(v => v != null);
+  if (!vals.length) { el.innerHTML = '<text x="20" y="30" fill="var(--muted)" font-size="13">データがありません</text>'; return; }
+  const W = 1000, H = 250, PL = 82, PR = 14, PT = 16, PB = 34;
+  const { lo, hi } = bbScale(vals);
+  const bw = (W - PL - PR) / rows.length;
+  const cx = i => PL + bw * (i + 0.5);
+  const cy = v => H - PB - ((v - lo) / Math.max(hi - lo, 1)) * (H - PT - PB);
+
+  let out = "";
+  for (let t = 0; t <= 4; t++) {
+    const v = lo + ((hi - lo) / 4) * t, y = cy(v);
+    out += '<line x1="' + PL + '" y1="' + y + '" x2="' + (W - PR) + '" y2="' + y +
+      '" stroke="var(--border)" stroke-width="1"/>' +
+      '<text x="' + (PL - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="12" fill="var(--muted)">' +
+      fmt(v) + "</text>";
+  }
+  const barW = Math.max(1, bw * 0.62);
+  rows.forEach((r, i) => {
+    const v = pts[i]; if (v == null) return;
+    const y = cy(v);
+    out += '<rect x="' + (cx(i) - barW / 2) + '" y="' + y + '" width="' + barW + '" height="' +
+      Math.max(0, H - PB - y) + '" fill="var(--accent)" opacity="0.72"><title>' + tvMd(r.date) + " " +
+      tvOku(v) + "円</title></rect>";
+  });
+  // 5日移動平均
+  const ma = pts.map((_, i) => {
+    if (i < 4) return null;
+    const w = pts.slice(i - 4, i + 1);
+    return w.some(v => v == null) ? null : w.reduce((s, v) => s + v, 0) / 5;
+  });
+  const line = ma.map((v, i) => (v == null ? null : cx(i) + "," + cy(v))).filter(Boolean);
+  if (line.length > 1) out += '<polyline points="' + line.join(" ") + '" fill="none" stroke="var(--new)" stroke-width="2"/>';
+  const step = Math.max(1, Math.ceil(rows.length / 9));
+  rows.forEach((r, i) => {
+    if (i % step) return;
+    out += '<text x="' + cx(i) + '" y="' + (H - 12) + '" text-anchor="middle" font-size="12" fill="var(--muted)">' +
+      tvMd(r.date).replace(/\(.\)/, "") + "</text>";
+  });
+  if (lo > 0) out += '<text x="6" y="' + (H - 12) + '" font-size="11" fill="var(--muted)">軸下端 ' + fmt(lo) + "</text>";
+  el.innerHTML = out;
+}
+
+const bbKio = r => { const s = (r.stocks || {})["285A"]; return s ? s.turnover : null; };
+
+function bbRender() {
+  const all = bbData.days.slice().sort((a, b) => (a.date < b.date ? -1 : 1));
+  const n = bbRange > 0 ? Math.min(bbRange, all.length) : all.length;
+  const rows = all.slice(all.length - n);
+  const cho = v => (v / 1000000).toFixed(1) + "兆";
+  const oku = v => Math.round(v / 100).toLocaleString() + "億";
+  bbChart("bbChartAll", rows, r => r.total, cho);
+  bbChart("bbChartKio", rows, bbKio, oku);
+
+  const last = rows[rows.length - 1];
+  const prev = rows.length > 1 ? rows[rows.length - 2] : null;
+  const dod = prev ? ((last.total - prev.total) / prev.total) * 100 : null;
+  const k = bbKio(last), kp = prev ? bbKio(prev) : null;
+  const kd = k != null && kp ? ((k - kp) / kp) * 100 : null;
+  document.getElementById("bbCards").innerHTML = [
+    '<div class="card overall"><div class="ttl">' + tvMd(last.date) + ' 東証3市場 合計</div><div class="big">' +
+      (last.total / 1000000).toFixed(2) + '兆円</div><div class="tvsub">前日比 ' + tvPct(dod) + "</div></div>",
+    '<div class="card"><div class="ttl">' + tvMd(last.date) + ' キオクシア</div><div class="big">' +
+      tvOku(k) + '円</div><div class="tvsub">前日比 ' + tvPct(kd) + "</div></div>",
+    '<div class="card"><div class="ttl">合計に占めるキオクシア</div><div class="big">' +
+      (k != null ? ((k / last.total) * 100).toFixed(1) + "%" : "—") + "</div></div>",
+  ].join("");
+  document.getElementById("bbStat").textContent = "表示 " + rows.length + " 営業日 / 記録 " + all.length + " 営業日";
+}
+
+async function bbInit() {
+  try {
+    const res = await fetch("data_turnover/data.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    bbData = await res.json();
+    if (!bbData.days || !bbData.days.length) throw new Error("データが空です");
+    const sel = document.getElementById("bbRangeSel");
+    sel.onchange = () => { bbRange = Number(sel.value); bbRender(); };
+    const zero = document.getElementById("bbZero");
+    zero.onchange = () => { bbZero = zero.checked; bbRender(); };
+    document.getElementById("bbBanner").innerHTML = "最新の取引日: <b>" + bbData.updated +
+      "</b> / 集計開始: <b>" + bbData.days[0].date + "</b>";
+    bbRender();
+  } catch (e) {
+    document.getElementById("bbBanner").innerHTML = '<span class="err">読み込みエラー: ' + e + "</span>";
+  }
+}
+
+/* ================= 株探 検索ランキング ================= */
+let skData = null, skInited = false, skMonth = "";
+
+const skLink = r => '<a href="https://kabutan.jp/stock/?code=' + r.code + '" target="_blank" rel="noopener">' +
+  r.name + '</a><br><span class="tvsub">' + r.code + "</span>";
+
+function skRenderTable() {
+  const days = skData.days.filter(d => !skMonth || d.date.slice(0, 7) === skMonth);
+  const body = days.slice().reverse().map(d => {
+    const by = {};
+    for (const r of d.rows) by[r.rank] = r;
+    return '<tr><td class="tl">' + tvMd(d.date) + "</td>" +
+      [1, 2, 3, 4, 5].map(n => '<td class="tl">' + (by[n] ? skLink(by[n]) : "—") + "</td>").join("") + "</tr>";
+  }).join("");
+  document.getElementById("skBody").innerHTML = body ||
+    '<tr><td class="loading" colspan="6">この月の記録はありません</td></tr>';
+  document.getElementById("skStat").textContent = "表示 " + days.length + " 日 / 記録 " + skData.days.length + " 日";
+}
+
+function skRenderCounts() {
+  const rows = (skData.counts || []).map((c, i) =>
+    "<tr><td>" + (i + 1) + '</td><td class="tl"><a href="https://kabutan.jp/stock/?code=' + c.code +
+    '" target="_blank" rel="noopener">' + c.code + '</a></td><td class="tl">' + c.name +
+    "</td><td><b>" + c.count + "</b></td><td>" + (c.top1 || 0) + '</td><td class="tl">' +
+    tvMd(c.last) + "</td></tr>").join("");
+  document.getElementById("skCountBody").innerHTML = rows ||
+    '<tr><td class="loading" colspan="6">データがありません</td></tr>';
+}
+
+async function skInit() {
+  try {
+    const res = await fetch("data_search/data.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    skData = await res.json();
+    if (!skData.days || !skData.days.length) throw new Error("データが空です");
+    const months = [...new Set(skData.days.map(d => d.date.slice(0, 7)))].sort().reverse();
+    const sel = document.getElementById("skMonthSel");
+    sel.innerHTML = months.map(m => '<option value="' + m + '">' + m.replace("-", "年") + "月</option>").join("") +
+      '<option value="">すべて</option>';
+    skMonth = months[0];
+    sel.value = skMonth;
+    sel.onchange = () => { skMonth = sel.value; skRenderTable(); };
+    document.getElementById("skBanner").innerHTML = "最新: <b>" + skData.updated +
+      "</b> / 記録開始: <b>" + skData.days[0].date + "</b> / 登場銘柄 <b>" +
+      (skData.counts || []).length + "</b>";
+    skRenderTable();
+    skRenderCounts();
+  } catch (e) {
+    document.getElementById("skBanner").innerHTML = '<span class="err">読み込みエラー: ' + e + "</span>";
+  }
+}
+
 const VIEW_ID = {
   ranking: "view-ranking", intraday: "view-intraday", split: "view-split",
   yori: "view-yori", minute: "view-minute", min5: "view-min5", sector: "view-sector",
@@ -2977,6 +3384,7 @@ const VIEW_ID = {
   newhigh: "view-newhigh", lowvolume: "view-lowvolume", jukyu: "view-jukyu",
   uchu: "view-uchu", turnover: "view-turnover", period: "view-period",
   g623: "view-g623",
+  selran: "view-selran", baibai: "view-baibai", search: "view-search",
 };
 function switchTab(name) {
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
@@ -2990,6 +3398,9 @@ function switchTab(name) {
   if (name === "newhigh" && !nhInited) { nhInited = true; nhInit(); }
   if (name === "lowvolume" && !lvInited) { lvInited = true; lvInit(); }
   if (name === "turnover" && !tvInited) { tvInited = true; tvInit(); }
+  if (name === "selran" && !srInited) { srInited = true; srInit(); }
+  if (name === "baibai" && !bbInited) { bbInited = true; bbInit(); }
+  if (name === "search" && !skInited) { skInited = true; skInit(); }
   if (name === "period" && !pdInited) { pdInited = true; pdInit(); }
   if (name === "g623" && !g6Inited) { g6Inited = true; g6Init(); }
   const jv = JK_VIEWS[name];
@@ -3018,6 +3429,9 @@ const FEEDS = {
   newhigh:  { kind: "index", url: "./data_newhigh/index.json", freq: "daily" },
   lowvolume: { kind: "index", url: "./data_lowvolume/index.json", freq: "daily" },
   turnover: { kind: "field", url: "./data_turnover/data.json", field: "updated", freq: "daily" },
+  baibai: { kind: "field", url: "./data_turnover/data.json", field: "updated", freq: "daily" },
+  selran: { kind: "field", url: "./data_selran/data.json", field: "updated", freq: "daily" },
+  search: { kind: "field", url: "./data_search/data.json", field: "updated", freq: "daily" },
   // prices.json は1MB近いので、最終更新日だけを書いた軽い index.json を見る
   period:   { kind: "field", url: "./data_period/index.json", field: "updated", freq: "daily" },
   g623:     { kind: "field", url: "./data_623/index.json", field: "updated", freq: "daily" },

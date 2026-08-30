@@ -1,0 +1,742 @@
+{
+ "updated": "2026-08-30",
+ "apps": {
+  "6448311069": {
+   "name": "ChatGPT",
+   "release": "2023-05-25",
+   "seller": "OpenAI OpCo, LLC"
+  },
+  "1015521325": {
+   "name": "Fate/Grand Order",
+   "release": "2015-08-12",
+   "seller": "Aniplex Inc."
+  },
+  "1322310031": {
+   "name": "ONE PIECE バウンティラッシュ - アクションゲーム",
+   "release": "2018-03-29",
+   "seller": "Bandai Namco Entertainment Inc."
+  },
+  "6479970832": {
+   "name": "Pokémon TCG Pocket",
+   "release": "2024-10-30",
+   "seller": "The Pokemon Company"
+  },
+  "1117270703": {
+   "name": "eFootball™",
+   "release": "2017-05-24",
+   "seller": "Konami Digital Entertainment Co., Ltd."
+  },
+  "951627670": {
+   "name": "ドラゴンボールZ ドッカンバトル",
+   "release": "2015-02-18",
+   "seller": "Bandai Namco Entertainment Inc."
+  },
+  "493470467": {
+   "name": "パズル＆ドラゴンズ",
+   "release": "2012-02-20",
+   "seller": "GungHo Online Entertainment, INC."
+  },
+  "1091496983": {
+   "name": "ピッコマ",
+   "release": "2016-04-20",
+   "seller": "Kakao piccoma Corp."
+  },
+  "940320341": {
+   "name": "プロ野球スピリッツＡ",
+   "release": "2015-10-21",
+   "seller": "Konami Digital Entertainment Co., Ltd."
+  },
+  "6756641135": {
+   "name": "ホロライブドリームス",
+   "release": "2026-07-22",
+   "seller": "QualiArts, Inc."
+  },
+  "1599719154": {
+   "name": "崩壊：スターレイル",
+   "release": "2023-04-22",
+   "seller": "COGNOSPHERE PTE. LTD."
+  }
+ },
+ "days": [
+  {
+   "date": "2026-07-29",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 3,
+     "high": 2,
+     "low": 3,
+     "samples": 55
+    }
+   }
+  },
+  {
+   "date": "2026-07-30",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 6,
+     "high": 3,
+     "low": 6,
+     "samples": 290
+    }
+   },
+   "top1": {
+    "name": "eFootball™",
+    "apid": "1117270703"
+   },
+   "top1_others": [
+    {
+     "name": "Pokémon TCG Pocket",
+     "apid": "6479970832"
+    }
+   ]
+  },
+  {
+   "date": "2026-07-31",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 9,
+     "high": 4,
+     "low": 9,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "eFootball™",
+    "apid": "1117270703"
+   }
+  },
+  {
+   "date": "2026-08-01",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 11,
+     "high": 7,
+     "low": 11,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "eFootball™",
+    "apid": "1117270703"
+   }
+  },
+  {
+   "date": "2026-08-02",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 12,
+     "high": 9,
+     "low": 12,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "Fate/Grand Order",
+    "apid": "1015521325"
+   },
+   "top1_others": [
+    {
+     "name": "eFootball™",
+     "apid": "1117270703"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-03",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 12,
+     "high": 12,
+     "low": 13,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "Fate/Grand Order",
+    "apid": "1015521325"
+   }
+  },
+  {
+   "date": "2026-08-04",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 18,
+     "high": 12,
+     "low": 18,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "Fate/Grand Order",
+    "apid": "1015521325"
+   }
+  },
+  {
+   "date": "2026-08-05",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 14,
+     "high": 14,
+     "low": 18,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "eFootball™",
+    "apid": "1117270703"
+   },
+   "top1_others": [
+    {
+     "name": "Fate/Grand Order",
+     "apid": "1015521325"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-06",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 18,
+     "high": 12,
+     "low": 18,
+     "samples": 287
+    }
+   },
+   "top1": {
+    "name": "ChatGPT",
+    "apid": "6448311069"
+   },
+   "top1_others": [
+    {
+     "name": "eFootball™",
+     "apid": "1117270703"
+    },
+    {
+     "name": "Fate/Grand Order",
+     "apid": "1015521325"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-07",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 1,
+     "high": 1,
+     "low": 18,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "ホロライブドリームス",
+    "apid": "6756641135"
+   },
+   "top1_others": [
+    {
+     "name": "ChatGPT",
+     "apid": "6448311069"
+    },
+    {
+     "name": "eFootball™",
+     "apid": "1117270703"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-08",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 2,
+     "high": 1,
+     "low": 2,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "プロ野球スピリッツＡ",
+    "apid": "940320341"
+   },
+   "top1_others": [
+    {
+     "name": "ホロライブドリームス",
+     "apid": "6756641135"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-09",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 11,
+     "high": 2,
+     "low": 11,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "ChatGPT",
+    "apid": "6448311069"
+   },
+   "top1_others": [
+    {
+     "name": "プロ野球スピリッツＡ",
+     "apid": "940320341"
+    },
+    {
+     "name": "ピッコマ",
+     "apid": "1091496983"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-10",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 13,
+     "high": 11,
+     "low": 13,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "eFootball™",
+    "apid": "1117270703"
+   },
+   "top1_others": [
+    {
+     "name": "ChatGPT",
+     "apid": "6448311069"
+    },
+    {
+     "name": "ピッコマ",
+     "apid": "1091496983"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-11",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 17,
+     "high": 13,
+     "low": 17,
+     "samples": 287
+    }
+   },
+   "top1": {
+    "name": "eFootball™",
+    "apid": "1117270703"
+   }
+  },
+  {
+   "date": "2026-08-12",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 22,
+     "high": 14,
+     "low": 22,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "ChatGPT",
+    "apid": "6448311069"
+   },
+   "top1_others": [
+    {
+     "name": "eFootball™",
+     "apid": "1117270703"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-13",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 35,
+     "high": 22,
+     "low": 35,
+     "samples": 287
+    }
+   },
+   "top1": {
+    "name": "Fate/Grand Order",
+    "apid": "1015521325"
+   },
+   "top1_others": [
+    {
+     "name": "ChatGPT",
+     "apid": "6448311069"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-14",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 35,
+     "high": 29,
+     "low": 35,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "Fate/Grand Order",
+    "apid": "1015521325"
+   },
+   "top1_others": [
+    {
+     "name": "ChatGPT",
+     "apid": "6448311069"
+    },
+    {
+     "name": "eFootball™",
+     "apid": "1117270703"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-15",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 32,
+     "high": 31,
+     "low": 35,
+     "samples": 287
+    }
+   },
+   "top1": {
+    "name": "Fate/Grand Order",
+    "apid": "1015521325"
+   }
+  },
+  {
+   "date": "2026-08-16",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 33,
+     "high": 29,
+     "low": 35,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "Fate/Grand Order",
+    "apid": "1015521325"
+   }
+  },
+  {
+   "date": "2026-08-17",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 5,
+     "high": 5,
+     "low": 33,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "eFootball™",
+    "apid": "1117270703"
+   },
+   "top1_others": [
+    {
+     "name": "Fate/Grand Order",
+     "apid": "1015521325"
+    },
+    {
+     "name": "ChatGPT",
+     "apid": "6448311069"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-18",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 8,
+     "high": 2,
+     "low": 8,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "ChatGPT",
+    "apid": "6448311069"
+   },
+   "top1_others": [
+    {
+     "name": "eFootball™",
+     "apid": "1117270703"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-19",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 12,
+     "high": 7,
+     "low": 12,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "ChatGPT",
+    "apid": "6448311069"
+   }
+  },
+  {
+   "date": "2026-08-20",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 19,
+     "high": 12,
+     "low": 19,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "ONE PIECE バウンティラッシュ - アクションゲーム",
+    "apid": "1322310031"
+   },
+   "top1_others": [
+    {
+     "name": "ChatGPT",
+     "apid": "6448311069"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-21",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 23,
+     "high": 18,
+     "low": 25,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "プロ野球スピリッツＡ",
+    "apid": "940320341"
+   },
+   "top1_others": [
+    {
+     "name": "ONE PIECE バウンティラッシュ - アクションゲーム",
+     "apid": "1322310031"
+    },
+    {
+     "name": "ChatGPT",
+     "apid": "6448311069"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-22",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 28,
+     "high": 22,
+     "low": 28,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "プロ野球スピリッツＡ",
+    "apid": "940320341"
+   }
+  },
+  {
+   "date": "2026-08-23",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 26,
+     "high": 24,
+     "low": 28,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "プロ野球スピリッツＡ",
+    "apid": "940320341"
+   }
+  },
+  {
+   "date": "2026-08-24",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 33,
+     "high": 26,
+     "low": 33,
+     "samples": 156
+    }
+   },
+   "top1": {
+    "name": "eFootball™",
+    "apid": "1117270703"
+   },
+   "top1_others": [
+    {
+     "name": "プロ野球スピリッツＡ",
+     "apid": "940320341"
+    },
+    {
+     "name": "ChatGPT",
+     "apid": "6448311069"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-25",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 33,
+     "high": 30,
+     "low": 34,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "eFootball™",
+    "apid": "1117270703"
+   }
+  },
+  {
+   "date": "2026-08-26",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 41,
+     "high": 29,
+     "low": 41,
+     "samples": 282
+    }
+   },
+   "top1": {
+    "name": "ChatGPT",
+    "apid": "6448311069"
+   },
+   "top1_others": [
+    {
+     "name": "eFootball™",
+     "apid": "1117270703"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-27",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 49,
+     "high": 38,
+     "low": 49,
+     "samples": 234
+    }
+   },
+   "top1": {
+    "name": "ChatGPT",
+    "apid": "6448311069"
+   },
+   "top1_others": [
+    {
+     "name": "崩壊：スターレイル",
+     "apid": "1599719154"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-28",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 50,
+     "high": 50,
+     "low": 56,
+     "samples": 196
+    }
+   },
+   "top1": {
+    "name": "パズル＆ドラゴンズ",
+    "apid": "493470467"
+   },
+   "top1_others": [
+    {
+     "name": "Pokémon TCG Pocket",
+     "apid": "6479970832"
+    },
+    {
+     "name": "ChatGPT",
+     "apid": "6448311069"
+    }
+   ]
+  },
+  {
+   "date": "2026-08-29",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 2,
+     "high": 2,
+     "low": 50,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "パズル＆ドラゴンズ",
+    "apid": "493470467"
+   }
+  },
+  {
+   "date": "2026-08-30",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 4,
+     "high": 2,
+     "low": 4,
+     "samples": 255
+    }
+   },
+   "top1": {
+    "name": "ドラゴンボールZ ドッカンバトル",
+    "apid": "951627670"
+   },
+   "top1_others": [
+    {
+     "name": "パズル＆ドラゴンズ",
+     "apid": "493470467"
+    }
+   ]
+  }
+ ]
+}
