@@ -129,6 +129,15 @@ td.down { color: var(--down); }
 td.flat { color: var(--muted); }
 .tvsub { color: var(--muted); font-size: .8em; }
 .chartTtl { color: var(--accent); font-size: .82rem; font-weight: 700; margin: 0 0 6px 10px; }
+/* 表の中のリンクは、色を変えずに点線の下線でクリックできることを示す。
+   既定のリンク色(濃い青)は暗い背景でほぼ読めないため。 */
+#view-selran tbody a, #view-search tbody a {
+  color: var(--text); text-decoration: none;
+  border-bottom: 1px dotted var(--muted);
+}
+#view-selran tbody a:hover, #view-search tbody a:hover {
+  color: var(--accent); border-bottom-color: var(--accent);
+}
 td.new { color: var(--new); font-weight: 700; }
 td.code a { color: var(--accent); text-decoration: none; }
 svg.pdspark { display: block; }
