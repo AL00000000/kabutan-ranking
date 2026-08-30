@@ -773,7 +773,9 @@ footer a { color: var(--accent); }
     <div class="hintRow">
       <div class="hint"><b>株探トップページに出ている「検索ランキング」上位5銘柄</b>を、毎営業日20:00に記録したものです。株探サイト内で検索された回数の順で、その日に個人投資家の関心がどこに向いていたかの手掛かりになります。<br>
       表示中の月を切り替えるとその月の日別一覧に変わります。右の表は<b>記録した全期間での登場回数</b>で、月の切り替えとは連動しません。<br>
-      このランキングは<b>ページを開いた時点の値しか取れず、後から遡れません</b>。記録開始は2026年8月30日です。</div>
+      このランキングは<b>ページを開いた時点の値しか取れず、後から遡れません</b>。毎営業日20:00の記録は2026年8月30日開始です。<br>
+      それ以前の日で「アーカイブ HH:MM」と付いているものは、<b>Internet Archive に保存されていた株探トップから復元</b>したものです。2点ご注意ください。<b>クロールされた日しか無い</b>ので日付は飛び飛びです。そして<b>取得時刻がまちまち</b>で、早朝や深夜のものもあります。検索ランキングは日中に動くため、20:00時点の並びとは違いえます。<br>
+      なお株探は2026年5月頃からアーカイブのクローラーを弾いており、それ以降の保存はエラーページになっています。復元できたのは2026年1月〜6月27日ぶんです。</div>
     </div>
     <div class="tablecard">
       <table id="skTbl">
@@ -3394,12 +3396,18 @@ function skRenderTable() {
   const body = days.slice().reverse().map(d => {
     const by = {};
     for (const r of d.rows) by[r.rank] = r;
-    return '<tr><td class="tl">' + tvMd(d.date) + "</td>" +
+    // Wayback から復元した日は取得時刻がまちまちなので、時刻を添えて区別する
+    const note = d.src === "wayback"
+      ? '<br><span class="tvsub">アーカイブ ' + (d.as_of || "") + "</span>"
+      : "";
+    return '<tr><td class="tl">' + tvMd(d.date) + note + "</td>" +
       [1, 2, 3, 4, 5].map(n => '<td class="tl">' + (by[n] ? skLink(by[n]) : "—") + "</td>").join("") + "</tr>";
   }).join("");
   document.getElementById("skBody").innerHTML = body ||
     '<tr><td class="loading" colspan="6">この月の記録はありません</td></tr>';
-  document.getElementById("skStat").textContent = "表示 " + days.length + " 日 / 記録 " + skData.days.length + " 日";
+  const arc = days.filter(d => d.src === "wayback").length;
+  document.getElementById("skStat").textContent = "表示 " + days.length + " 日" +
+    (arc ? "(うちアーカイブ " + arc + " 日)" : "") + " / 記録 " + skData.days.length + " 日";
 }
 
 function skRenderCounts() {
