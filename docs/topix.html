@@ -71,6 +71,14 @@ details.method .warn{color:var(--up)}
      margin-top:3px;width:100%;max-width:120px}
 .bar i{position:absolute;left:0;top:0;height:100%;border-radius:2px;background:var(--accent)}
 .bar i.ng{background:var(--up)}
+details.hold{margin:2px 0 5px}
+details.hold summary{cursor:pointer;color:var(--muted);font-size:.71rem;list-style:none}
+details.hold summary::-webkit-details-marker{display:none}
+details.hold summary::before{content:"▸ ";color:var(--accent)}
+details.hold[open] summary::before{content:"▾ "}
+details.hold div{display:flex;justify-content:space-between;gap:10px;font-size:.71rem;
+  color:var(--muted);padding:1px 0 1px 12px}
+details.hold div b{color:var(--text);font-variant-numeric:tabular-nums;font-weight:600}
 .loading{padding:40px;text-align:center;color:var(--muted)}
 footer{margin-top:16px;color:var(--muted);font-size:.74rem;line-height:1.7;padding:0 2px}
 @media(max-width:640px){input#q{width:100%}.grid{grid-template-columns:1fr}}
@@ -244,8 +252,16 @@ function cardHtml(r) {
         ? '<span class="pill out">' + esc(r.fail[0]) + "</span>"
         : '<span class="pill out">除外</span>');
   const meta2 = add
-    ? "時価総額 <b>" + fmtOku(r.mktcap) + "</b>　浮動株 <b>" + (r.float_ratio * 100).toFixed(0) + "%</b>"
+    ? "時価総額 <b>" + fmtOku(r.mktcap) + "</b>　浮動株 <b>" + (r.float_ratio * 100).toFixed(0) + "%</b>" +
+      (r.float_ratio_raw ? '<span class="cd"> (大株主 ' + (r.float_ratio_raw * 100).toFixed(0) + "%)</span>" : "")
     : esc(r.sector || "") + "　ウエイト <b>" + (r.weight == null ? "－" : r.weight.toFixed(4) + "%") + "</b>";
+  // 浮動株比率は推計値なので、その根拠(非浮動とみなした大株主)を開いて確かめられるようにする
+  const holders = add && r.nonfloat && r.nonfloat.length
+    ? '<details class="hold"><summary>非浮動とみなした大株主 計' +
+      (r.nonfloat_pct == null ? "－" : r.nonfloat_pct.toFixed(1)) + "%</summary>" +
+      r.nonfloat.map(h => '<div><span>' + esc(h.name) + "</span><b>" + h.pct.toFixed(2) + "%</b></div>").join("") +
+      "</details>"
+    : "";
   return '<div class="card" data-code="' + esc(r.code) + '">' +
     '<div class="hd"><span class="cd">' + esc(r.code) + '</span>' +
     '<span class="nm">' + esc(r.name) + "</span>" + badge +
@@ -254,7 +270,7 @@ function cardHtml(r) {
     '<div class="sub"><span>浮動株時価総額 <b>' + fmtOku(r.float_mktcap) + "</b>" + barHtml(r.float_mktcap, th) + "</span>" +
     '<span>年間回転率 <b>' + (r.turnover == null ? "－" : r.turnover.toFixed(2)) + "</b>" +
     barHtml(r.turnover, add ? 0.20 : 0.14) + "</span></div>" +
-    "<canvas></canvas>" +
+    holders + "<canvas></canvas>" +
     '<div class="rets"><span>終値 <b>' + (r.close == null ? "－" : r.close.toLocaleString()) + "</b></span>" +
     "<span>1週 " + fmtPct(r.r1w) + "</span><span>1ヶ月 " + fmtPct(r.r1m) + "</span>" +
     "<span>3ヶ月 " + fmtPct(r.r3m) + "</span><span>年初来 " + fmtPct(r.ytd) + "</span></div></div>";

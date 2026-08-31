@@ -120,7 +120,8 @@ def main() -> None:
                 miss.append(r["code"])
                 continue
             cl, days = bars["c"], bars["d"]
-            row = {k: v for k, v in r.items() if k not in ("nonfloat", "monthly")}
+            drop = ("monthly",) if kind == "add" else ("nonfloat", "monthly")
+            row = {k: v for k, v in r.items() if k not in drop}
             row.update({"close": cl[-1], "kind": kind,
                         "r1w": ret(cl, 5), "r1m": ret(cl, 20), "r3m": ret(cl, 60),
                         "ytd": ytd(days, cl)})
