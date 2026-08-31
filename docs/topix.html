@@ -52,7 +52,12 @@ details.method b{color:var(--text)}
 details.method .warn{color:var(--up)}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:10px 11px 8px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;
+      padding:10px 11px 8px;border-left-width:3px}
+.card.risk-high{border-left-color:#ff9f43;background:linear-gradient(90deg,rgba(255,159,67,.07),transparent 40%)}
+.card.risk-mid{border-left-color:#8a7a3a}
+.card.risk-low{border-left-color:var(--border)}
+.card.risk-none{border-left-color:#5a3a48}
 .card .hd{display:flex;align-items:baseline;gap:7px;margin-bottom:1px}
 .card .cd{color:var(--muted);font-size:.75rem;font-variant-numeric:tabular-nums}
 .card .nm{font-weight:700;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -67,6 +72,11 @@ details.method .warn{color:var(--up)}
 .pill.out{background:#3a1520;color:#ff8a96}
 .pill.in{background:#0d3038;color:#5fe0e8}
 .pill.near{background:#33280d;color:#ffcb5c}
+.pill.risk{background:#3a2a10;color:#ff9f43}
+.pill.risk2{background:#241f10;color:#c9ad63}
+.conf{color:var(--muted);font-size:.71rem;margin-left:auto;white-space:nowrap}
+.conf b{font-variant-numeric:tabular-nums}
+.conf.hi b{color:#ff9f43}
 .bar{position:relative;height:3px;border-radius:2px;background:var(--grid);
      margin-top:3px;width:100%;max-width:120px}
 .bar i{position:absolute;left:0;top:0;height:100%;border-radius:2px;background:var(--accent)}
@@ -112,7 +122,7 @@ const esc = t => String(t == null ? "" : t).replace(/[&<>"]/g,
   c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 let DATA = null;
-const state = { kind: "add", sort: "float_mktcap", order: "auto", q: "", bars: 120 };
+const state = { kind: "add", sort: "float_mktcap", order: "auto", q: "", bars: 120, riskOnly: false };
 const cache = new Map(), pending = new Map();
 let observer = null;
 
@@ -262,10 +272,19 @@ function cardHtml(r) {
       r.nonfloat.map(h => '<div><span>' + esc(h.name) + "</span><b>" + h.pct.toFixed(2) + "%</b></div>").join("") +
       "</details>"
     : "";
-  return '<div class="card" data-code="' + esc(r.code) + '">' +
+  const risk = r.risk || "low";
+  const confTxt = add
+    ? (r.conf == null ? "" : '<span class="conf' + (risk === "high" ? " hi" : "") + '">' +
+        (r.add ? "採用のまま" : "見送りのまま") + ' <b>' + Math.round(r.conf * 100) + "%</b></span>")
+    : (r.margin == null ? "" : '<span class="conf' + (risk === "high" ? " hi" : "") +
+        '">足切りまで <b>' + ((r.margin - 1) * 100).toFixed(0) + "%</b></span>");
+  return '<div class="card risk-' + risk + '" data-code="' + esc(r.code) + '">' +
     '<div class="hd"><span class="cd">' + esc(r.code) + '</span>' +
     '<span class="nm">' + esc(r.name) + "</span>" + badge +
-    (r.kanri ? ' <span class="pill near">監理</span>' : "") + "</div>" +
+    (r.kanri ? ' <span class="pill near">監理</span>' : "") +
+    (risk === "high" ? ' <span class="pill risk">微妙</span>'
+      : risk === "mid" ? ' <span class="pill risk2">やや微妙</span>' : "") +
+    confTxt + "</div>" +
     '<div class="sub"><span>' + meta2 + "</span></div>" +
     '<div class="sub"><span>浮動株時価総額 <b>' + fmtOku(r.float_mktcap) + "</b>" + barHtml(r.float_mktcap, th) + "</span>" +
     '<span>年間回転率 <b>' + (r.turnover == null ? "－" : r.turnover.toFixed(2)) + "</b>" +
@@ -291,6 +310,7 @@ function rows() {
   const src = state.kind === "add" ? DATA.added : DATA.excluded;
   const q = state.q.trim().toLowerCase();
   let rs = q ? src.filter(r => (r.code + " " + r.name).toLowerCase().indexOf(q) >= 0) : src.slice();
+  if (state.riskOnly) rs = rs.filter(r => r.risk === "high" || r.risk === "mid");
   // 既定は「当落線上が先頭」: 採用は小さい順、除外は大きい順
   const asc = state.order === "auto" ? (state.kind === "add") : state.order === "asc";
   rs.sort((a, b) => {
@@ -335,7 +355,10 @@ function render() {
     "除外銘柄はすぐ指数から消えるのではなく、<b>2026年10月末の×0.875から四半期ごと8段階でウエイトが下がり、2028年7月末に×0</b>になります" +
     "（2027年8月末基準の再評価で継続基準を満たせば×0.500で停止）。<br>" +
     "<b>並び順の既定は「当落線上が先頭」</b>です（新規採用は浮動株時価総額の小さい順、除外は大きい順）。" +
-    "この帯の銘柄ほど推計がひっくり返りやすいので、答え合わせはここから見てください。</div>" +
+    "この帯の銘柄ほど推計がひっくり返りやすいので、答え合わせはここから見てください。<br>" +
+    '<b style="color:#ff9f43">左端がオレンジ＝「微妙」</b>／<b style="color:#c9ad63">くすんだ黄＝「やや微妙」</b>。' +
+    "新規採用側は浮動株比率の実測誤差分布を当てて<b>判定どおりである確率</b>を、" +
+    "除外側は<b>足切りからの距離</b>を出しています（除外側の浮動株時価総額はJPXのウエイト由来なので銘柄ごとの誤差は小さく、効くのは足切り値のズレです）。</div>" +
     '<details class="method"><summary>計算方法と精度</summary><div class="body">' +
     'JPX総研「TOPIX算出要領」の定義どおりに計算しています。<b>追加基準</b>=年間売買代金回転率0.2以上かつ浮動株時価総額の累積比率が上位96%以内、' +
     "<b>継続基準</b>=同0.14以上かつ上位97%以内。追加のほうが厳しいので " +
@@ -366,6 +389,7 @@ function render() {
         '<option value="60">3ヶ月</option><option value="120" selected>6ヶ月</option>' +
         '<option value="250">1年</option></select></span>' +
       '<input id="q" type="search" placeholder="銘柄名・コードで絞り込み">' +
+      '<label style="cursor:pointer;margin:0"><input type="checkbox" id="riskOnly"> 当落が微妙な銘柄だけ</label>' +
       '<span class="spacer"></span><span class="count" id="cnt"></span>' +
     "</div>" +
     '<div class="grid" id="grid"></div>';
@@ -384,6 +408,7 @@ function render() {
     document.querySelectorAll(".card").forEach(el => { if (el.__data) drawChart(el.querySelector("canvas"), el.__data, state.bars); });
   };
   document.getElementById("q").oninput = e => { state.q = e.target.value; renderGrid(); };
+  document.getElementById("riskOnly").onchange = e => { state.riskOnly = e.target.checked; renderGrid(); };
   renderGrid();
 }
 
