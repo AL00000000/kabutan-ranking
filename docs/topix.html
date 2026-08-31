@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOPIX入替確定(推定)</title>
+<style>
+:root{--bg:#0a0f1c;--panel:#101830;--panel2:#0d1426;--border:#1e2a48;--text:#dbe4f5;
+      --muted:#7787a5;--accent:#39c5cf;--up:#ff5b6a;--down:#4da3ff;
+      --ma5:#ffd166;--ma25:#39c5cf;--ma75:#9b8cff;--grid:#1a2540}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);min-height:100vh;
+     font-family:"Segoe UI","Hiragino Sans","Yu Gothic UI",Meiryo,sans-serif}
+.wrap{max-width:1400px;margin:0 auto;padding:16px 14px 64px}
+header.site{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;padding:4px 2px 12px}
+header.site h1{font-size:1.15rem;font-weight:700;letter-spacing:.02em}
+header.site h1 .dot{color:var(--accent)}
+header.site .asof{color:var(--muted);font-size:.8rem}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin-bottom:12px}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:10px 13px}
+.stat .t{color:var(--muted);font-size:.72rem;margin-bottom:4px}
+.stat .v{font-size:1.12rem;font-weight:700;font-variant-numeric:tabular-nums}
+.stat .s{color:var(--muted);font-size:.7rem;margin-top:2px}
+.stat .v.ok{color:var(--accent)}.stat .v.warn{color:var(--up)}
+
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--border);
+     border-radius:9px;padding:3px;gap:3px}
+.seg button{background:none;border:none;color:var(--muted);cursor:pointer;font:inherit;
+            font-size:.84rem;padding:6px 15px;border-radius:6px;white-space:nowrap}
+.seg button:hover{color:var(--text)}
+.seg button.on{background:var(--accent);color:#04121a;font-weight:700}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;background:var(--panel);
+         border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+label{color:var(--muted);font-size:.78rem;margin-right:5px}
+select,input{background:var(--panel2);color:var(--text);border:1px solid var(--border);
+             border-radius:8px;padding:7px 11px;font-size:.86rem;outline:none;font-family:inherit}
+select:focus,input:focus{border-color:var(--accent)}
+input#q{width:200px}
+.spacer{flex:1 1 auto}
+.count{color:var(--muted);font-size:.78rem}
+
+.note{border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;
+      background:var(--panel2);padding:11px 15px;margin-bottom:12px;font-size:.81rem;
+      line-height:1.75;color:var(--muted)}
+.note b{color:var(--text)}
+.note .warn{color:var(--up)}
+details.method{border:1px solid var(--border);border-radius:10px;background:var(--panel2);margin-bottom:12px}
+details.method summary{cursor:pointer;padding:10px 15px;color:var(--text);font-size:.84rem;font-weight:600}
+details.method .body{padding:0 15px 12px;font-size:.81rem;line-height:1.75;color:var(--muted)}
+details.method b{color:var(--text)}
+details.method .warn{color:var(--up)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:10px 11px 8px}
+.card .hd{display:flex;align-items:baseline;gap:7px;margin-bottom:1px}
+.card .cd{color:var(--muted);font-size:.75rem;font-variant-numeric:tabular-nums}
+.card .nm{font-weight:700;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .sub{color:var(--muted);font-size:.72rem;margin-bottom:6px;
+           display:flex;flex-wrap:wrap;gap:2px 10px}
+.card .sub b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+.card canvas{display:block;width:100%;height:118px}
+.card .rets{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:5px;font-size:.72rem;color:var(--muted)}
+.card .rets b{font-variant-numeric:tabular-nums;font-weight:600}
+.u{color:var(--up)}.d{color:var(--down)}
+.pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:.68rem;font-weight:700}
+.pill.out{background:#3a1520;color:#ff8a96}
+.pill.in{background:#0d3038;color:#5fe0e8}
+.pill.near{background:#33280d;color:#ffcb5c}
+.bar{position:relative;height:3px;border-radius:2px;background:var(--grid);
+     margin-top:3px;width:100%;max-width:120px}
+.bar i{position:absolute;left:0;top:0;height:100%;border-radius:2px;background:var(--accent)}
+.bar i.ng{background:var(--up)}
+.loading{padding:40px;text-align:center;color:var(--muted)}
+footer{margin-top:16px;color:var(--muted);font-size:.74rem;line-height:1.7;padding:0 2px}
+@media(max-width:640px){input#q{width:100%}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site">
+    <h1>TOPIX入替確定(推定)<span class="dot">.</span></h1>
+    <span class="asof" id="asof"></span>
+  </header>
+
+  <div id="app"><div class="loading">読み込み中…</div></div>
+
+  <footer>
+    株価: <a href="https://kabutan.jp/" target="_blank" rel="noopener" style="color:var(--accent)">株探(kabutan.jp)</a>の日足 /
+    TOPIXウエイト・選定基準・整理/特別注意銘柄: <a href="https://www.jpx.co.jp/" target="_blank" rel="noopener" style="color:var(--accent)">日本取引所グループ</a>。<br>
+    <b>これはJPXの公表値ではなく当サイトの推計です。</b>確定した選定結果は2026年10月7日にJPXが公表します。
+    データの正確性は保証されません。投資判断はご自身の責任で行ってください。
+  </footer>
+</div>
+
+<script>
+const OKU = 1e8;
+const fmtOku = v => v == null ? "－" : (v/OKU >= 10000
+  ? (v/1e12).toFixed(2).replace(/\.?0+$/,"") + "兆円"
+  : Math.round(v/OKU).toLocaleString() + "億円");
+const fmtPct = v => v == null ? '<b>－</b>'
+  : '<b class="' + (v > 0 ? "u" : v < 0 ? "d" : "") + '">' + (v > 0 ? "+" : "") + v.toFixed(1) + "%</b>";
+const esc = t => String(t == null ? "" : t).replace(/[&<>"]/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let DATA = null;
+const state = { kind: "add", sort: "float_mktcap", order: "auto", q: "", bars: 120 };
+const cache = new Map(), pending = new Map();
+let observer = null;
+
+/* ---------------------------------------------------------------- データ */
+async function loadGz(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  // GitHub Pages は .gz を Content-Encoding なしで返すので明示的に展開する
+  const ds = new DecompressionStream("gzip");
+  const txt = await new Response(r.body.pipeThrough(ds)).text();
+  return JSON.parse(txt);
+}
+
+function sma(a, p) {
+  const out = new Array(a.length).fill(null);
+  let s = 0;
+  for (let i = 0; i < a.length; i++) {
+    s += a[i];
+    if (i >= p) s -= a[i - p];
+    if (i >= p - 1) out[i] = s / p;
+  }
+  return out;
+}
+
+async function loadCode(code) {
+  if (cache.has(code)) return cache.get(code);
+  if (pending.has(code)) return pending.get(code);
+  const p = loadGz("data_topix/codes/" + code + ".json.gz").then(d => {
+    if (d && d.c) d.ma = { 5: sma(d.c, 5), 25: sma(d.c, 25), 75: sma(d.c, 75) };
+    cache.set(code, d); pending.delete(code); return d;
+  }).catch(() => { pending.delete(code); return null; });
+  pending.set(code, p);
+  return p;
+}
+
+/* ------------------------------------------------------------ チャート */
+function drawChart(cv, d, nbars) {
+  const w = cv.clientWidth, h = cv.clientHeight;
+  if (!w || !h) return;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+
+  const n = d.c.length, from = Math.max(0, n - nbars), cnt = n - from;
+  if (cnt < 2) return;
+  let lo = Infinity, hi = -Infinity;
+  for (let i = from; i < n; i++) {
+    if (d.l[i] != null) lo = Math.min(lo, d.l[i]);
+    if (d.h[i] != null) hi = Math.max(hi, d.h[i]);
+    for (const p of [5, 25, 75]) { const v = d.ma[p][i]; if (v != null) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }
+  }
+  if (!isFinite(lo) || !isFinite(hi) || hi <= lo) return;
+  const pad = (hi - lo) * 0.06; lo -= pad; hi += pad;
+
+  const fs = 9;
+  g.font = fs + "px ui-monospace, Consolas, monospace";
+  const label = v => Math.round(v).toLocaleString("ja-JP");
+  const padR = Math.ceil(g.measureText(label(hi)).width) + 7;
+  const padT = 6, padB = 6;
+  const plotW = Math.max(20, w - padR), plotH = Math.max(10, h - padT - padB);
+  const x = i => ((i - from) + 0.5) * (plotW / cnt);
+  const y = v => padT + plotH - ((v - lo) / (hi - lo)) * plotH;
+
+  g.strokeStyle = "rgba(120,135,165,.16)"; g.lineWidth = 1;
+  g.fillStyle = "#7787a5"; g.textAlign = "left"; g.textBaseline = "alphabetic";
+  for (let t = 0; t < 3; t++) {
+    const v = lo + (hi - lo) * (t / 2), yy = Math.round(y(v)) + 0.5;
+    g.beginPath(); g.moveTo(0, yy); g.lineTo(plotW, yy); g.stroke();
+    g.fillText(label(v), plotW + 4, Math.min(Math.max(yy + fs * 0.35, fs), h - 2));
+  }
+
+  const bw = plotW / cnt, body = Math.max(1, Math.min(bw * 0.68, 5));
+  for (let i = from; i < n; i++) {
+    const o = d.o[i], hh = d.h[i], ll = d.l[i], c = d.c[i];
+    if (c == null) continue;
+    const col = (o == null || c >= o) ? "#ff5b6a" : "#4da3ff";
+    const cx = x(i);
+    g.strokeStyle = col; g.fillStyle = col;
+    if (hh != null && ll != null) {
+      g.lineWidth = Math.max(1, body * 0.18);
+      g.beginPath(); g.moveTo(cx, y(hh)); g.lineTo(cx, y(ll)); g.stroke();
+    }
+    if (o != null) {
+      const yo = y(o), yc = y(c);
+      g.fillRect(cx - body / 2, Math.min(yo, yc), body, Math.max(1, Math.abs(yc - yo)));
+    }
+  }
+  const maCols = { 5: "#ffd166", 25: "#39c5cf", 75: "#9b8cff" };
+  for (const p of [5, 25, 75]) {
+    g.strokeStyle = maCols[p]; g.lineWidth = 1.1;
+    g.beginPath();
+    let started = false;
+    for (let i = from; i < n; i++) {
+      const v = d.ma[p][i];
+      if (v == null) { started = false; continue; }
+      if (!started) { g.moveTo(x(i), y(v)); started = true; } else g.lineTo(x(i), y(v));
+    }
+    g.stroke();
+  }
+}
+
+async function fillCard(el) {
+  const d = await loadCode(el.dataset.code);
+  const cv = el.querySelector("canvas");
+  if (!d || !cv) return;
+  drawChart(cv, d, state.bars);
+  el.__data = d;
+}
+
+function observeCards() {
+  if (observer) observer.disconnect();
+  observer = new IntersectionObserver(es => {
+    for (const e of es) {
+      if (!e.isIntersecting) continue;
+      observer.unobserve(e.target);
+      fillCard(e.target);
+    }
+  }, { rootMargin: "600px 0px" });
+  document.querySelectorAll(".card").forEach(c => observer.observe(c));
+}
+
+/* ---------------------------------------------------------------- 一覧 */
+function barHtml(v, th) {
+  if (v == null || !th) return "";
+  const p = Math.max(0, Math.min(1, v / th / 1.5));
+  return '<div class="bar"><i class="' + (v >= th ? "" : "ng") + '" style="width:' + (p * 100).toFixed(1) + '%"></i></div>';
+}
+
+function cardHtml(r) {
+  const add = state.kind === "add";
+  const th = add ? DATA.meta.t96 : DATA.meta.t97;
+  const badge = add
+    ? '<span class="pill in">採用</span>'
+    : (r.fail && r.fail.length && r.fail[0].indexOf("母集団外") === 0
+        ? '<span class="pill out">' + esc(r.fail[0]) + "</span>"
+        : '<span class="pill out">除外</span>');
+  const meta2 = add
+    ? "時価総額 <b>" + fmtOku(r.mktcap) + "</b>　浮動株 <b>" + (r.float_ratio * 100).toFixed(0) + "%</b>"
+    : esc(r.sector || "") + "　ウエイト <b>" + (r.weight == null ? "－" : r.weight.toFixed(4) + "%") + "</b>";
+  return '<div class="card" data-code="' + esc(r.code) + '">' +
+    '<div class="hd"><span class="cd">' + esc(r.code) + '</span>' +
+    '<span class="nm">' + esc(r.name) + "</span>" + badge +
+    (r.kanri ? ' <span class="pill near">監理</span>' : "") + "</div>" +
+    '<div class="sub"><span>' + meta2 + "</span></div>" +
+    '<div class="sub"><span>浮動株時価総額 <b>' + fmtOku(r.float_mktcap) + "</b>" + barHtml(r.float_mktcap, th) + "</span>" +
+    '<span>年間回転率 <b>' + (r.turnover == null ? "－" : r.turnover.toFixed(2)) + "</b>" +
+    barHtml(r.turnover, add ? 0.20 : 0.14) + "</span></div>" +
+    "<canvas></canvas>" +
+    '<div class="rets"><span>終値 <b>' + (r.close == null ? "－" : r.close.toLocaleString()) + "</b></span>" +
+    "<span>1週 " + fmtPct(r.r1w) + "</span><span>1ヶ月 " + fmtPct(r.r1m) + "</span>" +
+    "<span>3ヶ月 " + fmtPct(r.r3m) + "</span><span>年初来 " + fmtPct(r.ytd) + "</span></div></div>";
+}
+
+const SORTS = [
+  { k: "float_mktcap", t: "浮動株時価総額" },
+  { k: "turnover", t: "年間売買代金回転率" },
+  { k: "close", t: "株価" },
+  { k: "r1w", t: "1週騰落率" },
+  { k: "r1m", t: "1ヶ月騰落率" },
+  { k: "r3m", t: "3ヶ月騰落率" },
+  { k: "ytd", t: "年初来騰落率" },
+  { k: "code", t: "コード" },
+];
+
+function rows() {
+  const src = state.kind === "add" ? DATA.added : DATA.excluded;
+  const q = state.q.trim().toLowerCase();
+  let rs = q ? src.filter(r => (r.code + " " + r.name).toLowerCase().indexOf(q) >= 0) : src.slice();
+  // 既定は「当落線上が先頭」: 採用は小さい順、除外は大きい順
+  const asc = state.order === "auto" ? (state.kind === "add") : state.order === "asc";
+  rs.sort((a, b) => {
+    let x = a[state.sort], y = b[state.sort];
+    if (state.sort === "code") { x = String(x); y = String(y); }
+    if (x == null) x = -Infinity;
+    if (y == null) y = -Infinity;
+    return x < y ? (asc ? -1 : 1) : x > y ? (asc ? 1 : -1) : 0;
+  });
+  return rs;
+}
+
+function renderGrid() {
+  const rs = rows();
+  document.getElementById("grid").innerHTML = rs.length
+    ? rs.map(cardHtml).join("")
+    : '<div class="loading">該当する銘柄がありません</div>';
+  document.getElementById("cnt").textContent = rs.length + "銘柄";
+  observeCards();
+}
+
+function render() {
+  const m = DATA.meta;
+  const c = (t, v, s, cls) => '<div class="stat"><div class="t">' + t + '</div><div class="v ' +
+    (cls || "") + '">' + v + "</div>" + (s ? '<div class="s">' + s + "</div>" : "") + "</div>";
+  document.getElementById("asof").textContent =
+    "基準日 " + DATA.base_date + " / 推計 " + DATA.generated + " 作成（更新終了）";
+  document.getElementById("app").innerHTML =
+    '<div class="cards">' +
+      c("基準日", "8/31", "この日で全データ確定", "ok") +
+      c("選定結果の公表", "10/07", "JPX・10月第5営業日") +
+      c("入替実施", "10/30", "10月最終営業日") +
+      c("継続の足切り", fmtOku(m.t97), "累積97%以内") +
+      c("追加の足切り", fmtOku(m.t96), "累積96%以内") +
+      c("新規採用", DATA.added.length + "銘柄", "候補 " + m.n_candidates + " のうち", "ok") +
+      c("除外", DATA.excluded.length + "銘柄", "現構成 " + m.n_members + " のうち", "warn") +
+      c("次期TOPIX", (m.n_keep + m.n_added) + "銘柄", "JPX試算は約1,050") +
+    "</div>" +
+    '<div class="note"><b class="warn">JPXの公表値ではなく当サイトの推計です。</b> ' +
+    "確定リストは <b>2026年10月7日(水)</b> にJPXが公表します。" +
+    "選定データ自体は<b>2026年8月31日の大引けで確定済み</b>で、以後の株価・出来高は結果を動かしません。<br>" +
+    "除外銘柄はすぐ指数から消えるのではなく、<b>2026年10月末の×0.875から四半期ごと8段階でウエイトが下がり、2028年7月末に×0</b>になります" +
+    "（2027年8月末基準の再評価で継続基準を満たせば×0.500で停止）。<br>" +
+    "<b>並び順の既定は「当落線上が先頭」</b>です（新規採用は浮動株時価総額の小さい順、除外は大きい順）。" +
+    "この帯の銘柄ほど推計がひっくり返りやすいので、答え合わせはここから見てください。</div>" +
+    '<details class="method"><summary>計算方法と精度</summary><div class="body">' +
+    'JPX総研「TOPIX算出要領」の定義どおりに計算しています。<b>追加基準</b>=年間売買代金回転率0.2以上かつ浮動株時価総額の累積比率が上位96%以内、' +
+    "<b>継続基準</b>=同0.14以上かつ上位97%以内。追加のほうが厳しいので " +
+    "<b>" + fmtOku(m.t97) + "〜" + fmtOku(m.t96) + "は「今いる銘柄は残れるが外の銘柄は入れない」緩衝地帯</b>になります" +
+    "（この帯に現構成 " + (m.n_band_keep || 0) + "銘柄、あと一歩の候補 " + (m.n_band_miss || 0) + "銘柄）。<br>" +
+    "<b>浮動株時価総額</b>は基準日が属する月(2026年8月)の<b>日次平均</b>。単日の終値ではありません。" +
+    "<b>年間回転率</b>は2025年9月〜2026年8月の月次回転率の合計（月次=日次売買代金の中央値×営業日数÷月末浮動株時価総額）。<br><br>" +
+    "<b>除外側は精度が高い</b>です。JPX公開のTOPIXウエイトから浮動株株数を逆算し、JPX資料の公表値" +
+    "(浮動株時価総額の合計691兆円 @ TOPIX 3,644.58pt)で絶対額に換算。" +
+    "株探の日足から出した2026年3月のTOPIX月間平均が3,644.58ptとJPX公表値に一致することを検算済みです。<br>" +
+    '<b class="warn">新規採用側は誤差があります。</b>浮動株比率はJPX非公開のため株探の大株主上位10名から推計しており、' +
+    "11位以下の政策保有株を拾えず系統的に過大に出ます。現構成 " + (m.n_calib_sample || 0) +
+    "銘柄で実測して <b>×" + (m.float_calib || 1).toFixed(3) + "</b> のキャリブレーションを掛けています。<br><br>" +
+    "<b>母集団から外れる銘柄</b>: 基準日に<b>整理銘柄</b>または<b>特別注意銘柄</b>に指定されている銘柄は対象外です" +
+    "（監理銘柄は対象外ではありません）。<b>ニデック(6594)</b>と<b>エア・ウォーター(4088)</b>は浮動株時価総額だけなら余裕で基準を満たしますが、" +
+    "いずれも特別注意銘柄のため今回は採用されません。" +
+    "</div></details>" +
+    '<div class="toolbar">' +
+      '<span class="seg" id="kindSeg">' +
+        '<button data-k="add" class="on">新規採用 ' + DATA.added.length + "</button>" +
+        '<button data-k="out">除外 ' + DATA.excluded.length + "</button></span>" +
+      '<span><label>並び替え</label><select id="sortSel">' +
+        SORTS.map(s => '<option value="' + s.k + '">' + s.t + "</option>").join("") +
+        '</select><select id="orderSel">' +
+        '<option value="auto">当落線上が先頭</option><option value="desc">大きい順</option>' +
+        '<option value="asc">小さい順</option></select></span>' +
+      '<span><label>表示</label><select id="barsSel">' +
+        '<option value="60">3ヶ月</option><option value="120" selected>6ヶ月</option>' +
+        '<option value="250">1年</option></select></span>' +
+      '<input id="q" type="search" placeholder="銘柄名・コードで絞り込み">' +
+      '<span class="spacer"></span><span class="count" id="cnt"></span>' +
+    "</div>" +
+    '<div class="grid" id="grid"></div>';
+
+  document.querySelectorAll("#kindSeg button").forEach(b => {
+    b.onclick = () => {
+      state.kind = b.dataset.k;
+      document.querySelectorAll("#kindSeg button").forEach(x => x.classList.toggle("on", x === b));
+      renderGrid();
+    };
+  });
+  document.getElementById("sortSel").onchange = e => { state.sort = e.target.value; renderGrid(); };
+  document.getElementById("orderSel").onchange = e => { state.order = e.target.value; renderGrid(); };
+  document.getElementById("barsSel").onchange = e => {
+    state.bars = +e.target.value;
+    document.querySelectorAll(".card").forEach(el => { if (el.__data) drawChart(el.querySelector("canvas"), el.__data, state.bars); });
+  };
+  document.getElementById("q").oninput = e => { state.q = e.target.value; renderGrid(); };
+  renderGrid();
+}
+
+let rt = null;
+window.addEventListener("resize", () => {
+  clearTimeout(rt);
+  rt = setTimeout(() => {
+    document.querySelectorAll(".card").forEach(el => {
+      if (el.__data) drawChart(el.querySelector("canvas"), el.__data, state.bars);
+    });
+  }, 180);
+});
+
+(async () => {
+  try {
+    const r = await fetch("data_topix/summary.json?" + Date.now());
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    DATA = await r.json();
+    render();
+  } catch (e) {
+    document.getElementById("app").innerHTML =
+      '<div class="note"><b class="warn">データを読み込めませんでした</b><br>' + esc(e.message) + "</div>";
+  }
+})();
+</script>
+</body>
+</html>

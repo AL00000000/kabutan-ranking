@@ -289,6 +289,7 @@ footer a { color: var(--accent); }
         <button class="tab is-ended" data-tab="split">分割後1ヶ月騰落</button>
         <button class="tab is-ended" data-tab="jukyu">信用需給分析</button>
         <button class="tab is-ended" data-tab="uchu">宇宙銘柄</button>
+        <button class="tab is-ended" data-tab="topix">TOPIX入替確定(推定)</button>
       </div>
     </div>
   </nav>
@@ -829,6 +830,11 @@ footer a { color: var(--accent); }
   <div id="view-watch" hidden>
     <div class="embed-note">フォルダ分けした監視銘柄の日足チャートと騰落率 — <a href="./watch.html" target="_blank" rel="noopener">別タブで開く ↗</a></div>
     <iframe class="embed" title="監視銘柄リスト" data-src="./watch.html" loading="lazy"></iframe>
+  </div>
+
+  <div id="view-topix" hidden>
+    <div class="embed-note">2026年10月のTOPIX初回定期入替で<b>新規採用される銘柄・除外される銘柄の推計</b>と、その日足チャート一覧 — <a href="./topix.html" target="_blank" rel="noopener">別タブで開く ↗</a></div>
+    <iframe class="embed" title="TOPIX入替確定(推定)" data-src="./topix.html" loading="lazy"></iframe>
   </div>
 
   <div id="view-shinyo" hidden>
@@ -3449,7 +3455,7 @@ const VIEW_ID = {
   stop: "view-stop", stoplow: "view-stoplow", streaks: "view-streaks",
   pts: "view-pts", watch: "view-watch", shinyo: "view-shinyo",
   newhigh: "view-newhigh", lowvolume: "view-lowvolume", jukyu: "view-jukyu",
-  uchu: "view-uchu", turnover: "view-turnover", period: "view-period",
+  uchu: "view-uchu", topix: "view-topix", turnover: "view-turnover", period: "view-period",
   g623: "view-g623",
   selran: "view-selran", baibai: "view-baibai", search: "view-search",
 };
@@ -3509,6 +3515,7 @@ const FEEDS = {
   split:    { kind: "field", url: "./data_split/analysis.json", field: "generated", freq: "ended" },
   jukyu:    { kind: "field", url: "./data_jukyu/analysis.json", field: "generated", freq: "ended" },
   uchu:     { kind: "field", url: "./data_uchu/analysis.json", field: "generated", freq: "ended" },
+  topix:    { kind: "field", url: "./data_topix/summary.json", field: "generated", freq: "ended" },
 };
 
 /* バッジは「前回そのタブを開いたときより新しいデータがあるか」で判定する。
