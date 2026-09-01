@@ -1,0 +1,45 @@
+{
+  "date": "2026-09-01",
+  "as_of": "2026-09-01 16:00",
+  "updated": "2026-09-01",
+  "generated": "2026-09-01T16:45:40+09:00",
+  "min_value": 1000,
+  "window_days": 365,
+  "ma_days": 5,
+  "counts": {
+    "scanned": 700,
+    "universe": 643,
+    "hit": 1,
+    "day_low": 0,
+    "ma_low": 1,
+    "watch": 1,
+    "failed": 0,
+    "stale": 0,
+    "skipped": 3
+  },
+  "failed": [],
+  "stocks": [
+    {
+      "rank": 77,
+      "code": "7735",
+      "name": "スクリン",
+      "market": "東Ｐ",
+      "close": 13480.0,
+      "change_pct": -0.88,
+      "value": 17712.0,
+      "watch": "AI半導体/SPE",
+      "volume": 1324000.0,
+      "prev_min": 1179500.0,
+      "ma": 1754380,
+      "ma_prev_min": 1796580,
+      "is_low": false,
+      "ma_low": true,
+      "avg52": 3078614,
+      "vs_avg_pct": 43.0,
+      "prev_date": "2026-04-03",
+      "gap": 101,
+      "hist_days": 244,
+      "short_hist": false
+    }
+  ]
+}
