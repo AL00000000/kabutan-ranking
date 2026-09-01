@@ -178,11 +178,12 @@ def write_0901(cache):
                     1 if code in FAMOUS_0901 else 0])
 
     out.sort(key=lambda r: r[3])          # 昇順(下落が大きい順)
+    # ベンチマークは連動ETFの調整済み終値。指数現物の騰落率とは一致しないのでコードも持たせる
     bench = []
     for code, label in BENCH:
         r = period_return(cache.get(code) or [], START_0901)
         if r:
-            bench.append({"name": label, "ret": round(r[0], 2)})
+            bench.append({"name": label, "code": code, "ret": round(r[0], 2)})
 
     base_day = START_0901
     save_json(OUT0901 / "data.json",

@@ -82,9 +82,19 @@ def main():
             f"**{i}. {ret:+.2f}%**　[{code} {name}](https://kabutan.jp/stock/?code={code})"
             + (f"\n　　{sec}　" + " / ".join(tail) if tail else ""))
 
-    vals = [r[3] for r in d["stocks"] if r[3] is not None]
-    med = sorted(vals)[len(vals) // 2] if vals else 0.0
-    bench = "　".join(f"{b['name']} {b['ret']:+.2f}%" for b in (d.get("benchmarks") or []))
+    def stats(xs):
+        if not xs:
+            return None, None
+        s = sorted(xs)
+        n = len(s)
+        med = s[(n - 1) // 2] if n % 2 else (s[n // 2 - 1] + s[n // 2]) / 2
+        return med, sum(s) / n
+
+    med, avg = stats([r[3] for r in d["stocks"] if r[3] is not None])
+    emed, eavg = stats([r[7] for r in d["stocks"] if r[7] is not None])
+    # ベンチマークは連動ETF1本の騰落率。単一系列なので中央値/平均の区別は無い
+    bench = "　".join(f"{b['name']}連動ETF({b.get('code', '')}) {b['ret']:+.2f}%"
+                      for b in (d.get("benchmarks") or []))
     worst = rows[0][3] if rows else 0.0
 
     payload = {
@@ -95,7 +105,14 @@ def main():
             "url": SITE,
             "description": "\n".join(lines),
             "color": RED if worst < 0 else BLUE,
-            "footer": {"text": f"対象{d.get('count')}銘柄 / 中央値 {med:+.2f}%　|　{bench}"},
+            "fields": [
+                {"name": f"騰落率（対象{d.get('count')}銘柄）", "inline": True,
+                 "value": f"中央値 **{med:+.2f}%**\n平均値 **{avg:+.2f}%**"},
+                {"name": "対TOPIX（超過リターン）", "inline": True,
+                 "value": f"中央値 **{emed:+.2f}%**\n平均値 **{eavg:+.2f}%**"},
+            ],
+            "footer": {"text": f"比較対象は連動ETFの騰落率（ETF1本なので中央値/平均の区別なし）"
+                               f"　|　{bench}"},
         }],
     }
     post(payload, args.dry_run)

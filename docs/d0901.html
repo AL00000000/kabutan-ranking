@@ -79,7 +79,11 @@ a.code:hover{text-decoration:underline}
     公表は<b>10/7</b>、入替実施は<b>10/30</b>。<br>
     <b>売日数</b>＝パッシブ売却総額 ÷ 60日平均売買代金。除外は8段階に分かれるので1回あたりはこの1/8。
     数字が大きいほど、日々の商いに対して指数の売りが重いという意味です。
-    <b>margin</b>は浮動株時価総額 ÷ 足切り。小さいほど除外が確実。
+    <b>margin</b>は浮動株時価総額 ÷ 足切り。小さいほど除外が確実。<br>
+    比較対象は<b>指数現物ではなく連動ETF（1306 / 1321 / 2516）の調整済み終値</b>で、
+    ETF1本の騰落率なので<b>中央値・平均値の区別はありません</b>。
+    配当も調整済みのため、指数現物の騰落率とは一致しません（銘柄側の株価も同じ調整済み終値なので、
+    「対TOPIX」列は同じ土俵での比較になっています）。
   </div>
 
   <div class="cards" id="cards"></div>
@@ -144,19 +148,36 @@ function rows() {
   });
 }
 
+const median = a => {
+  if (!a.length) return null;
+  const s = a.slice().sort((x, y) => x - y);
+  return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
+};
+const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+
 function cards(rs) {
-  const v = rs.map(r => r[3]).filter(x => x != null).sort((a, b) => a - b);
-  const med = v.length ? (v.length % 2 ? v[(v.length - 1) / 2]
-                                       : (v[v.length / 2 - 1] + v[v.length / 2]) / 2) : null;
-  const mean = v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+  const v = rs.map(r => r[3]).filter(x => x != null);      // 騰落率
+  const e = rs.map(r => r[7]).filter(x => x != null);      // 対TOPIX(超過)
+  // ベンチマークは連動ETF1本の騰落率。単一の系列なので中央値/平均値の区別は無い
   const bench = (DATA.benchmarks || []).map(b =>
-    `<div class="stat"><div class="t">${b.name}</div>` +
-    `<div class="v ${cls(b.ret)}">${pct(b.ret)}</div><div class="s">同期間</div></div>`).join("");
+    `<div class="stat"><div class="t">${b.name}連動ETF（${b.code}）</div>` +
+    `<div class="v ${cls(b.ret)}">${pct(b.ret)}</div>` +
+    `<div class="s">ETF1本の騰落率<br>中央値/平均の区別なし</div></div>`).join("");
   document.getElementById("cards").innerHTML =
     `<div class="stat"><div class="t">対象</div><div class="v">${rs.length}</div>` +
     `<div class="s">銘柄（全${DATA.count}）</div></div>` +
-    `<div class="stat"><div class="t">中央値</div><div class="v ${cls(med)}">${pct(med)}</div>` +
-    `<div class="s">平均 ${pct(mean)}</div></div>` +
+    `<div class="stat"><div class="t">騰落率の<b>中央値</b></div>` +
+    `<div class="v ${cls(median(v))}">${pct(median(v))}</div>` +
+    `<div class="s">対象${v.length}銘柄</div></div>` +
+    `<div class="stat"><div class="t">騰落率の<b>平均値</b></div>` +
+    `<div class="v ${cls(mean(v))}">${pct(mean(v))}</div>` +
+    `<div class="s">対象${v.length}銘柄</div></div>` +
+    `<div class="stat"><div class="t">対TOPIXの<b>中央値</b></div>` +
+    `<div class="v ${cls(median(e))}">${pct(median(e))}</div>` +
+    `<div class="s">超過リターン</div></div>` +
+    `<div class="stat"><div class="t">対TOPIXの<b>平均値</b></div>` +
+    `<div class="v ${cls(mean(e))}">${pct(mean(e))}</div>` +
+    `<div class="s">超過リターン</div></div>` +
     `<div class="stat"><div class="t">下落 / 上昇</div><div class="v">` +
     `${v.filter(x => x < 0).length} / ${v.filter(x => x > 0).length}</div>` +
     `<div class="s">変わらず ${v.filter(x => x === 0).length}</div></div>` + bench;
