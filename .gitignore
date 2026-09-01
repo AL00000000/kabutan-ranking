@@ -8,3 +8,7 @@ cache_bars/
 cache_period/
 logs/
 *.bak
+
+# 9/1-タブのDiscord通知の重複防止用(ローカル状態)
+state_0901.json
+*.bak-*
