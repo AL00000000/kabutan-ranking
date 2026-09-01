@@ -42,6 +42,24 @@ RAWCLOSE = BASE / "cache_period" / "raw_close.json"   # 未調整の最新終値
 OUT623 = BASE / "docs" / "data_623"
 START_623 = "2026-06-23"   # 「6.23-」タブの固定開始日
 
+OUT0901 = BASE / "docs" / "data_0901"
+TOPIX_SUMMARY = BASE / "docs" / "data_topix" / "summary.json"
+START_0901 = "2026-08-31"  # 「9/1-」タブの起点。この日の終値を基準にするので9/1当日の値動きから乗る
+PASSIVE_0901 = 0.12        # パッシブ保有 ÷ 浮動株時価総額(TOPIXのウエイトは浮動株基準なので全銘柄共通)
+
+# 知名度で選んだ銘柄(2026-09-01時点、主観)。タブの任意フィルタに使うだけで母集団は絞らない
+FAMOUS_0901 = set("""
+9413 9405 4839 7860 4337 7844 3668 3632 3656 3932 6238
+2211 2288 2908 2209 2804 2819 2933 2594 2266 250A 1375
+7522 3561 3196 3053 3395 3193 7554 9979
+9946 2698 9278 2674 3028 8281 8185 3333 2792 8244 8165
+4951 4218 4574 7962 7955 6718 7952 7990
+2305 6571 7823 4331 2378 4801 9470 4718 4668 4714 9795
+2440 2193 2120 3660 6027 3665 3922 9474
+9046 9052 9081 9726 9534 9535
+6310 6445 7238 7222 6986 6222 7102
+""".split())
+
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
 URL = ("https://query1.finance.yahoo.com/v8/finance/chart/{sym}"
@@ -113,6 +131,67 @@ def period_return(bars, start):
     if not c0:
         return None
     return (c1 / c0 - 1) * 100, d0, d1
+
+
+def write_0901(cache):
+    """「9/1-」タブ用。2026年10月のTOPIX入替で確定除外(margin<0.80)となる銘柄の、
+    8/31終値を起点とした騰落率。母集団は data_topix/summary.json が正。
+
+    売日数(パッシブ売却総額 ÷ 60日平均売買代金)も併記する。除外は8段階に分かれるので
+    1回あたりはこの1/8。指標の定義は notes の 投資/需給指標の考え方 を参照。
+    """
+    summary = load_json(TOPIX_SUMMARY, {})
+    members = [x for x in summary.get("excluded", []) if x.get("risk") == "low"]
+    if not members:
+        print("skip 9/1- tab: TOPIX除外リストが読めない", flush=True)
+        return
+
+    tpx = {d: c for d, c, _ in (cache.get("1306") or [])}
+    tpx_last = max(tpx) if tpx else None
+
+    out, end = [], ""
+    for x in members:
+        code = x["code"]
+        bars = cache.get(code) or []
+        r = period_return(bars, START_0901)
+        if r is None:
+            continue
+        ret, d0, d1 = r
+        end = max(end, d1)
+
+        # 売日数: 浮動株時価総額は8月平均ベースなので、現値との比で今の水準に直す
+        recent = [(c, v) for d, c, v in bars][-60:]
+        adv = sum(c * v for c, v in recent) / len(recent) if recent else 0
+        aug = [c for d, c, _ in bars if d[:7] == "2026-08"]
+        days = None
+        if adv > 0 and aug and x.get("float_mktcap"):
+            now = bars[-1][1]
+            fmc = x["float_mktcap"] * now / (sum(aug) / len(aug))
+            days = round(fmc * PASSIVE_0901 / adv, 1)
+
+        ex = None
+        if tpx_last and d0 in tpx and tpx[d0]:
+            ex = round(ret - (tpx[tpx_last] / tpx[d0] - 1) * 100, 2)
+
+        out.append([code, x["name"], x.get("sector", ""), round(ret, 2),
+                    x.get("margin"), days, round(adv / 1e6, 1), ex,
+                    1 if code in FAMOUS_0901 else 0])
+
+    out.sort(key=lambda r: r[3])          # 昇順(下落が大きい順)
+    bench = []
+    for code, label in BENCH:
+        r = period_return(cache.get(code) or [], START_0901)
+        if r:
+            bench.append({"name": label, "ret": round(r[0], 2)})
+
+    base_day = START_0901
+    save_json(OUT0901 / "data.json",
+              {"start": START_0901, "base": base_day, "end": end, "updated": end,
+               "count": len(out), "famous": sum(r[8] for r in out),
+               "benchmarks": bench, "stocks": out}, compact=True)
+    save_json(OUT0901 / "index.json", {"updated": end, "count": len(out)})
+    size = (OUT0901 / "data.json").stat().st_size / 1024
+    print(f"wrote 9/1- tab: {len(out)} rows ({START_0901}〜{end}) {size:.0f}KB", flush=True)
 
 
 def write_623(cache, groups, caps):
@@ -321,12 +400,15 @@ def main():
     codes = sorted(meta)
     groups = load_groups()
     gcodes = sorted({c for members in groups.values() for c, _ in members})
-    print(f"universe: {len(codes)} codes / groups: {len(gcodes)} codes "
-          f"(union {len(set(codes) | set(gcodes))})", flush=True)
+    # 「9/1-」タブの母集団(TOPIX確定除外)も取得対象に含める
+    xcodes = sorted({x["code"] for x in (load_json(TOPIX_SUMMARY, {}).get("excluded") or [])
+                     if x.get("risk") == "low"})
+    print(f"universe: {len(codes)} codes / groups: {len(gcodes)} / TOPIX除外: {len(xcodes)} "
+          f"(union {len(set(codes) | set(gcodes) | set(xcodes))})", flush=True)
 
     cache = load_json(CACHE, {}) or {}
     if not args.no_fetch:
-        targets = sorted(set(codes) | set(gcodes)) + [c for c, _ in BENCH]
+        targets = sorted(set(codes) | set(gcodes) | set(xcodes)) + [c for c, _ in BENCH]
         for i, code in enumerate(targets, 1):
             for attempt in range(RETRY):
                 try:
@@ -398,6 +480,7 @@ def main():
           f"({dates[0]}〜{dates[-1]}) {size:.2f}MB", flush=True)
 
     write_623(cache, groups, caps)
+    write_0901(cache)
     return 0
 
 

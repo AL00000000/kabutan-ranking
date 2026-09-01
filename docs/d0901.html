@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9/1- TOPIX除外銘柄の騰落率</title>
+<style>
+:root{--bg:#0a0f1c;--panel:#101830;--panel2:#0d1426;--border:#1e2a48;--text:#dbe4f5;
+      --muted:#7787a5;--accent:#39c5cf;--up:#ff5b6a;--down:#4da3ff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);min-height:100vh;
+     font-family:"Segoe UI","Hiragino Sans","Yu Gothic UI",Meiryo,sans-serif}
+.wrap{max-width:1400px;margin:0 auto;padding:16px 14px 64px}
+header.site{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;padding:4px 2px 12px}
+header.site h1{font-size:1.15rem;font-weight:700;letter-spacing:.02em}
+header.site h1 .dot{color:var(--accent)}
+header.site .asof{color:var(--muted);font-size:.8rem}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin-bottom:12px}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:10px 13px}
+.stat .t{color:var(--muted);font-size:.72rem;margin-bottom:4px}
+.stat .v{font-size:1.12rem;font-weight:700;font-variant-numeric:tabular-nums}
+.stat .s{color:var(--muted);font-size:.7rem;margin-top:2px}
+.stat .v.up{color:var(--up)}.stat .v.down{color:var(--down)}
+
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--border);
+     border-radius:9px;padding:3px;gap:3px}
+.seg button{background:none;border:none;color:var(--muted);cursor:pointer;font:inherit;
+            font-size:.84rem;padding:6px 15px;border-radius:6px;white-space:nowrap}
+.seg button:hover{color:var(--text)}
+.seg button.on{background:var(--accent);color:#04121a;font-weight:700}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;background:var(--panel);
+         border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+label{color:var(--muted);font-size:.78rem;margin-right:5px}
+select,input{background:var(--panel2);color:var(--text);border:1px solid var(--border);
+             border-radius:8px;padding:7px 11px;font-size:.86rem;outline:none;font-family:inherit}
+select:focus,input:focus{border-color:var(--accent)}
+input#q{width:190px}
+.spacer{flex:1 1 auto}
+.count{color:var(--muted);font-size:.78rem}
+
+.note{border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;
+      background:var(--panel2);padding:11px 15px;margin-bottom:12px;font-size:.81rem;
+      line-height:1.75;color:var(--muted)}
+.note b{color:var(--text)}
+
+.tablewrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.84rem;white-space:nowrap}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--border)}
+th{position:sticky;top:0;background:var(--panel2);color:var(--muted);font-weight:600;
+   font-size:.76rem;cursor:pointer;user-select:none;z-index:1}
+th:hover{color:var(--text)}
+th.sorted::after{content:" \25BE";color:var(--accent)}
+th.sorted.asc::after{content:" \25B4"}
+td.l,th.l{text-align:left}
+tbody tr:hover{background:#152040}
+td.num{font-variant-numeric:tabular-nums}
+.up{color:var(--up)}.down{color:var(--down)}
+.rank{color:var(--muted);width:3em}
+a.code{color:var(--accent);text-decoration:none}
+a.code:hover{text-decoration:underline}
+.tag{display:inline-block;font-size:.66rem;padding:1px 6px;border-radius:5px;margin-left:5px;
+     background:#2a3a5e;color:#a9bce0}
+.tag.f{background:#3d3020;color:#ffcf7a}
+.err{color:var(--up)}
+@media(max-width:640px){.wrap{padding:12px 8px 48px}th,td{padding:6px 7px;font-size:.79rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site">
+    <h1><span class="dot">9/1-</span> TOPIX除外銘柄の騰落率</h1>
+    <span class="asof" id="asof">読み込み中…</span>
+  </header>
+
+  <div class="note">
+    2026年10月のTOPIX定期入替で<b>除外が確定的な銘柄</b>（浮動株時価総額が足切りの8割未満＝margin&lt;0.80）の、
+    <b>2026-08-31の終値を起点</b>とした騰落率。<b>昇順（下落が大きい順）</b>で並べています。
+    公表は<b>10/7</b>、入替実施は<b>10/30</b>。<br>
+    <b>売日数</b>＝パッシブ売却総額 ÷ 60日平均売買代金。除外は8段階に分かれるので1回あたりはこの1/8。
+    数字が大きいほど、日々の商いに対して指数の売りが重いという意味です。
+    <b>margin</b>は浮動株時価総額 ÷ 足切り。小さいほど除外が確実。
+  </div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="toolbar">
+    <div class="seg" id="segScope">
+      <button data-v="all" class="on">全銘柄</button>
+      <button data-v="famous">有名銘柄のみ</button>
+    </div>
+    <div><label for="sec">業種</label><select id="sec"><option value="">すべて</option></select></div>
+    <div><label for="mg">margin</label><select id="mg">
+      <option value="">すべて</option>
+      <option value="0.3">0.30未満（除外ほぼ確実）</option>
+      <option value="0.5">0.50未満</option>
+      <option value="0.65">0.65未満</option>
+    </select></div>
+    <div><label for="dy">売日数</label><select id="dy">
+      <option value="">すべて</option>
+      <option value="20">20日以上</option>
+      <option value="30">30日以上</option>
+      <option value="40">40日以上</option>
+    </select></div>
+    <div><input id="q" type="search" placeholder="銘柄名・コード"></div>
+    <div class="spacer"></div>
+    <div class="count" id="count"></div>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr>
+        <th class="rank"></th>
+        <th class="l" data-k="0">コード</th>
+        <th class="l" data-k="1">銘柄名</th>
+        <th class="l" data-k="2">業種</th>
+        <th data-k="3">騰落率</th>
+        <th data-k="7">対TOPIX</th>
+        <th data-k="5">売日数</th>
+        <th data-k="4">margin</th>
+        <th data-k="6">売買代金</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const F = { scope: "all", sec: "", mg: "", dy: "", q: "" };
+let DATA = null, SORT = { k: 3, asc: true };   // 既定は騰落率の昇順
+
+const pct = v => v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(2) + "%";
+const cls = v => v == null ? "" : v > 0 ? "up" : v < 0 ? "down" : "";
+
+function rows() {
+  const q = F.q.trim().toLowerCase();
+  return DATA.stocks.filter(r => {
+    if (F.scope === "famous" && !r[8]) return false;
+    if (F.sec && r[2] !== F.sec) return false;
+    if (F.mg && !(r[4] != null && r[4] < +F.mg)) return false;
+    if (F.dy && !(r[5] != null && r[5] >= +F.dy)) return false;
+    if (q && !(r[0].toLowerCase().includes(q) || r[1].toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+
+function cards(rs) {
+  const v = rs.map(r => r[3]).filter(x => x != null).sort((a, b) => a - b);
+  const med = v.length ? (v.length % 2 ? v[(v.length - 1) / 2]
+                                       : (v[v.length / 2 - 1] + v[v.length / 2]) / 2) : null;
+  const mean = v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+  const bench = (DATA.benchmarks || []).map(b =>
+    `<div class="stat"><div class="t">${b.name}</div>` +
+    `<div class="v ${cls(b.ret)}">${pct(b.ret)}</div><div class="s">同期間</div></div>`).join("");
+  document.getElementById("cards").innerHTML =
+    `<div class="stat"><div class="t">対象</div><div class="v">${rs.length}</div>` +
+    `<div class="s">銘柄（全${DATA.count}）</div></div>` +
+    `<div class="stat"><div class="t">中央値</div><div class="v ${cls(med)}">${pct(med)}</div>` +
+    `<div class="s">平均 ${pct(mean)}</div></div>` +
+    `<div class="stat"><div class="t">下落 / 上昇</div><div class="v">` +
+    `${v.filter(x => x < 0).length} / ${v.filter(x => x > 0).length}</div>` +
+    `<div class="s">変わらず ${v.filter(x => x === 0).length}</div></div>` + bench;
+}
+
+function render() {
+  const rs = rows();
+  const k = SORT.k, sgn = SORT.asc ? 1 : -1;
+  rs.sort((a, b) => {
+    const x = a[k], y = b[k];
+    if (x == null) return 1;
+    if (y == null) return -1;
+    return (typeof x === "string" ? x.localeCompare(y, "ja") : x - y) * sgn;
+  });
+  document.getElementById("tb").innerHTML = rs.map((r, i) =>
+    `<tr><td class="rank num">${i + 1}</td>` +
+    `<td class="l"><a class="code" href="https://kabutan.jp/stock/?code=${r[0]}" target="_blank" rel="noopener">${r[0]}</a></td>` +
+    `<td class="l">${r[1]}${r[8] ? '<span class="tag f">有名</span>' : ""}</td>` +
+    `<td class="l">${r[2] || ""}</td>` +
+    `<td class="num ${cls(r[3])}">${pct(r[3])}</td>` +
+    `<td class="num ${cls(r[7])}">${pct(r[7])}</td>` +
+    `<td class="num">${r[5] == null ? "–" : r[5].toFixed(1) + "日"}</td>` +
+    `<td class="num">${r[4] == null ? "–" : r[4].toFixed(2)}</td>` +
+    `<td class="num">${r[6] == null ? "–" : r[6].toFixed(0)}百万</td></tr>`).join("");
+  document.getElementById("count").textContent = `${rs.length} 銘柄`;
+  document.querySelectorAll("th[data-k]").forEach(th => {
+    const on = +th.dataset.k === SORT.k;
+    th.classList.toggle("sorted", on);
+    th.classList.toggle("asc", on && SORT.asc);
+  });
+  cards(rs);
+}
+
+async function init() {
+  try {
+    const r = await fetch("./data_0901/data.json", { cache: "no-cache" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    DATA = await r.json();
+  } catch (e) {
+    document.getElementById("asof").innerHTML = '<span class="err">読み込みエラー: ' + e + "</span>";
+    return;
+  }
+  document.getElementById("asof").innerHTML =
+    `起点 <b>${DATA.start}</b>（この日の終値＝基準） → 最新 <b>${DATA.end}</b>　/　` +
+    `確定除外 <b>${DATA.count}</b>銘柄（うち有名 ${DATA.famous}）`;
+
+  const secs = [...new Set(DATA.stocks.map(r => r[2]).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ja"));
+  document.getElementById("sec").innerHTML =
+    '<option value="">すべて</option>' + secs.map(s => `<option>${s}</option>`).join("");
+
+  document.querySelectorAll("#segScope button").forEach(b => b.onclick = () => {
+    document.querySelectorAll("#segScope button").forEach(x => x.classList.toggle("on", x === b));
+    F.scope = b.dataset.v; render();
+  });
+  document.getElementById("sec").onchange = e => { F.sec = e.target.value; render(); };
+  document.getElementById("mg").onchange = e => { F.mg = e.target.value; render(); };
+  document.getElementById("dy").onchange = e => { F.dy = e.target.value; render(); };
+  document.getElementById("q").oninput = e => { F.q = e.target.value; render(); };
+  document.querySelectorAll("th[data-k]").forEach(th => th.onclick = () => {
+    const k = +th.dataset.k;
+    // 騰落率・対TOPIX・margin は「小さい順」から、それ以外は「大きい順」から
+    SORT = SORT.k === k ? { k, asc: !SORT.asc } : { k, asc: k === 3 || k === 7 || k === 4 || k === 0 || k === 1 || k === 2 };
+    render();
+  });
+  render();
+}
+init();
+</script>
+</body>
+</html>

@@ -275,6 +275,7 @@ footer a { color: var(--accent); }
         <button class="tab" data-tab="watch">監視銘柄リスト</button>
         <button class="tab" data-tab="period">期間騰落率</button>
         <button class="tab" data-tab="g623">6.23-</button>
+        <button class="tab" data-tab="d0901">9/1-</button>
       </div>
     </div>
     <div class="tabgroup">
@@ -830,6 +831,11 @@ footer a { color: var(--accent); }
   <div id="view-watch" hidden>
     <div class="embed-note">フォルダ分けした監視銘柄の日足チャートと騰落率 — <a href="./watch.html" target="_blank" rel="noopener">別タブで開く ↗</a></div>
     <iframe class="embed" title="監視銘柄リスト" data-src="./watch.html" loading="lazy"></iframe>
+  </div>
+
+  <div id="view-d0901" hidden>
+    <div class="embed-note">2026年10月のTOPIX入替で<b>除外が確定的な銘柄</b>の、8/31終値を起点とした騰落率（昇順） — <a href="./d0901.html" target="_blank" rel="noopener">別タブで開く ↗</a></div>
+    <iframe class="embed" title="9/1- TOPIX除外銘柄の騰落率" data-src="./d0901.html" loading="lazy"></iframe>
   </div>
 
   <div id="view-topix" hidden>
@@ -3456,7 +3462,7 @@ const VIEW_ID = {
   pts: "view-pts", watch: "view-watch", shinyo: "view-shinyo",
   newhigh: "view-newhigh", lowvolume: "view-lowvolume", jukyu: "view-jukyu",
   uchu: "view-uchu", topix: "view-topix", turnover: "view-turnover", period: "view-period",
-  g623: "view-g623",
+  g623: "view-g623", d0901: "view-d0901",
   selran: "view-selran", baibai: "view-baibai", search: "view-search",
 };
 function switchTab(name) {
@@ -3508,6 +3514,7 @@ const FEEDS = {
   // prices.json は1MB近いので、最終更新日だけを書いた軽い index.json を見る
   period:   { kind: "field", url: "./data_period/index.json", field: "updated", freq: "daily" },
   g623:     { kind: "field", url: "./data_623/index.json", field: "updated", freq: "daily" },
+  d0901:    { kind: "field", url: "./data_0901/index.json", field: "updated", freq: "daily" },
   stoplow:  { kind: "field", url: "./data_stoplow/data.json", field: "updated", freq: "daily" },
   streaks:  { kind: "field", url: "./data_streaks/data.json", field: "updated", freq: "daily" },
   pts:      { kind: "index", url: "/buffett-code-pts-ranking/data/index.json", freq: "daily" },
