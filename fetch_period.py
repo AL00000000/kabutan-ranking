@@ -12,13 +12,11 @@
   docs/data_period/index.json  … {"updated": "YYYY-MM-DD"}(NEWバッジ/最終更新日の判定用。
                                   prices.json は1MB近いのでタブ見出しの判定では読まない)
 
-Yahoo は分割調整済み終値(adjclose)を返すため、期間中に分割があった銘柄も
-騰落率が壊れない。毎回6か月ぶんを取り直すのは、過去分の調整値が後から
-変わる(分割・併合)のを自動で取り込むため。
-
+株価も指数も**配当を含まない価格ベース**でそろえてある。
+銘柄はYahooの `close`(分割・併合だけ遡って調整、配当は調整しない)、
 ベンチマークは指数そのもの(TOPIX / 日経平均 / グロース250)を株探から取る。
-銘柄の株価は配当込みの調整済み終値、指数は配当を含まない価格指数なので、
-配当落ち日をまたぐ期間では銘柄側がそのぶん有利に出る点だけ注意。
+どちらも権利落ち日には配当ぶん下がるので、「対TOPIX」で配当が相殺される。
+毎回6か月ぶんを取り直すのは、過去分の調整値が後から変わる(分割・併合)のを取り込むため。
 
 使用例:
   py fetch_period.py               … 取得して書き出し(日次実行)
@@ -75,9 +73,12 @@ SLEEP = 0.35
 RETRY = 3
 
 # 横断比較用のベンチマークは「指数そのもの」を株探から取る(以前は連動ETFで代理していた)。
-# 注意: 銘柄の株価はYahooの配当込み調整済み終値なのに対し、指数は配当を含まない価格指数。
-# そのため配当落ち日をまたぐと、そのぶん銘柄側が有利に出る
-# (実測: 2025-09-25→10-01の配当落ちで 1306の調整値 -2.02% に対し TOPIX現物 -2.84%)。
+# ETFをやめた理由は配当ではなく、代理指標としての質が悪かったこと。実測した不具合2つ:
+#   * Yahooの1306は 2026-03-30〜03-31 の2日間だけ 1/10 の値(37.6/37.1)が入っていた
+#   * 1306自身の分配金の権利落ち(7/9)で、Yahooが調整を1日ずらすため adjclose が7/9だけ約-1.9%沈む
+# なお ETFは指数構成銘柄の権利落ち日には下がらない(保有株が下がるぶん未収配当金が立ちNAVが変わらない)。
+# 実測: 2025-09-29(9月の権利落ち日)に TOPIX現物 -1.74% に対し 1306は -0.64% で、1日で1.11pt開いた。
+# 銘柄側も `close`(配当調整なし)にそろえたので、この非対称は解消済み。
 BENCH = [("0010", "TOPIX"), ("0000", "日経平均"), ("0012", "グロース250")]
 INDEX_URL = "https://kabutan.jp/stock/read?c={code}&m=1&k=1"
 
@@ -337,26 +338,29 @@ def universe():
 
 
 def fetch_bars(sym):
-    """[[YYYY-MM-DD, 調整後終値, 出来高], ...] を返す。"""
+    """[[YYYY-MM-DD, 終値(分割調整のみ), 出来高], ...] を返す。
+
+    Yahooの `close` は**分割・併合だけを遡って調整した終値**で、配当は調整しない
+    (`adjclose` のほうは配当も調整する)。ベンチマークが配当を含まない価格指数なので、
+    銘柄側も価格ベースにそろえるためにこちらを使う。実測で確認済み:
+    5801(2026-07-01に1:10分割)の close は 6/30=4730 → 7/1=4351 と連続していて分割で壊れず、
+    配当については 8306 の 2026-03-30(権利落ち日)を境に adj/close が 0.9812 → 1.0000 に戻る。"""
     req = urllib.request.Request(URL.format(sym=sym), headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=20) as r:
         j = json.load(r)
     res = j["chart"]["result"][0]
     ts = res["timestamp"]
     q = res["indicators"]["quote"][0]
-    adj = (res["indicators"].get("adjclose") or [{}])[0].get("adjclose")
-    bars, last_raw = [], None
+    bars = []
     for i, t in enumerate(ts):
         c = q["close"][i]
         if c is None:
             continue
-        a = adj[i] if adj and adj[i] is not None else c
         bars.append([datetime.fromtimestamp(t, JST).strftime("%Y-%m-%d"),
-                     round(a, 2), q["volume"][i] or 0])
-        last_raw = c
-    if bars and last_raw:
-        # 調整後終値は配当ぶん割り引かれているので、時価総額には未調整終値を使う
-        RAW_CLOSE[sym.split(".")[0]] = [bars[-1][0], round(last_raw, 2)]
+                     round(c, 2), q["volume"][i] or 0])
+    if bars:
+        # 時価総額は「最新の終値 × 発行済株式数」。最新日は分割調整も効かないので終値そのもの
+        RAW_CLOSE[sym.split(".")[0]] = [bars[-1][0], bars[-1][1]]
     return bars
 
 
