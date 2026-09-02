@@ -22,6 +22,7 @@ header.site .asof{color:var(--muted);font-size:.8rem}
 .stat .v{font-size:1.12rem;font-weight:700;font-variant-numeric:tabular-nums}
 .stat .s{color:var(--muted);font-size:.7rem;margin-top:2px}
 .stat .v.up{color:var(--up)}.stat .v.down{color:var(--down)}
+.stat.bm{border-color:var(--accent);background:linear-gradient(180deg,#12233a,var(--panel))}
 
 .seg{display:inline-flex;background:var(--panel2);border:1px solid var(--border);
      border-radius:9px;padding:3px;gap:3px}
@@ -80,10 +81,11 @@ a.code:hover{text-decoration:underline}
     <b>売日数</b>＝パッシブ売却総額 ÷ 60日平均売買代金。除外は8段階に分かれるので1回あたりはこの1/8。
     数字が大きいほど、日々の商いに対して指数の売りが重いという意味です。
     <b>margin</b>は浮動株時価総額 ÷ 足切り。小さいほど除外が確実。<br>
-    比較対象は<b>指数現物ではなく連動ETF（1306 / 1321 / 2516）の調整済み終値</b>で、
-    ETF1本の騰落率なので<b>中央値・平均値の区別はありません</b>。
-    配当も調整済みのため、指数現物の騰落率とは一致しません（銘柄側の株価も同じ調整済み終値なので、
-    「対TOPIX」列は同じ土俵での比較になっています）。
+    比較対象は<b>指数そのもの（TOPIX / 日経平均 / グロース250、株探の指数終値）</b>です。
+    <b>注意</b>：銘柄の株価はYahooの<b>配当込みの調整済み終値</b>なのに対し、指数は<b>配当を含まない価格指数</b>です。
+    そのため<b>配当落ち日をまたぐと、そのぶん銘柄側が有利に出ます</b>
+    （実測：2025-09-25→10-01の配当落ちでは、1306の調整済み終値 −2.02% に対しTOPIX現物は −2.84% で
+    <b>0.8ポイントの差</b>が出ました。9月末の配当落ち以降はこの分を割り引いて見てください）。
   </div>
 
   <div class="cards" id="cards"></div>
@@ -157,30 +159,23 @@ const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
 
 function cards(rs) {
   const v = rs.map(r => r[3]).filter(x => x != null);      // 騰落率
-  const e = rs.map(r => r[7]).filter(x => x != null);      // 対TOPIX(超過)
-  // ベンチマークは連動ETF1本の騰落率。単一の系列なので中央値/平均値の区別は無い
-  const bench = (DATA.benchmarks || []).map(b =>
-    `<div class="stat"><div class="t">${b.name}連動ETF（${b.code}）</div>` +
-    `<div class="v ${cls(b.ret)}">${pct(b.ret)}</div>` +
-    `<div class="s">ETF1本の騰落率<br>中央値/平均の区別なし</div></div>`).join("");
+  const bm = DATA.benchmarks || [];
+  const tpx = bm.find(b => b.name === "TOPIX") || null;
+  const stat = (t, val, sub, c) =>
+    `<div class="stat${c || ""}"><div class="t">${t}</div>` +
+    `<div class="v ${cls(val)}">${pct(val)}</div><div class="s">${sub}</div></div>`;
+  // TOPIXは除外銘柄の隣に置いて直接見比べられるようにする。日経平均・グロース250は参考
+  const others = bm.filter(b => b !== tpx)
+    .map(b => stat(b.name, b.ret, "同期間の指数（参考）")).join("");
   document.getElementById("cards").innerHTML =
     `<div class="stat"><div class="t">対象</div><div class="v">${rs.length}</div>` +
     `<div class="s">銘柄（全${DATA.count}）</div></div>` +
-    `<div class="stat"><div class="t">騰落率の<b>中央値</b></div>` +
-    `<div class="v ${cls(median(v))}">${pct(median(v))}</div>` +
-    `<div class="s">対象${v.length}銘柄</div></div>` +
-    `<div class="stat"><div class="t">騰落率の<b>平均値</b></div>` +
-    `<div class="v ${cls(mean(v))}">${pct(mean(v))}</div>` +
-    `<div class="s">対象${v.length}銘柄</div></div>` +
-    `<div class="stat"><div class="t">対TOPIXの<b>中央値</b></div>` +
-    `<div class="v ${cls(median(e))}">${pct(median(e))}</div>` +
-    `<div class="s">超過リターン</div></div>` +
-    `<div class="stat"><div class="t">対TOPIXの<b>平均値</b></div>` +
-    `<div class="v ${cls(mean(e))}">${pct(mean(e))}</div>` +
-    `<div class="s">超過リターン</div></div>` +
+    stat("除外銘柄の騰落率（<b>中央値</b>）", median(v), `対象${v.length}銘柄`) +
+    stat("除外銘柄の騰落率（<b>平均値</b>）", mean(v), `対象${v.length}銘柄`) +
+    (tpx ? stat("<b>TOPIX</b>の騰落率", tpx.ret, "同期間の指数", " bm") : "") +
     `<div class="stat"><div class="t">下落 / 上昇</div><div class="v">` +
     `${v.filter(x => x < 0).length} / ${v.filter(x => x > 0).length}</div>` +
-    `<div class="s">変わらず ${v.filter(x => x === 0).length}</div></div>` + bench;
+    `<div class="s">変わらず ${v.filter(x => x === 0).length}</div></div>` + others;
 }
 
 function render() {

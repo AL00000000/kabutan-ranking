@@ -16,9 +16,15 @@ Yahoo は分割調整済み終値(adjclose)を返すため、期間中に分割�
 騰落率が壊れない。毎回6か月ぶんを取り直すのは、過去分の調整値が後から
 変わる(分割・併合)のを自動で取り込むため。
 
+ベンチマークは指数そのもの(TOPIX / 日経平均 / グロース250)を株探から取る。
+銘柄の株価は配当込みの調整済み終値、指数は配当を含まない価格指数なので、
+配当落ち日をまたぐ期間では銘柄側がそのぶん有利に出る点だけ注意。
+
 使用例:
-  py fetch_period.py             … 取得して書き出し(日次実行)
-  py fetch_period.py --no-fetch  … キャッシュのまま prices.json を作り直す
+  py fetch_period.py               … 取得して書き出し(日次実行)
+  py fetch_period.py --no-fetch    … キャッシュのまま prices.json を作り直す
+  py fetch_period.py --bench-only --shares-limit 0
+                                   … ベンチマーク指数だけ取り直して書き出す
 """
 import argparse
 import csv
@@ -68,8 +74,12 @@ JST = timezone(timedelta(hours=9))
 SLEEP = 0.35
 RETRY = 3
 
-# 横断比較用のベンチマーク(指数現物は取りにくいので流動性のあるETFで代理)
-BENCH = [("1306", "TOPIX"), ("1321", "日経225"), ("2516", "グロース250")]
+# 横断比較用のベンチマークは「指数そのもの」を株探から取る(以前は連動ETFで代理していた)。
+# 注意: 銘柄の株価はYahooの配当込み調整済み終値なのに対し、指数は配当を含まない価格指数。
+# そのため配当落ち日をまたぐと、そのぶん銘柄側が有利に出る
+# (実測: 2025-09-25→10-01の配当落ちで 1306の調整値 -2.02% に対し TOPIX現物 -2.84%)。
+BENCH = [("0010", "TOPIX"), ("0000", "日経平均"), ("0012", "グロース250")]
+INDEX_URL = "https://kabutan.jp/stock/read?c={code}&m=1&k=1"
 
 # 時価総額 = 未調整の最新終値 × 発行済株式数。
 # 株式数は株探の銘柄ページから取る。めったに変わらないので取り直しは間引く。
@@ -122,6 +132,54 @@ def load_groups():
     return groups
 
 
+def fetch_index(code):
+    """株探の指数日足(約300営業日ぶん返る)。銘柄の日足と同じ [日付, 終値, 出来高] 形式で
+    古い順に返す(出来高は使わないので0)。"""
+    req = urllib.request.Request(INDEX_URL.format(code=code), headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        text = r.read().decode("utf-8", "replace")
+    lines = text.strip().splitlines()
+    head = lines[0].split(",")
+    div = 100 if (len(head) > 1 and head[1] == "0") else 10
+    out = []
+    for line in lines[1:]:
+        p = line.split(",")
+        if len(p) < 5 or not p[4]:
+            continue
+        ymd = p[0].split("#")[0]            # 当日行は "20260902#15:22" 形式
+        if len(ymd) != 8 or not ymd.isdigit():
+            continue
+        try:
+            out.append([f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}", float(p[4]) / div, 0])
+        except ValueError:
+            continue
+    out.sort()
+    return out
+
+
+def close_at_or_before(series, day):
+    """day以前で最も新しい終値。指数だけ銘柄より1日先に進むのを防ぐために使う
+    (Yahooが直近1日を落とすことがある → feedback_data_source_may_drop_latest_day)。"""
+    ds = [d for d in series if d <= day]
+    return series[max(ds)] if ds else None
+
+
+def close_at_or_after(series, day):
+    ds = [d for d in series if d >= day]
+    return series[min(ds)] if ds else None
+
+
+def bench_returns(cache, start, end):
+    """ベンチマーク指数の start〜end の騰落率(%)。終端は銘柄側の最終営業日にそろえる。"""
+    out = []
+    for code, label in BENCH:
+        s = {d: c for d, c, _ in (cache.get(code) or []) if c}
+        c0, c1 = close_at_or_after(s, start), close_at_or_before(s, end)
+        if c0 and c1:
+            out.append({"name": label, "ret": (c1 / c0 - 1) * 100})
+    return out
+
+
 def period_return(bars, start):
     """start以降の最初の終値から最新終値までの騰落率(%)と、使った日付を返す。"""
     pts = [(d, c) for d, c, _ in bars if d >= start and c]
@@ -146,10 +204,9 @@ def write_0901(cache):
         print("skip 9/1- tab: TOPIX除外リストが読めない", flush=True)
         return
 
-    tpx = {d: c for d, c, _ in (cache.get("1306") or [])}
-    tpx_last = max(tpx) if tpx else None
+    tpx = {d: c for d, c, _ in (cache.get("0010") or []) if c}
 
-    out, end = [], ""
+    out, end, starts = [], "", []
     for x in members:
         code = x["code"]
         bars = cache.get(code) or []
@@ -169,21 +226,21 @@ def write_0901(cache):
             fmc = x["float_mktcap"] * now / (sum(aug) / len(aug))
             days = round(fmc * PASSIVE_0901 / adv, 1)
 
-        ex = None
-        if tpx_last and d0 in tpx and tpx[d0]:
-            ex = round(ret - (tpx[tpx_last] / tpx[d0] - 1) * 100, 2)
-
         out.append([code, x["name"], x.get("sector", ""), round(ret, 2),
-                    x.get("margin"), days, round(adv / 1e6, 1), ex,
+                    x.get("margin"), days, round(adv / 1e6, 1), None,
                     1 if code in FAMOUS_0901 else 0])
+        starts.append(d0)
+
+    # 対TOPIXは end が確定してから入れる(指数だけ1日先に進まないようにするため)
+    tpx_end = close_at_or_before(tpx, end)
+    for row, d0 in zip(out, starts):
+        c0 = close_at_or_after(tpx, d0)
+        if tpx_end and c0:
+            row[7] = round(row[3] - (tpx_end / c0 - 1) * 100, 2)
 
     out.sort(key=lambda r: r[3])          # 昇順(下落が大きい順)
-    # ベンチマークは連動ETFの調整済み終値。指数現物の騰落率とは一致しないのでコードも持たせる
-    bench = []
-    for code, label in BENCH:
-        r = period_return(cache.get(code) or [], START_0901)
-        if r:
-            bench.append({"name": label, "code": code, "ret": round(r[0], 2)})
+    bench = [{"name": b["name"], "ret": round(b["ret"], 2)}
+             for b in bench_returns(cache, START_0901, end)]
 
     base_day = START_0901
     save_json(OUT0901 / "data.json",
@@ -201,15 +258,10 @@ def write_623(cache, groups, caps):
         return
     # 対TOPIXは銘柄ごとに「その銘柄と同じ起点日」で計算する。
     # 6/23より後に上場した銘柄を6/23起点のTOPIXと比べると意味が壊れるため。
-    tpx = {d: c for d, c, _ in (cache.get("1306") or [])}
-    tpx_last = max(tpx) if tpx else None
-
-    def excess(ret, d0):
-        if not tpx_last or d0 not in tpx or not tpx[d0]:
-            return None
-        return round(ret - (tpx[tpx_last] / tpx[d0] - 1) * 100, 2)
+    tpx = {d: c for d, c, _ in (cache.get("0010") or []) if c}
 
     out_groups, out_stocks, end = [], [], ""
+    pending = []          # (行, 起点日) 対TOPIXは end が確定してから入れる
     for gi, (gname, members) in enumerate(groups.items()):
         rets = []
         for code, name in members:
@@ -241,15 +293,19 @@ def write_623(cache, groups, caps):
             "flat": sum(1 for v in vals if v == 0),
         })
         for x in rets:
-            out_stocks.append([gi, x["code"], x["name"], x["ret"], x["val"],
-                               "" if x["from"] == base else x["from"],
-                               excess(x["ret"], x["from"]), caps.get(x["code"])])
+            row = [gi, x["code"], x["name"], x["ret"], x["val"],
+                   "" if x["from"] == base else x["from"], None, caps.get(x["code"])]
+            out_stocks.append(row)
+            pending.append((row, x["from"]))
 
-    bench = []
-    for code, label in BENCH:
-        r = period_return(cache.get(code) or [], START_623)
-        if r:
-            bench.append({"name": label, "ret": round(r[0], 1)})
+    tpx_end = close_at_or_before(tpx, end)
+    for row, d0 in pending:
+        c0 = close_at_or_after(tpx, d0)
+        if tpx_end and c0:
+            row[6] = round(row[3] - (tpx_end / c0 - 1) * 100, 2)
+
+    bench = [{"name": b["name"], "ret": round(b["ret"], 1)}
+             for b in bench_returns(cache, START_623, end)]
 
     # 全グループ共通の基準起点日(6/23以降で最初に市場が開いた日)
     base_all = min((s[5] or START_623) for s in out_stocks) if out_stocks else START_623
@@ -393,6 +449,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-fetch", action="store_true",
                     help="取得せずキャッシュから prices.json を作り直す")
+    ap.add_argument("--bench-only", action="store_true",
+                    help="ベンチマーク指数だけ取り直す(銘柄の日足はキャッシュのまま)")
     ap.add_argument("--shares-limit", type=int, default=SHARES_DEFAULT_LIMIT,
                     help="発行済株式数を取り直す上限件数(0で取得しない)")
     args = ap.parse_args()
@@ -408,8 +466,8 @@ def main():
           f"(union {len(set(codes) | set(gcodes) | set(xcodes))})", flush=True)
 
     cache = load_json(CACHE, {}) or {}
-    if not args.no_fetch:
-        targets = sorted(set(codes) | set(gcodes) | set(xcodes)) + [c for c, _ in BENCH]
+    if not (args.no_fetch or args.bench_only):
+        targets = sorted(set(codes) | set(gcodes) | set(xcodes))
         for i, code in enumerate(targets, 1):
             for attempt in range(RETRY):
                 try:
@@ -426,6 +484,23 @@ def main():
                 print(f"{i}/{len(targets)}", flush=True)
         save_json(CACHE, cache, compact=True)
 
+    # ベンチマークは指数そのもの。取得元が株探で銘柄(Yahoo)と別なので取得も分ける
+    if args.bench_only or not args.no_fetch:
+        for code, label in BENCH:
+            for attempt in range(RETRY):
+                try:
+                    cache[code] = merge_bars(cache.get(code), fetch_index(code))
+                    print(f"bench {label}({code}): {len(cache[code])}本 "
+                          f"最新 {cache[code][-1][0]} {cache[code][-1][1]}", flush=True)
+                    break
+                except Exception as e:
+                    if attempt == RETRY - 1:
+                        print(f"FAIL bench {code}: {e}", flush=True)
+                    else:
+                        time.sleep(2)
+            time.sleep(SLEEP)
+        save_json(CACHE, cache, compact=True)
+
     # 時価総額は「6.23-」タブでしか使わないので、対象はグループ銘柄だけでよい
     shares = update_shares(gcodes, args.shares_limit) if args.shares_limit else         (load_json(SHARES, {}) or {})
     raw = load_json(RAWCLOSE, {}) or {}
@@ -435,7 +510,7 @@ def main():
     caps = market_caps(shares, raw)
     print(f"時価総額: {len(caps)}/{len(gcodes)} 銘柄", flush=True)
 
-    # 全銘柄の営業日を統合(ETFしか動かない日などは無いが、念のため和集合)
+    # 全銘柄の営業日を統合(念のため和集合)
     dates = sorted({b[0] for code in codes for b in cache.get(code, [])})
     if not dates:
         print("no data", file=sys.stderr)
