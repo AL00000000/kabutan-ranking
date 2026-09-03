@@ -2139,7 +2139,7 @@ const NH_COLS = [
 ];
 let nhData = null, nhSortKey = "value", nhSortAsc = false, nhInited = false;
 
-let nhFollowData = null, nhFollowTried = false;
+let nhFollowData = null, nhBackfill = null, nhFollowTried = false;
 
 function nhRenderFollow() {
   const box = document.getElementById("nhFollow");
@@ -2172,8 +2172,47 @@ function nhRenderFollow() {
   };
 
   const thin = hs.some(h => (f[String(h.n)] || {}).raw && f[String(h.n)].raw.n < 100);
+
+  // 過去5年を日足から再現した参考値(標本が桁違いに多い)
+  let bf = "";
+  if (nhBackfill) {
+    const g = nhBackfill[seg] || {};
+    const brow = (label, pick, kind) => {
+      let r = "<tr><td>" + label + "</td>";
+      for (const h of hs) {
+        const a = g[String(h.n)];
+        const v = a ? pick(a) : null;
+        let txt, klass = "";
+        if (v == null) txt = "-";
+        else if (kind === "pct") { txt = cell(v, "%"); klass = cls(v); }
+        else if (kind === "rate") { txt = v.toFixed(1) + "%"; klass = v >= 50 ? "up" : "down"; }
+        else txt = v.toLocaleString("ja-JP");
+        r += '<td class="' + klass + '">' + txt + "</td>";
+      }
+      return r + "</tr>";
+    };
+    let bhead = "<tr><th>指標</th>";
+    for (const h of hs) bhead += "<th>" + h.label + "後</th>";
+    bhead += "</tr>";
+    bf = '<h3 style="margin-top:16px">参考: 過去5年を再現した場合</h3>'
+      + '<div class="note">' + nhBackfill.from + "〜" + nhBackfill.to + " の日足から"
+      + "「その日が新高値だったか」を計算し直したものです（"
+      + (nhBackfill.counts || {})[seg].toLocaleString("ja-JP") + "件）。"
+      + '<span class="thin">母集団は「直近で売買代金ランキングに載った銘柄」なので、'
+      + "当時は流動性があったが今は無い銘柄が入っていません（生存バイアス）。"
+      + "実運用の母集団とも完全には一致しないため参考値です。</span></div>"
+      + "<table><thead>" + bhead + "</thead><tbody>"
+      + brow("平均", a => a.raw && a.raw.mean, "pct")
+      + brow("中央値", a => a.raw && a.raw.median, "pct")
+      + brow("対TOPIX 平均", a => a.excess && a.excess.mean, "pct")
+      + brow("対TOPIX 中央値", a => a.excess && a.excess.median, "pct")
+      + brow("勝率（上昇した割合）", a => a.raw && a.raw.win, "rate")
+      + brow("標本数", a => a.raw && a.raw.n, "num")
+      + "</tbody></table>";
+  }
+
   box.innerHTML =
-    "<h3>この条件に載った銘柄の「その後」</h3>"
+    "<h3>この条件に載った銘柄の「その後」（実際の記録ぶん）</h3>"
     + '<div class="note">記録日の終値を起点にした騰落率です（' + nhFollowData.from
     + "〜" + nhFollowData.to + " の " + nhFollowData.days + "営業日ぶん・延べ "
     + (nhFollowData.counts || {})[seg] + "件が母数）。"
@@ -2186,7 +2225,7 @@ function nhRenderFollow() {
     + row("対TOPIX 中央値", a => a.excess && a.excess.median, "pct")
     + row("勝率（上昇した割合）", a => a.raw && a.raw.win, "rate")
     + row("標本数", a => a.raw && a.raw.n, "num")
-    + "</tbody></table>";
+    + "</tbody></table>" + bf;
 }
 
 function nhKind() {
@@ -2263,6 +2302,10 @@ async function nhLoadFollow() {
     const res = await fetch("data_newhigh/followup.json", { cache: "no-cache" });
     if (res.ok) nhFollowData = await res.json();
   } catch (e) { nhFollowData = null; }
+  try {
+    const r2 = await fetch("data_newhigh/backfill.json", { cache: "no-cache" });
+    if (r2.ok) nhBackfill = await r2.json();
+  } catch (e) { nhBackfill = null; }
   nhRenderFollow();
 }
 
