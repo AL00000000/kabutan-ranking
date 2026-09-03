@@ -14,16 +14,16 @@ C:\\Users\\yt\\automation\\webhooks.json (git管理外) の "newhigh_ath" から
 """
 import argparse
 import json
-import os
 import sys
 import urllib.request
 from pathlib import Path
 
+from webhook_config import get_webhook
+
 BASE = Path(__file__).parent
 DATA = BASE / "docs" / "data_newhigh"
 STATE = BASE / "state_newhigh.json"
-WEBHOOK_FILE = Path(r"C:\Users\yt\automation\webhooks.json")
-WEBHOOK_KEY = "newhigh_ath"
+WEBHOOK_KEY = "newhigh_ath"   # 実体は automation/webhooks.json(git管理外)
 SITE = "https://al00000000.github.io/kabutan-ranking/"
 CYAN = 0x39c5cf
 MAX_FIELDS = 20          # Discordの埋め込みは25個まで
@@ -35,18 +35,6 @@ def load(path, default=None):
             return json.load(f)
     except (FileNotFoundError, ValueError):
         return default
-
-
-def webhook_url():
-    env = os.environ.get("NEWHIGH_WEBHOOK")
-    if env:
-        return env
-    cfg = load(WEBHOOK_FILE, {}) or {}
-    url = cfg.get(WEBHOOK_KEY)
-    if not url:
-        raise RuntimeError(
-            f"webhookが見つかりません。{WEBHOOK_FILE} の \"{WEBHOOK_KEY}\" に設定してください")
-    return url
 
 
 def fmt_oku(hyakuman):
@@ -123,7 +111,7 @@ def main():
 
     # Discord は User-Agent の無いリクエストを403で弾くので必ず付ける
     req = urllib.request.Request(
-        webhook_url(), data=json.dumps(payload).encode("utf-8"),
+        get_webhook(WEBHOOK_KEY), data=json.dumps(payload).encode("utf-8"),
         headers={"Content-Type": "application/json",
                  "User-Agent": "kabutan-ranking-bot/1.0 "
                                "(+https://al00000000.github.io/kabutan-ranking/)"},

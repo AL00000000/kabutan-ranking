@@ -17,11 +17,12 @@ import sys
 import urllib.request
 from pathlib import Path
 
+from webhook_config import get_webhook
+
 BASE = Path(__file__).parent
 DATA = BASE / "docs" / "data_0901" / "data.json"
 STATE = BASE / "state_0901.json"
-WEBHOOK = ("https://discord.com/api/webhooks/1544329703140098199/"
-           "3WA4JffWIORcyaGNx8c12GwdNOklxotvteZD4kKoXyKo79BLOSA0dZ14PlL0X0dnxtW8")
+WEBHOOK_KEY = "d0901"      # 実体は automation/webhooks.json(git管理外)
 SITE = "https://al00000000.github.io/kabutan-ranking/"
 TOP_N = 10
 RED, BLUE, GRAY = 0xff5b6a, 0x4da3ff, 0x99aab5
@@ -42,7 +43,7 @@ def post(payload, dry):
         return
     # Discord は User-Agent の無いリクエストを403で弾くので必ず付ける
     req = urllib.request.Request(
-        WEBHOOK, data=json.dumps(payload).encode("utf-8"),
+        get_webhook(WEBHOOK_KEY), data=json.dumps(payload).encode("utf-8"),
         headers={"Content-Type": "application/json",
                  "User-Agent": "kabutan-ranking-bot/1.0 (+https://al00000000.github.io/kabutan-ranking/)"},
         method="POST")
