@@ -58,6 +58,13 @@ details.method .warn{color:var(--up)}
 .card.risk-mid{border-left-color:#8a7a3a}
 .card.risk-low{border-left-color:var(--border)}
 .card.risk-none{border-left-color:#5a3a48}
+.card.g-near{border-left-color:#ffcb5c;background:linear-gradient(90deg,rgba(255,203,92,.05),transparent 40%)}
+.card.g-blocked{border-left-color:#ff5b6a;background:linear-gradient(90deg,rgba(255,91,106,.06),transparent 40%)}
+.card.g-keep{border-left-color:#39c5cf;background:linear-gradient(90deg,rgba(57,197,207,.05),transparent 40%)}
+.gsep{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:8px 2px 2px;
+      color:var(--muted);font-size:.78rem}
+.gsep::after{content:"";flex:1;height:1px;background:var(--border)}
+.gsep b{color:var(--text);font-weight:700}
 .card .hd{display:flex;align-items:baseline;gap:7px;margin-bottom:1px}
 .card .cd{color:var(--muted);font-size:.75rem;font-variant-numeric:tabular-nums}
 .card .nm{font-weight:700;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -74,6 +81,7 @@ details.method .warn{color:var(--up)}
 .pill.near{background:#33280d;color:#ffcb5c}
 .pill.risk{background:#3a2a10;color:#ff9f43}
 .pill.risk2{background:#241f10;color:#c9ad63}
+.pill.keep{background:#0d3038;color:#5fe0e8}
 .conf{color:var(--muted);font-size:.71rem;margin-left:auto;white-space:nowrap}
 .conf b{font-variant-numeric:tabular-nums}
 .conf.hi b{color:#ff9f43}
@@ -122,7 +130,8 @@ const esc = t => String(t == null ? "" : t).replace(/[&<>"]/g,
   c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 let DATA = null;
-const state = { kind: "add", sort: "float_mktcap", order: "auto", q: "", bars: 120, riskOnly: false };
+const state = { kind: "add", sort: "float_mktcap", order: "auto", q: "", bars: 120,
+                riskOnly: false, only: "all" };
 const cache = new Map(), pending = new Map();
 let observer = null;
 
@@ -253,14 +262,37 @@ function barHtml(v, th) {
   return '<div class="bar"><i class="' + (v >= th ? "" : "ng") + '" style="width:' + (p * 100).toFixed(1) + '%"></i></div>';
 }
 
+// group: add=採用 / near=圏外だが当落線上 / blocked=サイズは足りるが入れない
+//        out=除外 / keep=継続だが当落線上
+const GROUPS = {
+  add:     { tab: "add", label: "採用",   pill: "in",   asc: true,
+             head: "採用（浮動株時価総額が足切り以上）" },
+  near:    { tab: "add", label: "圏外",   pill: "near", asc: false,
+             head: "当落線上・圏外（足切りに届かなかったが、推計の誤差で入りうる）" },
+  blocked: { tab: "add", label: "対象外", pill: "out",  asc: false,
+             head: "サイズは足りているが入れない（母集団外・新規追加見送り）" },
+  out:     { tab: "out", label: "除外",   pill: "out",  asc: false,
+             head: "除外（浮動株時価総額が足切り未満）" },
+  keep:    { tab: "out", label: "継続",   pill: "keep", asc: true,
+             head: "当落線上・継続（残る判定だが足切りまで25%以内）" },
+};
+
 function cardHtml(r) {
   const add = state.kind === "add";
   const th = add ? DATA.meta.t96 : DATA.meta.t97;
-  const badge = add
-    ? '<span class="pill in">採用</span>'
-    : (r.fail && r.fail.length && r.fail[0].indexOf("母集団外") === 0
+  const g = GROUPS[r.group] || GROUPS[add ? "add" : "out"];
+  // 回転率で落ちた候補は「浮動株比率の誤差で入りうる」話ではない(回転率は実測で誤差がない)。
+  // サイズ基準の確率を出すと誤解を招くので、落ちた理由をそのままバッジにする。
+  const turnFail = add && r.fail && r.fail.indexOf("回転率") >= 0;
+  // 上場1年未満は8月の日次平均が部分月・大株主が上場前ベースで、確率を出せる状態にない
+  const isNew = add && (r.months || 12) < 12;
+  const badge = turnFail && r.group === "near"
+    ? '<span class="pill near">回転率不足</span>'
+    : (r.group === "blocked" && r.fail && r.fail.length)
+    ? '<span class="pill out">' + esc(r.fail[0]) + "</span>"
+    : (!add && r.fail && r.fail.length && r.fail[0].indexOf("母集団外") === 0)
         ? '<span class="pill out">' + esc(r.fail[0]) + "</span>"
-        : '<span class="pill out">除外</span>');
+        : '<span class="pill ' + g.pill + '">' + g.label + "</span>";
   const meta2 = add
     ? "時価総額 <b>" + fmtOku(r.mktcap) + "</b>　浮動株 <b>" + (r.float_ratio * 100).toFixed(0) + "%</b>" +
       (r.float_ratio_raw ? '<span class="cd"> (大株主 ' + (r.float_ratio_raw * 100).toFixed(0) + "%)</span>" : "")
@@ -274,15 +306,17 @@ function cardHtml(r) {
     : "";
   const risk = r.risk || "low";
   const confTxt = add
-    ? (r.conf == null ? "" : '<span class="conf' + (risk === "high" ? " hi" : "") + '">' +
+    ? ((r.conf == null || turnFail || isNew) ? "" : '<span class="conf' + (risk === "high" ? " hi" : "") + '">' +
         (r.add ? "採用のまま" : "見送りのまま") + ' <b>' + Math.round(r.conf * 100) + "%</b></span>")
     : (r.margin == null ? "" : '<span class="conf' + (risk === "high" ? " hi" : "") +
         '">足切りまで <b>' + ((r.margin - 1) * 100).toFixed(0) + "%</b></span>");
-  return '<div class="card risk-' + risk + '" data-code="' + esc(r.code) + '">' +
+  return '<div class="card risk-' + (turnFail || isNew ? "low" : risk) + " g-" + (r.group || "") +
+    '" data-code="' + esc(r.code) + '">' +
     '<div class="hd"><span class="cd">' + esc(r.code) + '</span>' +
     '<span class="nm">' + esc(r.name) + "</span>" + badge +
     (r.kanri ? ' <span class="pill near">監理</span>' : "") +
-    (risk === "high" ? ' <span class="pill risk">微妙</span>'
+    (isNew ? ' <span class="pill near">上場1年未満・推計不安定</span>' : "") +
+    (turnFail || isNew ? "" : risk === "high" ? ' <span class="pill risk">微妙</span>'
       : risk === "mid" ? ' <span class="pill risk2">やや微妙</span>' : "") +
     confTxt + "</div>" +
     '<div class="sub"><span>' + meta2 + "</span></div>" +
@@ -306,34 +340,55 @@ const SORTS = [
   { k: "code", t: "コード" },
 ];
 
-function rows() {
+// グループの並び順。既定では足切りを挟んで両側が隣り合うように並べる
+// (採用は小さい順 → 圏外は大きい順 / 除外は大きい順 → 継続は小さい順)。
+const ORDER = { add: ["add", "near", "blocked"], out: ["out", "keep"] };
+
+function groupRows() {
   const src = state.kind === "add" ? DATA.added : DATA.excluded;
   const q = state.q.trim().toLowerCase();
   let rs = q ? src.filter(r => (r.code + " " + r.name).toLowerCase().indexOf(q) >= 0) : src.slice();
   if (state.riskOnly) rs = rs.filter(r => r.risk === "high" || r.risk === "mid");
-  // 既定は「当落線上が先頭」: 採用は小さい順、除外は大きい順
-  const asc = state.order === "auto" ? (state.kind === "add") : state.order === "asc";
-  rs.sort((a, b) => {
-    let x = a[state.sort], y = b[state.sort];
-    if (state.sort === "code") { x = String(x); y = String(y); }
-    if (x == null) x = -Infinity;
-    if (y == null) y = -Infinity;
-    return x < y ? (asc ? -1 : 1) : x > y ? (asc ? 1 : -1) : 0;
-  });
-  return rs;
+  const main = state.kind === "add" ? "add" : "out";
+  if (state.only === "main") rs = rs.filter(r => r.group === main);
+  // 「足切りの前後だけ」: グループを問わず足切りから±35%以内。上場1年未満も常に入れる
+  if (state.only === "edge") {
+    const th = state.kind === "add" ? DATA.meta.t96 : DATA.meta.t97;
+    rs = rs.filter(r => (r.months || 12) < 12 ||
+      (r.float_mktcap != null && Math.abs(r.float_mktcap / th - 1) <= 0.35));
+  }
+
+  return ORDER[state.kind].map(g => {
+    const rows = rs.filter(r => r.group === g);
+    const asc = state.order === "auto" ? GROUPS[g].asc : state.order === "asc";
+    rows.sort((a, b) => {
+      let x = a[state.sort], y = b[state.sort];
+      if (state.sort === "code") { x = String(x); y = String(y); }
+      if (x == null) x = -Infinity;
+      if (y == null) y = -Infinity;
+      return x < y ? (asc ? -1 : 1) : x > y ? (asc ? 1 : -1) : 0;
+    });
+    return { g: g, rows: rows };
+  }).filter(x => x.rows.length);
 }
 
 function renderGrid() {
-  const rs = rows();
-  document.getElementById("grid").innerHTML = rs.length
-    ? rs.map(cardHtml).join("")
+  const gs = groupRows();
+  const n = gs.reduce((a, x) => a + x.rows.length, 0);
+  document.getElementById("grid").innerHTML = n
+    ? gs.map(x => '<div class="gsep"><b>' + GROUPS[x.g].label + " " + x.rows.length +
+        "銘柄</b>" + GROUPS[x.g].head + "</div>" + x.rows.map(cardHtml).join("")).join("")
     : '<div class="loading">該当する銘柄がありません</div>';
-  document.getElementById("cnt").textContent = rs.length + "銘柄";
+  document.getElementById("cnt").textContent =
+    gs.map(x => GROUPS[x.g].label + " " + x.rows.length).join(" / ");
   observeCards();
 }
 
+const nGrp = (key, g) => DATA[key].filter(r => r.group === g).length;
+
 function render() {
   const m = DATA.meta;
+  const mp = DATA.added.find(r => r.code === "3350");
   const c = (t, v, s, cls) => '<div class="stat"><div class="t">' + t + '</div><div class="v ' +
     (cls || "") + '">' + v + "</div>" + (s ? '<div class="s">' + s + "</div>" : "") + "</div>";
   document.getElementById("asof").textContent =
@@ -345,8 +400,8 @@ function render() {
       c("入替実施", "10/30", "10月最終営業日") +
       c("継続の足切り", fmtOku(m.t97), "累積97%以内") +
       c("追加の足切り", fmtOku(m.t96), "累積96%以内") +
-      c("新規採用", DATA.added.length + "銘柄", "候補 " + m.n_candidates + " のうち", "ok") +
-      c("除外", DATA.excluded.length + "銘柄", "現構成 " + m.n_members + " のうち", "warn") +
+      c("新規採用", nGrp("added", "add") + "銘柄", "候補 " + m.n_candidates + " のうち", "ok") +
+      c("除外", nGrp("excluded", "out") + "銘柄", "現構成 " + m.n_members + " のうち", "warn") +
       c("次期TOPIX", (m.n_keep + m.n_added) + "銘柄", "JPX試算は約1,050") +
     "</div>" +
     '<div class="note"><b class="warn">JPXの公表値ではなく当サイトの推計です。</b> ' +
@@ -354,8 +409,11 @@ function render() {
     "選定データ自体は<b>2026年8月31日の大引けで確定済み</b>で、以後の株価・出来高は結果を動かしません。<br>" +
     "除外銘柄はすぐ指数から消えるのではなく、<b>2026年10月末の×0.875から四半期ごと8段階でウエイトが下がり、2028年7月末に×0</b>になります" +
     "（2027年8月末基準の再評価で継続基準を満たせば×0.500で停止）。<br>" +
-    "<b>並び順の既定は「当落線上が先頭」</b>です（新規採用は浮動株時価総額の小さい順、除外は大きい順）。" +
-    "この帯の銘柄ほど推計がひっくり返りやすいので、答え合わせはここから見てください。<br>" +
+    "<b>当落線上は足切りの両側とも載せています。</b>「採用」の後ろに<b style=\"color:#ffcb5c\">圏外</b>" +
+    "（足切りに届かなかったが誤差で入りうる候補）、「除外」の後ろに<b style=\"color:#5fe0e8\">継続</b>" +
+    "（残る判定だが足切りまで25%以内）を並べてあります。<b>各グループとも当落線上が先頭</b>で、" +
+    "<b>「表示範囲 → 足切りの前後だけ」にすると境目の両側だけが残ります</b>。" +
+    "片側だけ見ると推計の誤差の幅が見えなくなるので、答え合わせはここから。<br>" +
     '<b style="color:#ff9f43">左端がオレンジ＝「微妙」</b>／<b style="color:#c9ad63">くすんだ黄＝「やや微妙」</b>。' +
     "新規採用側は浮動株比率の実測誤差分布を当てて<b>判定どおりである確率</b>を、" +
     "除外側は<b>足切りからの距離</b>を出しています（除外側の浮動株時価総額はJPXのウエイト由来なので銘柄ごとの誤差は小さく、効くのは足切り値のズレです）。</div>" +
@@ -374,12 +432,28 @@ function render() {
     "銘柄で実測して <b>×" + (m.float_calib || 1).toFixed(3) + "</b> のキャリブレーションを掛けています。<br><br>" +
     "<b>母集団から外れる銘柄</b>: 基準日に<b>整理銘柄</b>または<b>特別注意銘柄</b>に指定されている銘柄は対象外です" +
     "（監理銘柄は対象外ではありません）。<b>ニデック(6594)</b>と<b>エア・ウォーター(4088)</b>は浮動株時価総額だけなら余裕で基準を満たしますが、" +
-    "いずれも特別注意銘柄のため今回は採用されません。" +
+    "いずれも特別注意銘柄のため今回は採用されません。<br>" +
+    '<b class="warn">暗号資産が総資産の50%超の銘柄も新規追加されません。</b>' +
+    "JPX総研が2026年4月3日に算出要領を改定し、「主たる資産を暗号資産とする銘柄」の新規追加を見送ることになりました" +
+    "（<b>2026年10月の定期入替から適用</b>／既存の構成銘柄は対象外なので除外はされません）。該当は" +
+    "<b>メタプラネット(3350)</b>・<b>ANAPホールディングス(3189)</b>・<b>リミックスポイント(3825)</b>の3社。" +
+    (mp ? "メタプラネットは浮動株時価総額 " + fmtOku(mp.float_mktcap) +
+          " で、本来なら上位の採用候補です。" : "") + "<br><br>" +
+    "<b>浮動株比率の推計で気をつけている点</b>: ①株探の大株主の比率は<b>公表時点の発行済株式数ベース</b>で" +
+    "その後の増資が反映されていないため、持ち株数から現在ベースに引き直しています" +
+    "（新規上場銘柄で非浮動を数割も過大に見積もる原因になります。今回 " + (m.n_rebased || 0) + "銘柄に適用）。" +
+    "②「〇〇アセット」のような社名は運用会社と創業家の資産管理会社の区別がつかないので、" +
+    "<b>単独で15%以上を持つ場合は資産管理会社(非浮動)とみなし</b>ています。<br>" +
+    '<b class="warn">上場1年未満の銘柄はとくに当てになりません。</b>' +
+    "8月の日次平均が部分月になるうえ、大株主が上場前の資本構成のままのことがあります。" +
+    "そのため足切りから遠くても当落線上として載せています。" +
     "</div></details>" +
     '<div class="toolbar">' +
       '<span class="seg" id="kindSeg">' +
-        '<button data-k="add" class="on">新規採用 ' + DATA.added.length + "</button>" +
-        '<button data-k="out">除外 ' + DATA.excluded.length + "</button></span>" +
+        '<button data-k="add" class="on">新規採用 ' + nGrp("added", "add") +
+          ' <span style="opacity:.7">+線上 ' + (DATA.added.length - nGrp("added", "add")) + "</span></button>" +
+        '<button data-k="out">除外 ' + nGrp("excluded", "out") +
+          ' <span style="opacity:.7">+線上 ' + (DATA.excluded.length - nGrp("excluded", "out")) + "</span></button></span>" +
       '<span><label>並び替え</label><select id="sortSel">' +
         SORTS.map(s => '<option value="' + s.k + '">' + s.t + "</option>").join("") +
         '</select><select id="orderSel">' +
@@ -389,6 +463,9 @@ function render() {
         '<option value="60">3ヶ月</option><option value="120" selected>6ヶ月</option>' +
         '<option value="250">1年</option></select></span>' +
       '<input id="q" type="search" placeholder="銘柄名・コードで絞り込み">' +
+      '<span><label>表示範囲</label><select id="onlySel">' +
+        '<option value="all">当落線上も表示</option><option value="main">判定に入るものだけ</option>' +
+        '<option value="edge">足切りの前後だけ</option></select></span>' +
       '<label style="cursor:pointer;margin:0"><input type="checkbox" id="riskOnly"> 当落が微妙な銘柄だけ</label>' +
       '<span class="spacer"></span><span class="count" id="cnt"></span>' +
     "</div>" +
@@ -408,6 +485,7 @@ function render() {
     document.querySelectorAll(".card").forEach(el => { if (el.__data) drawChart(el.querySelector("canvas"), el.__data, state.bars); });
   };
   document.getElementById("q").oninput = e => { state.q = e.target.value; renderGrid(); };
+  document.getElementById("onlySel").onchange = e => { state.only = e.target.value; renderGrid(); };
   document.getElementById("riskOnly").onchange = e => { state.riskOnly = e.target.checked; renderGrid(); };
   renderGrid();
 }

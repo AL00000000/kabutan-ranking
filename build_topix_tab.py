@@ -105,10 +105,28 @@ def main() -> None:
     reb = json.loads(REBALANCE.read_text(encoding="utf-8"))
     CODES.mkdir(parents=True, exist_ok=True)
 
-    total = len(reb["added"]) + len(reb["excluded"])
+    meta = reb["meta"]
+    t96 = meta["t96"]
+    NG, NA = meta.get("ineligible", {}), meta.get("no_add", {})
+
+    # 当落線上は「入る側」も「入らない側」も並べて出す。どちらか一方だけ載せると
+    # 推計の誤差(浮動株比率は±20%以内が8割)が見えなくなり、断定に見えてしまうため。
+    #   near    … 足切りに届かなかった候補のうち、足切りの6割以上 または 上場1年未満
+    #             (上場1年未満は8月の日次平均が部分月・大株主が上場前ベースで最も当てにならない)
+    #   blocked … サイズは足りているのに母集団外/新規追加見送りで入れない銘柄
+    #   keep    … 継続と判定したが足切りからの距離が25%以内の現構成銘柄
+    near = [x for x in reb["missed"]
+            if x["code"] not in NG and x["code"] not in NA
+            and (x["float_mktcap"] >= t96 * 0.6 or (x.get("months") or 12) < 12)]
+    blocked = [x for x in reb["missed"]
+               if x["code"] in NA or (x["code"] in NG and x["float_mktcap"] >= t96)]
+    keepnear = [x for x in reb["kept"] if (x.get("margin") or 9) <= 1.25]
+
+    total = (len(reb["added"]) + len(reb["excluded"])
+             + len(near) + len(blocked) + len(keepnear))
     t0, done, miss = time.time(), 0, []
 
-    def pack(rows: list[dict], kind: str) -> list[dict]:
+    def pack(rows: list[dict], kind: str, group: str) -> list[dict]:
         nonlocal done
         out = []
         for r in rows:
@@ -122,14 +140,16 @@ def main() -> None:
             cl, days = bars["c"], bars["d"]
             drop = ("monthly",) if kind == "add" else ("nonfloat", "monthly")
             row = {k: v for k, v in r.items() if k not in drop}
-            row.update({"close": cl[-1], "kind": kind,
+            row.update({"close": cl[-1], "kind": kind, "group": group,
                         "r1w": ret(cl, 5), "r1m": ret(cl, 20), "r3m": ret(cl, 60),
                         "ytd": ytd(days, cl)})
             out.append(row)
         return out
 
-    added = pack(reb["added"], "add")
-    excluded = pack(reb["excluded"], "out")
+    added = (pack(reb["added"], "add", "add")
+             + pack(near, "add", "near")
+             + pack(blocked, "add", "blocked"))
+    excluded = pack(reb["excluded"], "out", "out") + pack(keepnear, "out", "keep")
 
     payload = {
         "generated": dt.datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -146,7 +166,10 @@ def main() -> None:
 
     files = list(CODES.glob("*.json.gz"))
     size = sum(p.stat().st_size for p in files)
-    print(f"新規採用 {len(added)}銘柄 / 除外 {len(excluded)}銘柄  取得失敗 {len(miss)}")
+    n = lambda rs, g: sum(1 for r in rs if r["group"] == g)
+    print(f"新規採用 {n(added,'add')} / 当落線上(圏外) {n(added,'near')} / "
+          f"対象外 {n(added,'blocked')}")
+    print(f"除外 {n(excluded,'out')} / 当落線上(継続) {n(excluded,'keep')}  取得失敗 {len(miss)}")
     print(f"日足 {len(files)}ファイル {size/1e6:.1f}MB -> {OUT}")
 
 
