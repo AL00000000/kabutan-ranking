@@ -282,6 +282,7 @@ footer a { color: var(--accent); }
       <span class="tabgroup-label">週次更新</span>
       <div class="tabgroup-items">
         <button class="tab" data-tab="shinyo">信用評価損益率</button>
+        <button class="tab" data-tab="wk">週間騰落ログ</button>
       </div>
     </div>
     <div class="tabgroup">
@@ -651,6 +652,36 @@ footer a { color: var(--accent); }
       本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
     </footer>
   </div><!-- /view-g623 -->
+
+  <div id="view-wk" hidden>
+    <div class="toolbar">
+      <span><label>基準日</label><select id="wkDateSel"></select></span>
+      <span><label>方向</label><select id="wkDirSel">
+        <option value="up">上昇</option>
+        <option value="down">下落</option>
+      </select></span>
+      <span><label>業種</label><select id="wkSectorSel"><option value="">すべて</option></select></span>
+      <span><label>売買代金 ≧</label><input id="wkMinVal" class="streakMin" type="number" min="0" step="1" placeholder="0"><label style="margin-left:4px">億円</label></span>
+      <input id="wkQ" type="search" placeholder="銘柄名・コードで絞り込み">
+      <span class="stat" id="wkStat"></span>
+    </div>
+    <div class="banner" id="wkBanner">読み込み中…</div>
+    <div class="hintRow">
+      <div class="hint"><b>1週間の騰落率(過去1週間リターン)のランキング</b>を、毎週金曜に記録して積み上げていくログです。上昇側・下落側の両方を残しています。<br>
+      <b>「基準日」はサイト側が1週間リターンを計算した日付</b>で、株マップ.comの表記をそのまま持ってきています。取得時点の株価は「株価時点」に出しており、基準日と1日ずれることがあります(サイトのファクター値は前営業日基準で更新されるため)。<br>
+      「25日乖離」は25日移動平均からの乖離率で、<b>大きくプラスなら短期的に上がりすぎ</b>の目安です。「売買代金」は取得時点の値で、小型株のノイズを外したいときは下限を入れて絞り込めます。列見出しクリックで並び替えできます。</div>
+    </div>
+    <div class="tablecard">
+      <table id="wkTbl">
+        <thead><tr id="wkHeadRow"></tr></thead>
+        <tbody id="wkBody"><tr><td class="loading" colspan="10">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+    <footer>
+      データ取得元: <a href="https://jp.kabumap.com/servlets/kabumap/Action?SRC=stockRanking/base&ind=rtn1w&exch=all&d=d" target="_blank" rel="noopener">株マップ.com 株式ランキング(過去1週間リターン・全市場)</a> / 市場休場日は更新されません。<br>
+      本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
+    </footer>
+  </div><!-- /view-wk -->
 
   <div id="view-turnover" hidden>
     <div class="toolbar">
@@ -3455,6 +3486,178 @@ async function skInit() {
   }
 }
 
+// ===== 週間騰落ログ =====
+let wkInited = false, wkIdx = null, wkData = null, wkSort = "rank", wkAsc = true;
+const wkCache = new Map();
+
+const WK_COLS = [
+  { key: "rank",    label: "順位",   num: r => r.rank },
+  { key: "code",    label: "コード", left: true, code: true, num: null },
+  { key: "name",    label: "銘柄名", left: true, cls: "name tl", num: null },
+  { key: "sector",  label: "業種",   left: true, cls: "tl", num: null },
+  { key: "price",   label: "株価",   num: r => r.price ?? -Infinity, fmt: v => v == null ? "-" : v.toLocaleString("ja-JP", { maximumFractionDigits: 1 }) },
+  { key: "rtn1w",   label: "1週間",  num: r => r.rtn1w ?? -Infinity, color: true, fmt: v => wkPct(v) },
+  { key: "chg_pct", label: "前日比%", num: r => r.chg_pct ?? -Infinity, color: true, fmt: v => wkPct(v) },
+  { key: "value",   label: "売買代金", num: r => r.value ?? -Infinity, fmt: v => wkVal(v) },
+  { key: "spr25",   label: "25日乖離", num: r => r.spr25 ?? -Infinity, color: true, fmt: v => wkPct(v) },
+  { key: "per",     label: "PER",    num: r => r.per == null ? Infinity : r.per, fmt: v => v == null ? "-" : v.toFixed(2) },
+];
+
+// 小型株が多く「0億円」だらけになるので、10億円未満は小数1桁で出す
+function wkVal(v) {
+  if (v == null) return "-";
+  const oku = v / 100;
+  return oku < 10 ? oku.toFixed(1) + "億円"
+                  : Math.round(oku).toLocaleString("ja-JP") + "億円";
+}
+
+function wkPct(v) {
+  if (v == null) return "-";
+  return (v > 0 ? "+" : "") + v.toFixed(2) + "%";
+}
+
+async function wkLoad(date) {
+  if (wkCache.has(date)) { wkData = wkCache.get(date); return; }
+  const res = await fetch("data_weekly/" + date + ".json", { cache: "no-cache" });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const j = await res.json();
+  wkCache.set(date, j);
+  wkData = j;
+}
+
+function wkRows() {
+  const dir = document.getElementById("wkDirSel").value;
+  const q = document.getElementById("wkQ").value.trim().toLowerCase();
+  const sec = document.getElementById("wkSectorSel").value;
+  const minV = (+document.getElementById("wkMinVal").value || 0) * 100; // 億円→百万円
+  let rows = (wkData[dir] || []).filter(r =>
+    (!sec || r.sector === sec)
+    && (!minV || (r.value ?? 0) >= minV)
+    && (!q || r.name.toLowerCase().includes(q) || r.code.toLowerCase().includes(q)));
+
+  const col = WK_COLS.find(c => c.key === wkSort) || WK_COLS[0];
+  rows = rows.slice().sort((a, b) => {
+    let d;
+    if (col.num) d = col.num(a) - col.num(b);
+    else d = String(a[col.key]).localeCompare(String(b[col.key]), "ja");
+    if (d === 0) d = a.rank - b.rank;
+    return wkAsc ? d : -d;
+  });
+  return rows;
+}
+
+function wkBuildHead() {
+  const tr = document.getElementById("wkHeadRow");
+  tr.innerHTML = "";
+  for (const c of WK_COLS) {
+    const th = document.createElement("th");
+    th.textContent = c.label;
+    if (c.left) th.classList.add("tl");
+    if (c.key === wkSort) {
+      const a = document.createElement("span");
+      a.className = "arw";
+      a.textContent = wkAsc ? "▲" : "▼";
+      th.appendChild(a);
+    }
+    th.onclick = () => {
+      if (wkSort === c.key) wkAsc = !wkAsc;
+      else { wkSort = c.key; wkAsc = (c.key === "rank" || !c.num); }
+      wkRender();
+    };
+    tr.appendChild(th);
+  }
+}
+
+function wkUpdateSectors() {
+  const sel = document.getElementById("wkSectorSel");
+  const keep = sel.value;
+  const dir = document.getElementById("wkDirSel").value;
+  const list = [...new Set((wkData[dir] || []).map(r => r.sector))].sort((a, b) => a.localeCompare(b, "ja"));
+  sel.innerHTML = '<option value="">すべて</option>'
+    + list.map(x => '<option value="' + x + '">' + x + "</option>").join("");
+  if (list.includes(keep)) sel.value = keep;
+}
+
+function wkRender() {
+  if (!wkData) return;
+  wkBuildHead();
+  const rows = wkRows();
+  const dir = document.getElementById("wkDirSel").value;
+  const total = (wkData[dir] || []).length;
+  const tb = document.getElementById("wkBody");
+  tb.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  for (const r of rows) {
+    const tr = document.createElement("tr");
+    for (const c of WK_COLS) {
+      const td = document.createElement("td");
+      const v = r[c.key];
+      if (c.code) {
+        td.className = "code tl";
+        const a = document.createElement("a");
+        a.href = "https://kabutan.jp/stock/?code=" + encodeURIComponent(v);
+        a.target = "_blank"; a.rel = "noopener";
+        a.textContent = v;
+        td.appendChild(a);
+      } else {
+        if (c.cls) td.className = c.cls;
+        else if (c.left) td.className = "tl";
+        else if (c.color) td.className = v > 0 ? "up" : v < 0 ? "down" : "flat";
+        td.textContent = c.fmt ? c.fmt(v) : (v == null ? "-" : v);
+      }
+      tr.appendChild(td);
+    }
+    frag.appendChild(tr);
+  }
+  tb.appendChild(frag);
+  document.getElementById("wkStat").innerHTML =
+    "表示 <b>" + rows.length + "</b> / " + total + " 銘柄";
+
+  const wd = "日月火水木金土"[new Date(wkData.base + "T00:00:00+09:00").getDay()];
+  document.getElementById("wkBanner").innerHTML =
+    "基準日: <b>" + wkData.base + "（" + wd + "）</b>"
+    + " / 株価時点: <b>" + (wkData.asof || "-") + "</b>"
+    + " / 記録済み <b>" + wkIdx.dates.length + "</b> 週分";
+}
+
+async function wkShow(date) {
+  try {
+    await wkLoad(date);
+  } catch (e) {
+    document.getElementById("wkBanner").innerHTML =
+      '<span class="err">読み込みに失敗しました: ' + e.message + "</span>";
+    return;
+  }
+  const n = wkData.n || (wkData.up || []).length;
+  const dl = document.getElementById("wkDirSel");
+  dl.options[0].textContent = "上昇 上位" + n;
+  dl.options[1].textContent = "下落 上位" + n;
+  wkUpdateSectors();
+  wkRender();
+}
+
+async function wkInit() {
+  try {
+    const res = await fetch("data_weekly/index.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    wkIdx = await res.json();
+  } catch (e) {
+    document.getElementById("wkBanner").innerHTML =
+      '<span class="err">読み込みに失敗しました: ' + e.message + "</span>";
+    document.getElementById("wkBody").innerHTML =
+      '<tr><td class="loading" colspan="10">データがありません</td></tr>';
+    return;
+  }
+  const sel = document.getElementById("wkDateSel");
+  sel.innerHTML = wkIdx.dates.map(d => '<option value="' + d + '">' + d + "</option>").join("");
+  sel.onchange = () => wkShow(sel.value);
+  document.getElementById("wkDirSel").onchange = () => { wkUpdateSectors(); wkRender(); };
+  document.getElementById("wkSectorSel").onchange = wkRender;
+  document.getElementById("wkMinVal").oninput = wkRender;
+  document.getElementById("wkQ").oninput = wkRender;
+  if (wkIdx.dates.length) await wkShow(wkIdx.dates[0]);
+}
+
 const VIEW_ID = {
   ranking: "view-ranking", intraday: "view-intraday", split: "view-split",
   yori: "view-yori", minute: "view-minute", min5: "view-min5", sector: "view-sector",
@@ -3462,7 +3665,7 @@ const VIEW_ID = {
   pts: "view-pts", watch: "view-watch", shinyo: "view-shinyo",
   newhigh: "view-newhigh", lowvolume: "view-lowvolume", jukyu: "view-jukyu",
   uchu: "view-uchu", topix: "view-topix", turnover: "view-turnover", period: "view-period",
-  g623: "view-g623", d0901: "view-d0901",
+  g623: "view-g623", wk: "view-wk", d0901: "view-d0901",
   selran: "view-selran", baibai: "view-baibai", search: "view-search",
 };
 function switchTab(name) {
@@ -3482,6 +3685,7 @@ function switchTab(name) {
   if (name === "search" && !skInited) { skInited = true; skInit(); }
   if (name === "period" && !pdInited) { pdInited = true; pdInit(); }
   if (name === "g623" && !g6Inited) { g6Inited = true; g6Init(); }
+  if (name === "wk" && !wkInited) { wkInited = true; wkInit(); }
   const jv = JK_VIEWS[name];
   if (jv && !jv.inited) { jv.inited = true; jv.init(); }
   // 外部サイトのiframeは初回表示時に遅延読み込み
@@ -3514,6 +3718,7 @@ const FEEDS = {
   // prices.json は1MB近いので、最終更新日だけを書いた軽い index.json を見る
   period:   { kind: "field", url: "./data_period/index.json", field: "updated", freq: "daily" },
   g623:     { kind: "field", url: "./data_623/index.json", field: "updated", freq: "daily" },
+  wk:       { kind: "field", url: "./data_weekly/index.json", field: "updated", freq: "weekly" },
   d0901:    { kind: "field", url: "./data_0901/index.json", field: "updated", freq: "daily" },
   stoplow:  { kind: "field", url: "./data_stoplow/data.json", field: "updated", freq: "daily" },
   streaks:  { kind: "field", url: "./data_streaks/data.json", field: "updated", freq: "daily" },
