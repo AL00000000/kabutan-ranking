@@ -2204,6 +2204,8 @@ function nhRenderFollow() {
       + "<table><thead>" + bhead + "</thead><tbody>"
       + brow("平均", a => a.raw && a.raw.mean, "pct")
       + brow("中央値", a => a.raw && a.raw.median, "pct")
+      + brow("上位20%の平均", a => a.raw && a.raw.top20, "pct")
+      + brow("下位20%の平均", a => a.raw && a.raw.bot20, "pct")
       + brow("対TOPIX 平均", a => a.excess && a.excess.mean, "pct")
       + brow("対TOPIX 中央値", a => a.excess && a.excess.median, "pct")
       + brow("勝率（上昇した割合）", a => a.raw && a.raw.win, "rate")
@@ -2217,10 +2219,13 @@ function nhRenderFollow() {
     + "〜" + nhFollowData.to + " の " + nhFollowData.days + "営業日ぶん・延べ "
     + (nhFollowData.counts || {})[seg] + "件が母数）。"
     + "「対TOPIX」は同じ期間のTOPIX(1306)の騰落率を引いた超過リターンです。"
+    + "「上位20%の平均」は騰落率の良かった方から2割だけを平均した値で、「下位20%の平均」がその裏返しです。<b>この2つがほぼ対称なら、上振れは同じだけの下振れとセット</b>という意味になります。"
     + (thin ? '<br><span class="thin">⚠ 1か月後はまだ標本が少なく、参考値です（日が経つほど信頼できる数字になります）。</span>' : "")
     + "</div><table><thead>" + head + "</thead><tbody>"
     + row("平均", a => a.raw && a.raw.mean, "pct")
     + row("中央値", a => a.raw && a.raw.median, "pct")
+    + row("上位20%の平均", a => a.raw && a.raw.top20, "pct")
+    + row("下位20%の平均", a => a.raw && a.raw.bot20, "pct")
     + row("対TOPIX 平均", a => a.excess && a.excess.mean, "pct")
     + row("対TOPIX 中央値", a => a.excess && a.excess.median, "pct")
     + row("勝率（上昇した割合）", a => a.raw && a.raw.win, "rate")
