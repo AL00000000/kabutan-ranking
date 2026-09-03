@@ -668,6 +668,7 @@ footer a { color: var(--accent); }
     <div class="banner" id="wkBanner">読み込み中…</div>
     <div class="hintRow">
       <div class="hint"><b>1週間の騰落率(過去1週間リターン)のランキング</b>を、毎週金曜に記録して積み上げていくログです。上昇側・下落側の両方を残しています。<br>
+      <b>2024年10月〜2025年12月ぶんは、手動でスプレッドシートに記録していたものを取り込んだデータ</b>です（各週の上位90銘柄前後・上昇側のみ）。自動取得に切り替わった週からは上昇・下落とも300銘柄ずつ入っています。手動ぶんの基準日はシート名の週範囲から割り出した金曜日です。<br>
       <b>「基準日」はサイト側が1週間リターンを計算した日付</b>で、株マップ.comの表記をそのまま持ってきています。取得時点の株価は「株価時点」に出しており、基準日と1日ずれることがあります(サイトのファクター値は前営業日基準で更新されるため)。<br>
       「25日乖離」は25日移動平均からの乖離率で、<b>大きくプラスなら短期的に上がりすぎ</b>の目安です。「売買代金」は取得時点の値で、小型株のノイズを外したいときは下限を入れて絞り込めます。列見出しクリックで並び替えできます。</div>
     </div>
@@ -3615,9 +3616,13 @@ function wkRender() {
     "表示 <b>" + rows.length + "</b> / " + total + " 銘柄";
 
   const wd = "日月火水木金土"[new Date(wkData.base + "T00:00:00+09:00").getDay()];
+  const manual = wkData.source === "manual-sheet";
   document.getElementById("wkBanner").innerHTML =
     "基準日: <b>" + wkData.base + "（" + wd + "）</b>"
-    + " / 株価時点: <b>" + (wkData.asof || "-") + "</b>"
+    + (manual
+        ? ' / 対象週: <b>' + (wkData.range || "-") + "</b>"
+          + ' / <span class="lateNote">手動記録ぶん（上昇側のみ・スプレッドシートから取り込み）</span>'
+        : " / 株価時点: <b>" + (wkData.asof || "-") + "</b>")
     + " / 記録済み <b>" + wkIdx.dates.length + "</b> 週分";
 }
 
@@ -3629,10 +3634,14 @@ async function wkShow(date) {
       '<span class="err">読み込みに失敗しました: ' + e.message + "</span>";
     return;
   }
-  const n = wkData.n || (wkData.up || []).length;
+  const n = (wkData.up || []).length;
+  const dn = (wkData.down || []).length;
   const dl = document.getElementById("wkDirSel");
   dl.options[0].textContent = "上昇 上位" + n;
-  dl.options[1].textContent = "下落 上位" + n;
+  // 手動記録していた頃のぶんは上昇側しか残っていない
+  dl.options[1].textContent = dn ? "下落 上位" + dn : "下落（この週は記録なし）";
+  dl.options[1].disabled = !dn;
+  if (!dn) dl.value = "up";
   wkUpdateSectors();
   wkRender();
 }
