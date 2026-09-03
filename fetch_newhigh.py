@@ -38,6 +38,7 @@ from pathlib import Path
 BASE = Path(__file__).parent
 DOCS = BASE / "docs" / "data_newhigh"
 CACHE = BASE / "cache_bars"
+CACHE_MO = BASE / "cache_bars_mo"
 
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
@@ -46,6 +47,10 @@ RANK_URL = ("https://kabutan.jp/warning/trading_value_ranking"
             "?market=0&capitalization=-1&dispmode=normal&stc=&stm=0&page={page}")
 CHART_URL = ("https://query1.finance.yahoo.com/v8/finance/chart/{sym}.T"
              "?range=1y&interval=1d")
+# 上場来高値の判定用。月足なら30年ぶんでも300本程度で済むので軽い。
+# quote.high は分割調整済み(トヨタの2021年1:5分割で段差が出ないことを確認済み)。
+MO_URL = ("https://query1.finance.yahoo.com/v8/finance/chart/{sym}.T"
+          "?range=max&interval=1mo")
 
 PAGES = 16                # 50件 x 16 = 800銘柄(10億円のボーダーは700位台)
 MIN_VALUE = 1000          # 売買代金の下限(百万円) = 10億円
@@ -207,6 +212,63 @@ def fetch_bars(code):
     return bars
 
 
+def fetch_monthly(code):
+    """[(月初日, その月の高値), ...] を古い順に返す(上場来)。"""
+    payload = json.loads(get(MO_URL.format(sym=code)).decode("utf-8", "replace"))
+    chart = payload.get("chart") or {}
+    if chart.get("error"):
+        raise RuntimeError(str(chart["error"]))
+    results = chart.get("result") or []
+    if not results:
+        raise RuntimeError("結果が空です")
+    r = results[0]
+    meta = r.get("meta") or {}
+    stamps = r.get("timestamp") or []
+    highs = ((r.get("indicators") or {}).get("quote") or [{}])[0].get("high") or []
+    offset = meta.get("gmtoffset", 32400)
+    out = []
+    for i, ts in enumerate(stamps):
+        h = highs[i] if i < len(highs) else None
+        if h is None:
+            continue
+        d = datetime.fromtimestamp(ts + offset, tz=timezone.utc).date()
+        out.append((d, float(h)))
+    return out
+
+
+def cached_monthly(code, want_month, use_cache=True):
+    """月足は当月ぶんを判定に使わないので、月が変わるまでキャッシュを使い回せる。"""
+    path = CACHE_MO / f"{code}.json"
+    if use_cache:
+        c = load_json(path)
+        if c and c.get("month") == want_month:
+            return [(date.fromisoformat(d), h) for d, h in c["bars"]], True
+    bars = fetch_monthly(code)
+    if bars:
+        save_json(path, {"month": want_month,
+                         "bars": [[d.isoformat(), h] for d, h in bars]}, indent=None)
+    return bars, False
+
+
+def all_time_high_before(monthly, daily):
+    """「当日より前」の上場来最高値。
+
+    当月ぶんは月足だと当日を含んでしまうので使わず、
+    当月の当日より前は日足(直近1年)側でカバーする。
+    """
+    if not daily:
+        return None, None
+    today = daily[-1][0]
+    cur = today.strftime("%Y-%m")
+    mvals = [h for d, h in monthly if d.strftime("%Y-%m") < cur]
+    dvals = [b[1] for b in daily[:-1]]
+    vals = mvals + dvals
+    if not vals:
+        return None, None
+    since = monthly[0][0] if monthly else daily[0][0]
+    return max(vals), since
+
+
 CACHE_VERSION = 3      # 1=出来高なし 2=安値なし。上げると次回実行で全銘柄を取り直す
 
 
@@ -329,9 +391,35 @@ def main():
             "break_pct": round((high / a["prev52"] - 1) * 100, 2) if a["prev52"] else None,
             "close_break": a["close_break"], "prev_date": a["prev_date"], "gap": a["gap"],
             "hist_days": a["hist_days"], "short_hist": a["hist_days"] < SHORT_HIST,
+            "_bars": bars,     # 上場来判定で使い、保存前に落とす
         })
         if i % 100 == 0:
             print(f"  {i}/{len(universe)} 銘柄 … 新高値 {len(stocks)}件")
+
+    # 上場来新高値の判定。52週新高値を付けた銘柄だけ月足を追加取得すれば足りる
+    # (52週高値を超えていない銘柄が上場来高値を超えることはない)。
+    want_month = want.strftime("%Y-%m")
+    ath_failed = []
+    for st in stocks:
+        try:
+            monthly, from_cache = cached_monthly(st["code"], want_month,
+                                                 use_cache=not args.no_cache)
+        except Exception as e:                     # noqa: BLE001
+            ath_failed.append(st["code"])
+            print(f"  ! 月足 {st['code']} {st['name']}: {e}", file=sys.stderr)
+            st["ath"] = None
+            continue
+        if not from_cache:
+            time.sleep(BAR_SLEEP)
+        daily = st.pop("_bars")
+        prev, since = all_time_high_before(monthly, daily)
+        st["prev_ath"] = round(prev, 1) if prev else None
+        st["ath_since"] = since.isoformat() if since else None
+        st["ath"] = bool(prev and st["high"] >= prev)
+        st["ath_break_pct"] = (round((st["high"] / prev - 1) * 100, 2)
+                               if prev and st["ath"] else None)
+    for st in stocks:
+        st.pop("_bars", None)
 
     if stale:
         print(f"注意: 日足が当日({data_date})まで揃っていない銘柄 {len(stale)}件 "
@@ -353,7 +441,8 @@ def main():
         "counts": {
             "scanned": scanned, "universe": len(universe), "new_high": len(stocks),
             "fresh": len(fresh), "close_break": sum(1 for s in stocks if s["close_break"]),
-            "failed": len(failed), "stale": len(stale),
+            "ath": sum(1 for s in stocks if s.get("ath")),
+            "failed": len(failed), "stale": len(stale), "ath_failed": len(ath_failed),
         },
         "failed": failed,
         "stocks": stocks,
@@ -364,7 +453,8 @@ def main():
     save_json(DOCS / "index.json", {"dates": dates, "updated": dates[0] if dates else None})
 
     print(f"52週新高値(高値ベース) {len(stocks)}銘柄 / うち直近{FRESH_DAYS}営業日以内に"
-          f"新高値なし {len(fresh)}銘柄 / 終値も更新 {payload['counts']['close_break']}銘柄")
+          f"新高値なし {len(fresh)}銘柄 / 終値も更新 {payload['counts']['close_break']}銘柄"
+          f" / 上場来新高値 {payload['counts']['ath']}銘柄")
     print(DOCS / f"{data_date}.json")
 
 

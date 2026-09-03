@@ -242,6 +242,15 @@ footer a { color: var(--accent); }
 #g6Tbl tr.late td { background: #2a230f66; }
 #g6Tbl tr.late td:last-child { color: var(--new); font-weight: 600; }
 .lateNote { color: var(--new); }
+#nhFollow { background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+            padding: 12px 15px; margin-bottom: 12px; }
+#nhFollow h3 { font-size: .86rem; font-weight: 700; margin-bottom: 3px; }
+#nhFollow .note { color: var(--muted); font-size: .76rem; margin-bottom: 8px; line-height: 1.6; }
+#nhFollow table { width: auto; font-size: .84rem; }
+#nhFollow th, #nhFollow td { padding: 5px 14px 5px 0; text-align: right; white-space: nowrap; }
+#nhFollow th { color: var(--muted); font-weight: 600; font-size: .78rem; cursor: default; }
+#nhFollow th:first-child, #nhFollow td:first-child { text-align: left; color: var(--muted); }
+#nhFollow .thin { color: var(--new); }
 </style>
 </head>
 <body>
@@ -267,7 +276,7 @@ footer a { color: var(--accent); }
         <button class="tab" data-tab="min5">TOPIX入替</button>
         <button class="tab" data-tab="sector">業種別騰落</button>
         <button class="tab" data-tab="stop">ストップ高・安</button>
-        <button class="tab" data-tab="newhigh">52週新高値ブレイク</button>
+        <button class="tab" data-tab="newhigh">新高値</button>
         <button class="tab" data-tab="lowvolume">出来高52週最低</button>
         <button class="tab" data-tab="stoplow">ストップ安→追証決済時検証</button>
         <button class="tab" data-tab="streaks">指数連騰日数</button>
@@ -503,10 +512,14 @@ footer a { color: var(--accent); }
 
   <div id="view-newhigh" hidden>
     <div class="toolbar">
+      <span><label>種別</label><select id="nhKindSel">
+        <option value="ath" selected>上場来新高値</option>
+        <option value="52w">52週新高値</option>
+      </select></span>
       <span><label>日付</label><select id="nhDateSel"></select></span>
       <span><label>表示</label><select id="nhScopeSel">
         <option value="fresh">新規ブレイクのみ</option>
-        <option value="all">すべて</option>
+        <option value="all" selected>すべて</option>
         <option value="cont">継続中のみ</option>
       </select></span>
       <span><label>継続とみなす間隔 ≦</label><input id="nhFreshDays" class="streakMin" type="number" min="0" step="1" value="5"><label style="margin-left:4px">営業日</label></span>
@@ -516,8 +529,10 @@ footer a { color: var(--accent); }
     </div>
     <div class="banner" id="nhBanner">読み込み中…</div>
     <div class="cards" id="nhCards"></div>
+    <div id="nhFollow"></div>
     <div class="hintRow">
-      <div class="hint"><b>売買代金10億円以上</b>の東証銘柄(東P/東S/東G)のうち、その日に<b>52週新高値を更新した銘柄</b>です。判定は<b>高値ベース(ザラ場)</b>で、「当日高値 ≧ 前日までの52週間(365日)の最高値」を満たすもの。ETF・ETN・REITは対象外です。<br>
+      <div class="hint"><b>「種別」で上場来新高値と52週新高値を切り替えられます(既定は上場来)。</b>上場来は「52週新高値を付けた銘柄のうち、さらに上場来の高値も更新したもの」です。<b>「遡れる範囲」列に、その銘柄でさかのぼれる最古の月</b>を出しています。Yahoo Financeの月足は古い銘柄でも1999年前後までしか無いため、それ以前に付けた高値は判定に入りません(近年の上場銘柄は実際の上場来と一致します)。<br>
+      <b>売買代金10億円以上</b>の東証銘柄(東P/東S/東G)のうち、その日に<b>52週新高値を更新した銘柄</b>が母集団です。判定は<b>高値ベース(ザラ場)</b>で、「当日高値 ≧ 前日までの52週間(365日)の最高値」を満たすもの。ETF・ETN・REITは対象外です。<br>
       <b>既定表示は「新規ブレイクのみ」</b> = 前回新高値からの間隔が<b>6営業日以上</b>空いている銘柄だけを出します。上昇トレンド継続中で毎日のように新高値を付けている銘柄(前日も新高値など)は既定では隠れており、「表示」を<b>すべて</b>または<b>継続中のみ</b>に切り替えると出てきます。「継続とみなす間隔」を変えれば境界も動かせます(既定5営業日 = 5営業日以内に新高値があれば継続扱い)。<br>
       「更新幅」= 当日高値が52週高値をどれだけ超えたか。「終値も更新」= 終値が52週間で最も高い終値も超えた銘柄(ザラ場だけ超えて引けは戻した銘柄と区別できます)。「前回新高値」= 直近1年で前に新高値を付けた日と、そこからの営業日数。1年以内に前例がない場合は「1年超」。<span class="rec">1年未満</span>は上場から1年経っておらず、比較できる期間が52週に足りない銘柄です。列見出しクリックで並び替えできます。</div>
     </div>
@@ -2107,8 +2122,15 @@ const NH_COLS = [
   { key: "change_pct", label: "前日比",   num: s => s.change_pct ?? -Infinity, color: true, fmt: fmtPct },
   { key: "value",      label: "売買代金", num: s => s.value ?? -Infinity, fmt: fmtOku },
   { key: "high",       label: "当日高値", num: s => s.high ?? -Infinity, fmt: fmtPrice },
-  { key: "prev52",     label: "52週高値", num: s => s.prev52 ?? -Infinity, fmt: fmtPrice },
-  { key: "break_pct",  label: "更新幅",   num: s => s.break_pct ?? -Infinity, color: true, fmt: fmtPct },
+  { key: "prev52",     label: "52週高値", num: s => s.prev52 ?? -Infinity, fmt: fmtPrice,
+    only: "52w" },
+  { key: "break_pct",  label: "更新幅",   num: s => s.break_pct ?? -Infinity, color: true,
+    fmt: fmtPct, only: "52w" },
+  { key: "prev_ath",   label: "上場来高値", num: s => s.prev_ath ?? -Infinity, fmt: fmtPrice,
+    only: "ath" },
+  { key: "ath_break_pct", label: "更新幅", num: s => s.ath_break_pct ?? -Infinity, color: true,
+    fmt: fmtPct, only: "ath" },
+  { key: "ath_since",  label: "遡れる範囲", left: true, fmt: v => v || "-", only: "ath" },
   { key: "close_break", label: "終値も更新", num: s => (s.close_break ? 1 : 0),
     fmt: v => v ? "○" : "" },
   { key: "gap",        label: "前回からの営業日数", num: s => s.gap ?? Infinity,
@@ -2116,6 +2138,72 @@ const NH_COLS = [
   { key: "prev_date",  label: "前回新高値", left: true, fmt: v => v || "-" },
 ];
 let nhData = null, nhSortKey = "value", nhSortAsc = false, nhInited = false;
+
+let nhFollowData = null, nhFollowTried = false;
+
+function nhRenderFollow() {
+  const box = document.getElementById("nhFollow");
+  if (!box) return;
+  if (!nhFollowData) { box.innerHTML = ""; return; }
+  const seg = nhKind() === "ath" ? "ath" : "w52";
+  const f = nhFollowData[seg] || {};
+  const hs = nhFollowData.horizons || [];
+  const cell = (v, suffix) => v == null ? "-" : (v > 0 ? "+" : "") + v.toFixed(2) + (suffix || "");
+  const cls = v => v == null ? "" : (v > 0 ? "up" : v < 0 ? "down" : "flat");
+
+  let head = "<tr><th>指標</th>";
+  for (const h of hs) head += "<th>" + h.label + "後</th>";
+  head += "</tr>";
+
+  // kind: "pct"=符号付きの騰落率 / "rate"=勝率(符号なし) / "num"=件数
+  const row = (label, pick, kind) => {
+    let r = "<tr><td>" + label + "</td>";
+    for (const h of hs) {
+      const a = f[String(h.n)];
+      const v = a ? pick(a) : null;
+      let txt, klass = "";
+      if (v == null) txt = "-";
+      else if (kind === "pct") { txt = cell(v, "%"); klass = cls(v); }
+      else if (kind === "rate") { txt = v.toFixed(1) + "%"; klass = v >= 50 ? "up" : "down"; }
+      else txt = v;
+      r += '<td class="' + klass + '">' + txt + "</td>";
+    }
+    return r + "</tr>";
+  };
+
+  const thin = hs.some(h => (f[String(h.n)] || {}).raw && f[String(h.n)].raw.n < 100);
+  box.innerHTML =
+    "<h3>この条件に載った銘柄の「その後」</h3>"
+    + '<div class="note">記録日の終値を起点にした騰落率です（' + nhFollowData.from
+    + "〜" + nhFollowData.to + " の " + nhFollowData.days + "営業日ぶん・延べ "
+    + (nhFollowData.counts || {})[seg] + "件が母数）。"
+    + "「対TOPIX」は同じ期間のTOPIX(1306)の騰落率を引いた超過リターンです。"
+    + (thin ? '<br><span class="thin">⚠ 1か月後はまだ標本が少なく、参考値です（日が経つほど信頼できる数字になります）。</span>' : "")
+    + "</div><table><thead>" + head + "</thead><tbody>"
+    + row("平均", a => a.raw && a.raw.mean, "pct")
+    + row("中央値", a => a.raw && a.raw.median, "pct")
+    + row("対TOPIX 平均", a => a.excess && a.excess.mean, "pct")
+    + row("対TOPIX 中央値", a => a.excess && a.excess.median, "pct")
+    + row("勝率（上昇した割合）", a => a.raw && a.raw.win, "rate")
+    + row("標本数", a => a.raw && a.raw.n, "num")
+    + "</tbody></table>";
+}
+
+function nhKind() {
+  const el = document.getElementById("nhKindSel");
+  return el ? el.value : "ath";
+}
+
+// 上場来モードでは上場来高値を更新した銘柄だけを対象にする
+function nhBase() {
+  if (!nhData) return [];
+  return nhKind() === "ath" ? nhData.stocks.filter(s => s.ath) : nhData.stocks;
+}
+
+function nhCols() {
+  const k = nhKind();
+  return NH_COLS.filter(c => !c.only || c.only === k);
+}
 
 function nhIsFresh(s, limit) { return s.gap == null || s.gap > limit; }
 
@@ -2126,27 +2214,32 @@ function nhFreshLimit() {
 
 function nhRenderCards() {
   if (!nhData) return;
+  nhBindKind();
+  if (nhFollowData === null && !nhFollowTried) { nhFollowTried = true; nhLoadFollow(); }
   const c = nhData.counts || {};
   const limit = nhFreshLimit();
-  const fresh = nhData.stocks.filter(s => nhIsFresh(s, limit));
+  const base = nhBase();
+  const ath = nhKind() === "ath";
+  const fresh = base.filter(s => nhIsFresh(s, limit));
   const card = (ttl, big, sub, cls) =>
     '<div class="card"><div class="ttl">' + ttl + '</div><div class="big ' + (cls || "") + '">' +
     big + '</div><div class="sub">' + sub + '</div></div>';
   document.getElementById("nhCards").innerHTML =
-    card("52週新高値", (c.new_high ?? nhData.stocks.length) + " 銘柄",
-         "売買代金10億円以上の " + (c.universe ?? "-") + " 銘柄が母集団") +
+    card(ath ? "上場来新高値" : "52週新高値", base.length + " 銘柄",
+         ath ? "52週新高値 " + nhData.stocks.length + " 銘柄のうち上場来も更新"
+             : "売買代金10億円以上の " + (c.universe ?? "-") + " 銘柄が母集団") +
     card("新規ブレイク", fresh.length + " 銘柄",
          limit + "営業日以内に新高値なし(既定表示)", "up") +
-    card("継続中", (nhData.stocks.length - fresh.length) + " 銘柄",
+    card("継続中", (base.length - fresh.length) + " 銘柄",
          limit + "営業日以内にも新高値あり") +
-    card("終値も更新", (c.close_break ?? nhData.stocks.filter(s => s.close_break).length) + " 銘柄",
-         "終値が52週間で最も高い終値を超えた銘柄");
+    card("終値も更新", base.filter(s => s.close_break).length + " 銘柄",
+         "終値が" + (ath ? "上場来" : "52週間") + "で最も高い終値も超えた銘柄");
 }
 
 function nhBuildHead() {
   const tr = document.getElementById("nhHeadRow");
   tr.innerHTML = "";
-  for (const col of NH_COLS) {
+  for (const col of nhCols()) {
     const th = document.createElement("th");
     th.textContent = col.label;
     if (col.left) th.classList.add("tl");
@@ -2165,6 +2258,27 @@ function nhBuildHead() {
   }
 }
 
+async function nhLoadFollow() {
+  try {
+    const res = await fetch("data_newhigh/followup.json", { cache: "no-cache" });
+    if (res.ok) nhFollowData = await res.json();
+  } catch (e) { nhFollowData = null; }
+  nhRenderFollow();
+}
+
+function nhBindKind() {
+  const el = document.getElementById("nhKindSel");
+  if (el && !el.dataset.bound) {
+    el.dataset.bound = "1";
+    el.onchange = () => {
+      document.getElementById("nhScopeSel").value = el.value === "ath" ? "all" : "fresh";
+      nhRenderCards();
+      nhRenderFollow();
+      nhRenderTable();
+    };
+  }
+}
+
 function nhRenderTable() {
   if (!nhData) return;
   nhBuildHead();
@@ -2173,7 +2287,7 @@ function nhRenderTable() {
   const q = document.getElementById("nhQ").value.trim().toLowerCase();
   const limit = nhFreshLimit();
 
-  let rows = nhData.stocks.filter(s => {
+  let rows = nhBase().filter(s => {
     if (scope === "fresh" && !nhIsFresh(s, limit)) return false;
     if (scope === "cont" && nhIsFresh(s, limit)) return false;
     if (closeOnly && !s.close_break) return false;
@@ -2181,7 +2295,8 @@ function nhRenderTable() {
     return true;
   });
 
-  const col = NH_COLS.find(c => c.key === nhSortKey);
+  let col = nhCols().find(c => c.key === nhSortKey);
+  if (!col) { nhSortKey = "value"; nhSortAsc = false; col = nhCols().find(c => c.key === "value"); }
   rows = rows.slice().sort((a, b) => {
     let r = col.num ? col.num(a) - col.num(b)
                     : String(a[col.key] ?? "").localeCompare(String(b[col.key] ?? ""), "ja");
@@ -2192,12 +2307,12 @@ function nhRenderTable() {
   const tb = document.getElementById("nhBody");
   tb.innerHTML = "";
   if (!rows.length) {
-    tb.innerHTML = '<tr><td class="loading" colspan="' + NH_COLS.length + '">該当する銘柄がありません</td></tr>';
+    tb.innerHTML = '<tr><td class="loading" colspan="' + nhCols().length + '">該当する銘柄がありません</td></tr>';
   } else {
     const frag = document.createDocumentFragment();
     for (const s of rows) {
       const tr = document.createElement("tr");
-      for (const col of NH_COLS) {
+      for (const col of nhCols()) {
         const v = s[col.key];
         const td = document.createElement("td");
         if (col.code) {
@@ -2228,7 +2343,8 @@ function nhRenderTable() {
     tb.appendChild(frag);
   }
   document.getElementById("nhStat").innerHTML =
-    "表示 <b>" + rows.length + "</b> / 新高値 " + nhData.stocks.length + " 銘柄";
+    "表示 <b>" + rows.length + "</b> / "
+    + (nhKind() === "ath" ? "上場来新高値 " : "52週新高値 ") + nhBase().length + " 銘柄";
   nhRenderCards();
 }
 

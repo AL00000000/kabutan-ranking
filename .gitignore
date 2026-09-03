@@ -12,3 +12,5 @@ logs/
 # 9/1-タブのDiscord通知の重複防止用(ローカル状態)
 state_0901.json
 *.bak-*
+cache_bars_mo/
+state_newhigh.json
