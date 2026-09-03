@@ -3503,12 +3503,13 @@ const WK_COLS = [
   { key: "per",     label: "PER",    num: r => r.per == null ? Infinity : r.per, fmt: v => v == null ? "-" : v.toFixed(2) },
 ];
 
-// 小型株が多く「0億円」だらけになるので、10億円未満は小数1桁で出す
+// 小型株が多く「0億円」だらけになるので、規模に応じて単位を変える
 function wkVal(v) {
   if (v == null) return "-";
   const oku = v / 100;
-  return oku < 10 ? oku.toFixed(1) + "億円"
-                  : Math.round(oku).toLocaleString("ja-JP") + "億円";
+  if (oku < 1) return Math.round(v).toLocaleString("ja-JP") + "百万円";
+  if (oku < 10) return oku.toFixed(1) + "億円";
+  return Math.round(oku).toLocaleString("ja-JP") + "億円";
 }
 
 function wkPct(v) {
