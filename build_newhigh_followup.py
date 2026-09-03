@@ -73,17 +73,27 @@ def bench_closes():
     return {b[0]: b[1] for b in bars}
 
 
-def stats(vals):
-    if not vals:
+def tail_mean(v, frac, top):
+    """上位/下位 frac 割の平均。標本が少ないときは None を返す。"""
+    if len(v) < 10:
+        return None
+    k = max(1, int(round(len(v) * frac)))
+    sv = sorted(v, reverse=top)
+    return round(sum(sv[:k]) / k, 2)
+
+
+def stats(v):
+    if not v:
         return None
     return {
-        "n": len(vals),
-        "mean": round(statistics.mean(vals), 2),
-        "median": round(statistics.median(vals), 2),
-        "win": round(sum(1 for v in vals if v > 0) / len(vals) * 100, 1),
-        "max": round(max(vals), 2),
-        "min": round(min(vals), 2),
+        "n": len(v),
+        "mean": round(statistics.mean(v), 2),
+        "median": round(statistics.median(v), 2),
+        "win": round(sum(1 for x in v if x > 0) / len(v) * 100, 1),
+        "top20": tail_mean(v, 0.2, True),      # 上位2割の平均
+        "bot20": tail_mean(v, 0.2, False),     # 下位2割の平均
     }
+
 
 
 def main():
