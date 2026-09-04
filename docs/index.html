@@ -274,6 +274,7 @@ footer a { color: var(--accent); }
         <button class="tab" data-tab="yori">寄付からの値上がり率</button>
         <button class="tab" data-tab="minute">分足チャート記録</button>
         <button class="tab" data-tab="min5">TOPIX入替</button>
+        <button class="tab" data-tab="fx">為替・商品</button>
         <button class="tab" data-tab="sector">業種別騰落</button>
         <button class="tab" data-tab="stop">ストップ高・安</button>
         <button class="tab" data-tab="newhigh">新高値</button>
@@ -698,6 +699,11 @@ footer a { color: var(--accent); }
       本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
     </footer>
   </div><!-- /view-wk -->
+
+  <div id="view-fx" hidden>
+    <div class="embed-note">為替・コモディティ 5分足(別サイトを埋め込み表示) — <a href="/fx-commodity-5min/" target="_blank" rel="noopener">別タブで開く ↗</a></div>
+    <iframe class="embed" title="為替・コモディティ 5分足" data-src="/fx-commodity-5min/" loading="lazy"></iframe>
+  </div><!-- /view-fx -->
 
   <div id="view-turnover" hidden>
     <div class="toolbar">
@@ -3839,7 +3845,7 @@ const VIEW_ID = {
   pts: "view-pts", watch: "view-watch", shinyo: "view-shinyo",
   newhigh: "view-newhigh", lowvolume: "view-lowvolume", jukyu: "view-jukyu",
   uchu: "view-uchu", topix: "view-topix", turnover: "view-turnover", period: "view-period",
-  g623: "view-g623", wk: "view-wk", d0901: "view-d0901",
+  g623: "view-g623", wk: "view-wk", fx: "view-fx", d0901: "view-d0901",
   selran: "view-selran", baibai: "view-baibai", search: "view-search",
 };
 function switchTab(name) {
@@ -3893,6 +3899,7 @@ const FEEDS = {
   period:   { kind: "field", url: "./data_period/index.json", field: "updated", freq: "daily" },
   g623:     { kind: "field", url: "./data_623/index.json", field: "updated", freq: "daily" },
   wk:       { kind: "field", url: "./data_weekly/index.json", field: "updated", freq: "weekly" },
+  fx:       { kind: "field", url: "/fx-commodity-5min/data/manifest.json", field: "updated", freq: "daily" },
   d0901:    { kind: "field", url: "./data_0901/index.json", field: "updated", freq: "daily" },
   stoplow:  { kind: "field", url: "./data_stoplow/data.json", field: "updated", freq: "daily" },
   streaks:  { kind: "field", url: "./data_streaks/data.json", field: "updated", freq: "daily" },
