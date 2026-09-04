@@ -81,6 +81,46 @@ def fetch5(code):
     return out
 
 
+def clean_bars(bars):
+    """Yahooの日足に混ざる明らかな異常値を落とす。
+
+    実際に見つかった例:
+      - 8303: 終値が 55,319,998,464 の行が12本(桁が壊れている)
+      - 1306: 2026-03-30 と 03-31 の **2日連続** で終値が約1/10(383 -> 37)。翌日には戻る
+
+    2種類で弾く:
+      1. 系列の中央値から20倍以上/20分の1以下に外れている行(桁壊れ)
+      2. **前5本の中央値と後5本の中央値の両方から50%以上外れ、かつその2つの中央値どうしは
+         30%以内**に収まっている行。行って戻る=ノイズと判断する。
+         単純に隣と比べる方式だと、上の1306のように異常が2日続いたときに
+         「隣も異常」なので見逃す。中央値を使うと数日続く不良も拾える。
+         本物の急騰・急落は水準が切り替わるので前後の中央値が乖離し、これには当たらない。
+    """
+    vals = sorted(b[2] for b in bars if b[2])
+    if not vals:
+        return bars, 0
+    med = vals[len(vals) // 2]
+    ok = [b for b in bars if b[2] and med / 20 <= b[2] <= med * 20]
+    dropped = len(bars) - len(ok)
+
+    def mid(xs):
+        xs = sorted(xs)
+        return xs[len(xs) // 2] if xs else None
+
+    out = []
+    for i, b in enumerate(ok):
+        pre = mid([x[2] for x in ok[max(0, i - 5):i] if x[2]])
+        post = mid([x[2] for x in ok[i + 1:i + 6] if x[2]])
+        if pre and post and b[2]:
+            odd = abs(b[2] / pre - 1) > 0.5 and abs(b[2] / post - 1) > 0.5
+            stable = abs(post / pre - 1) < 0.3
+            if odd and stable:
+                dropped += 1
+                continue
+        out.append(b)
+    return out, dropped
+
+
 def prev_max(bars, idx=1):
     """各日について「その日を含まない直近365日の最高値」(単調デックでO(n))。"""
     n = len(bars)
@@ -185,12 +225,20 @@ def main():
     if not bpath.exists():
         bpath.write_text(json.dumps({"bars": fetch5(BENCH)}, ensure_ascii=False),
                          encoding="utf-8")
-    bench = {b[0]: b[2] for b in ((load(bpath, {}) or {}).get("bars") or [])}
+    bbars, bdrop = clean_bars(((load(bpath, {}) or {}).get("bars") or []))
+    if bdrop:
+        print(f"ベンチマーク(1306)の異常値を {bdrop}本 除外", file=sys.stderr)
+    bench = {b[0]: b[2] for b in bbars}
     if len(bench) < 300:
         print(f"注意: ベンチマーク(1306)が{len(bench)}本しかありません", file=sys.stderr)
-    rows, no5y, no_mo = [], 0, []
+    rows, no5y, no_mo, n_dropped = [], 0, [], 0
+    # 比較対象: 同じ母集団・同じ流動性条件で「新高値ではない日」。
+    # 新高値の数字が高いのか低いのかは、これと比べないと判断できない。
+    base_rows = {k: {"r": [], "e": []} for k, _ in HORIZONS}
     for n, c in enumerate(codes, 1):
         bars = (load(CACHE5 / f"{c}.json", {}) or {}).get("bars") or []
+        bars, dr = clean_bars(bars)
+        n_dropped += dr
         if len(bars) < 300:
             no5y += 1
             continue
@@ -208,7 +256,16 @@ def main():
                 run_ath = bars[i - 1][1] if run_ath is None else max(run_ath, bars[i - 1][1])
             if cl * v / 1e6 < MIN_VALUE:            # その日の売買代金が10億円未満
                 continue
-            if pm[i] is None or h < pm[i]:          # 52週新高値でない
+            is_high = pm[i] is not None and h >= pm[i]
+            if not is_high:                          # 新高値でない日は比較対象へ
+                for k, _ in HORIZONS:
+                    j = i + k
+                    if j < len(bars):
+                        ret = (bars[j][2] / cl - 1) * 100
+                        base_rows[k]["r"].append(round(ret, 3))
+                        b0, b1 = bench.get(d), bench.get(bars[j][0])
+                        if b0 and b1:
+                            base_rows[k]["e"].append(round(ret - (b1 / b0 - 1) * 100, 3))
                 continue
             if mo and run_ath is not None:
                 mv = [x[1] for x in mo if x[0][:7] < d[:7]]
@@ -249,22 +306,28 @@ def main():
         "from": ds[0], "to": ds[-1], "records": len(rows),
         "codes": len({x["c"] for x in rows}), "no_history": no5y,
         "horizons": [{"n": k, "label": l} for k, l in HORIZONS],
+        "base": {str(k): {"label": l, "raw": stats(base_rows[k]["r"]),
+                          "excess": stats(base_rows[k]["e"])}
+                 for k, l in HORIZONS},
         "all": agg(lambda x: True),
         "ath": agg(lambda x: x["ath"] is True),
         "w52": agg(lambda x: x["ath"] is False),
         "counts": {"all": len(rows),
                    "ath": sum(1 for x in rows if x["ath"] is True),
                    "w52": sum(1 for x in rows if x["ath"] is False),
-                   "unknown": sum(1 for x in rows if x["ath"] is None)},
-        "no_monthly": len(no_mo),
+                   "unknown": sum(1 for x in rows if x["ath"] is None),
+                   "base": len(base_rows[HORIZONS[0][0]]["r"])},
+        "no_monthly": len(no_mo), "dropped_bars": n_dropped,
     }
     (DOCS / "backfill.json").write_text(
         json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
     print(f"\n再現 {len(rows)}件 / {payload['codes']}銘柄 / {ds[0]}〜{ds[-1]}"
-          f"(5年足が無く除外 {no5y}銘柄 / 月足が無く上場来を判定できない "
+          f"(異常値 {n_dropped}本を除外 / 5年足が無く除外 {no5y}銘柄 / "
+          f"月足が無く上場来を判定できない "
           f"{len(no_mo)}銘柄・{payload['counts']['unknown']}件)")
-    for key, jp in (("all", "全体"), ("ath", "上場来"), ("w52", "52週のみ")):
+    for key, jp in (("all", "全体"), ("ath", "上場来"), ("w52", "52週のみ"),
+                    ("base", "比較対象(新高値でない日)")):
         print(f"\n[{jp}] n={payload['counts'][key]}")
         for k, label in HORIZONS:
             a = payload[key][str(k)]
