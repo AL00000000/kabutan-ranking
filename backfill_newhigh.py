@@ -48,6 +48,17 @@ HORIZONS = [(5, "1週間"), (20, "1か月")]
 BENCH = "1306"
 SLEEP = 0.35
 
+# 相場環境で切った期間。良し悪しは日経平均の実績で決めている
+# (2021-09〜2022-12 は -12.0%、2025-04-07〜2026-03-02 は +86.5%、
+#  2026-04-01〜2026-06-23 は +29.9%)。
+REGIMES = [
+    ("bad2122",  "2021-09〜2022-12（悪:日経-12%）", "2021-09-06", "2022-12-30"),
+    ("good2503", "2025-04〜2026-03（良:日経+87%）", "2025-04-07", "2026-03-02"),
+    ("good2606", "2026-04〜2026-06（良:日経+30%）", "2026-04-01", "2026-06-23"),
+]
+N225 = "N225"          # cache_bars_5y/N225.json (^N225 を保存したもの)
+MA_DAYS = 200
+
 
 def load(path, default=None):
     try:
@@ -234,7 +245,7 @@ def main():
     rows, no5y, no_mo, n_dropped = [], 0, [], 0
     # 比較対象: 同じ母集団・同じ流動性条件で「新高値ではない日」。
     # 新高値の数字が高いのか低いのかは、これと比べないと判断できない。
-    base_rows = {k: {"r": [], "e": []} for k, _ in HORIZONS}
+    base_rows = []      # (日付, r5, e5, r20, e20)。レジーム別に切るため日付が要る
     for n, c in enumerate(codes, 1):
         bars = (load(CACHE5 / f"{c}.json", {}) or {}).get("bars") or []
         bars, dr = clean_bars(bars)
@@ -258,14 +269,18 @@ def main():
                 continue
             is_high = pm[i] is not None and h >= pm[i]
             if not is_high:                          # 新高値でない日は比較対象へ
+                rec = [d]
                 for k, _ in HORIZONS:
                     j = i + k
                     if j < len(bars):
                         ret = (bars[j][2] / cl - 1) * 100
-                        base_rows[k]["r"].append(round(ret, 3))
                         b0, b1 = bench.get(d), bench.get(bars[j][0])
-                        if b0 and b1:
-                            base_rows[k]["e"].append(round(ret - (b1 / b0 - 1) * 100, 3))
+                        rec.append(round(ret, 3))
+                        rec.append(round(ret - (b1 / b0 - 1) * 100, 3)
+                                   if (b0 and b1) else None)
+                    else:
+                        rec += [None, None]
+                base_rows.append(tuple(rec))
                 continue
             if mo and run_ath is not None:
                 mv = [x[1] for x in mo if x[0][:7] < d[:7]]
@@ -290,15 +305,61 @@ def main():
         print("再現できた記録がありません(--fetch を先に実行してください)", file=sys.stderr)
         return 1
 
-    def agg(sel):
+    def agg(sel, within=None):
         out = {}
         for k, label in HORIZONS:
+            sub = [x for x in rows if sel(x) and f"r{k}" in x
+                   and (within is None or within(x["d"]))]
             out[str(k)] = {
                 "label": label,
-                "raw": stats([x[f"r{k}"] for x in rows if sel(x) and f"r{k}" in x]),
-                "excess": stats([x[f"e{k}"] for x in rows if sel(x) and f"e{k}" in x]),
+                "raw": stats([x[f"r{k}"] for x in sub]),
+                "excess": stats([x[f"e{k}"] for x in sub if f"e{k}" in x]),
             }
         return out
+
+    def agg_base(within=None):
+        """比較対象(新高値でない日)。rec = (日付, r5, e5, r20, e20)"""
+        out = {}
+        for idx, (k, label) in enumerate(HORIZONS):
+            ri, ei = 1 + idx * 2, 2 + idx * 2
+            sub = [x for x in base_rows
+                   if x[ri] is not None and (within is None or within(x[0]))]
+            out[str(k)] = {
+                "label": label,
+                "raw": stats([x[ri] for x in sub]),
+                "excess": stats([x[ei] for x in sub if x[ei] is not None]),
+            }
+        return out
+
+    # 日経平均の200日移動平均で機械的にも切る(手で選んだ期間だけだと
+    # 結論が期間の選び方に依存してしまうため)
+    n225 = (load(CACHE5 / f"{N225}.json", {}) or {}).get("bars") or []
+    n225, _ = clean_bars(n225)
+    above = {}
+    closes = [x[2] for x in n225]
+    for i in range(MA_DAYS, len(n225)):
+        above[n225[i][0]] = closes[i] > sum(closes[i - MA_DAYS:i]) / MA_DAYS
+
+    regimes = {}
+    for key, label, a, z in REGIMES:
+        w = (lambda d, a=a, z=z: a <= d <= z)
+        regimes[key] = {
+            "label": label, "from": a, "to": z,
+            "all": agg(lambda x: True, w),
+            "ath": agg(lambda x: x["ath"] is True, w),
+            "w52": agg(lambda x: x["ath"] is False, w),
+            "base": agg_base(w),
+        }
+    for key, lab, want in (("ma_above", f"日経が{MA_DAYS}日線より上", True),
+                           ("ma_below", f"日経が{MA_DAYS}日線より下", False)):
+        w = (lambda d, want=want: above.get(d) is want)
+        regimes[key] = {
+            "label": lab, "from": None, "to": None,
+            "all": agg(lambda x: True, w),
+            "ath": agg(lambda x: x["ath"] is True, w),
+            "w52": agg(lambda x: x["ath"] is False, w),
+            "base": agg_base(w),
+        }
 
     ds = sorted(x["d"] for x in rows)
     payload = {
@@ -306,9 +367,8 @@ def main():
         "from": ds[0], "to": ds[-1], "records": len(rows),
         "codes": len({x["c"] for x in rows}), "no_history": no5y,
         "horizons": [{"n": k, "label": l} for k, l in HORIZONS],
-        "base": {str(k): {"label": l, "raw": stats(base_rows[k]["r"]),
-                          "excess": stats(base_rows[k]["e"])}
-                 for k, l in HORIZONS},
+        "base": agg_base(),
+        "regimes": regimes,
         "all": agg(lambda x: True),
         "ath": agg(lambda x: x["ath"] is True),
         "w52": agg(lambda x: x["ath"] is False),
@@ -316,7 +376,7 @@ def main():
                    "ath": sum(1 for x in rows if x["ath"] is True),
                    "w52": sum(1 for x in rows if x["ath"] is False),
                    "unknown": sum(1 for x in rows if x["ath"] is None),
-                   "base": len(base_rows[HORIZONS[0][0]]["r"])},
+                   "base": len(base_rows)},
         "no_monthly": len(no_mo), "dropped_bars": n_dropped,
     }
     (DOCS / "backfill.json").write_text(
@@ -338,6 +398,25 @@ def main():
                   f" / 勝率 {r['win']:.0f}%"
                   + (f"  ｜対TOPIX(n={e['n']}) 平均 {e['mean']:+.2f}% / "
                      f"中央値 {e['median']:+.2f}%" if e else ""))
+    print("\n========== 相場環境別 ==========")
+    for key, r in regimes.items():
+        n_all = (r["all"]["20"]["raw"] or {}).get("n", 0)
+        n_base = (r["base"]["20"]["raw"] or {}).get("n", 0)
+        if not n_all:
+            continue
+        print(f"\n[{r['label']}]  新高値 {n_all:,}件 / 比較対象 {n_base:,}件")
+        for k, lab in HORIZONS:
+            line = f"  {lab}後  "
+            for seg, nm in (("all", "新高値"), ("ath", "上場来"),
+                            ("w52", "52週のみ"), ("base", "比較対象")):
+                a = r[seg][str(k)]["raw"]
+                line += (f"{nm} 平均{a['mean']:+6.2f}/中央{a['median']:+6.2f}  "
+                         if a else f"{nm} -  ")
+            print(line)
+            a, b = r["all"][str(k)]["raw"], r["base"][str(k)]["raw"]
+            if a and b:
+                print(f"           → 新高値 − 比較対象 = 平均 {a['mean']-b['mean']:+.2f}pt "
+                      f"/ 中央値 {a['median']-b['median']:+.2f}pt")
     return 0
 
 

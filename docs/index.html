@@ -2145,7 +2145,7 @@ const NH_COLS = [
 ];
 let nhData = null, nhSortKey = "value", nhSortAsc = false, nhInited = false;
 
-let nhFollowData = null, nhBackfill = null, nhFollowTried = false;
+let nhFollowData = null, nhBackfill = null, nhFollowTried = false, nhRegime = "";
 
 function nhRenderFollow() {
   const box = document.getElementById("nhFollow");
@@ -2182,7 +2182,9 @@ function nhRenderFollow() {
   // 過去5年を日足から再現した参考値(標本が桁違いに多い)
   let bf = "";
   if (nhBackfill) {
-    const g = nhBackfill[seg] || {};
+    const src = nhRegime && nhBackfill.regimes && nhBackfill.regimes[nhRegime]
+      ? nhBackfill.regimes[nhRegime] : nhBackfill;
+    const g = src[seg] || {};
     const brow = (label, pick, kind) => {
       let r = "<tr><td>" + label + "</td>";
       for (const h of hs) {
@@ -2200,7 +2202,7 @@ function nhRenderFollow() {
     const bbrow = (label, pick, kind) => {
       let r = "<tr><td>" + label + "</td>";
       for (const h of hs) {
-        const a = (nhBackfill.base || {})[String(h.n)];
+        const a = (src.base || {})[String(h.n)];
         const v = a ? pick(a) : null;
         let txt, klass = "";
         if (v == null) txt = "-";
@@ -2214,10 +2216,16 @@ function nhRenderFollow() {
     let bhead = "<tr><th>指標</th>";
     for (const h of hs) bhead += "<th>" + h.label + "後</th>";
     bhead += "</tr>";
-    bf = '<h3 style="margin-top:16px">参考: 過去5年を再現した場合</h3>'
+    const rgOpts = ['<option value="">全期間</option>'].concat(
+      Object.keys(nhBackfill.regimes || {}).map(k =>
+        '<option value="' + k + '"' + (k === nhRegime ? " selected" : "") + '>'
+        + nhBackfill.regimes[k].label + "</option>")).join("");
+    bf = '<h3 style="margin-top:16px">参考: 過去5年を再現した場合'
+      + ' <select id="nhRegimeSel" style="margin-left:10px;font-size:.82rem">'
+      + rgOpts + "</select></h3>"
       + '<div class="note">' + nhBackfill.from + "〜" + nhBackfill.to + " の日足から"
       + "「その日が新高値だったか」を計算し直したものです（"
-      + (nhBackfill.counts || {})[seg].toLocaleString("ja-JP") + "件）。"
+      + (((g[String(hs[0].n)] || {}).raw || {}).n || 0).toLocaleString("ja-JP") + "件）。"
       + '<span class="thin">母集団は「直近で売買代金ランキングに載った銘柄」なので、'
       + "当時は流動性があったが今は無い銘柄が入っていません（生存バイアス）。"
       + "実運用の母集団とも完全には一致しないため参考値です。</span>"
@@ -2235,7 +2243,7 @@ function nhRenderFollow() {
       + brow("標本数", a => a.raw && a.raw.n, "num")
       + (nhBackfill.base ? '<tr><td colspan="' + (hs.length + 1)
           + '" style="padding-top:10px;color:var(--muted)">比較対象：同じ母集団で'
-          + '<b>新高値ではなかった日</b>（' + (nhBackfill.counts.base || 0).toLocaleString("ja-JP")
+          + '<b>新高値ではなかった日</b>（' + ((((src.base || {})[String(hs[0].n)] || {}).raw || {}).n || 0).toLocaleString("ja-JP")
           + '件）</td></tr>'
         + bbrow("　平均", a => a.raw && a.raw.mean, "pct")
         + bbrow("　中央値", a => a.raw && a.raw.median, "pct")
@@ -2261,6 +2269,9 @@ function nhRenderFollow() {
     + row("勝率（上昇した割合）", a => a.raw && a.raw.win, "rate")
     + row("標本数", a => a.raw && a.raw.n, "num")
     + "</tbody></table>" + bf;
+
+  const rg = document.getElementById("nhRegimeSel");
+  if (rg) rg.onchange = e => { nhRegime = e.target.value; nhRenderFollow(); };
 }
 
 function nhKind() {
