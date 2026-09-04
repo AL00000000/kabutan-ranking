@@ -284,8 +284,8 @@ function cardHtml(r) {
   // 回転率で落ちた候補は「浮動株比率の誤差で入りうる」話ではない(回転率は実測で誤差がない)。
   // サイズ基準の確率を出すと誤解を招くので、落ちた理由をそのままバッジにする。
   const turnFail = add && r.fail && r.fail.indexOf("回転率") >= 0;
-  // 上場1年未満は8月の日次平均が部分月・大株主が上場前ベースで、確率を出せる状態にない
-  const isNew = add && (r.months || 12) < 12;
+  const ipoSrc = add && r.float_src === "IPO売出";      // 浮動株比率をIPOの売出株数から出した
+  const fewMon = add && (r.months || 12) < 12;          // 回転率が数ヶ月の年換算
   const badge = turnFail && r.group === "near"
     ? '<span class="pill near">回転率不足</span>'
     : (r.group === "blocked" && r.fail && r.fail.length)
@@ -295,7 +295,12 @@ function cardHtml(r) {
         : '<span class="pill ' + g.pill + '">' + g.label + "</span>";
   const meta2 = add
     ? "時価総額 <b>" + fmtOku(r.mktcap) + "</b>　浮動株 <b>" + (r.float_ratio * 100).toFixed(0) + "%</b>" +
-      (r.float_ratio_raw ? '<span class="cd"> (大株主 ' + (r.float_ratio_raw * 100).toFixed(0) + "%)</span>" : "")
+      (ipoSrc
+        ? '<span class="cd"> (IPOで市場に出た株数ベース)</span>'
+        : r.float_ratio_raw
+          ? '<span class="cd"> (大株主' + (r.hdate ? " " + esc(r.hdate) : "") + " " +
+            (r.float_ratio_raw * 100).toFixed(0) + "%)</span>"
+          : "")
     : esc(r.sector || "") + "　ウエイト <b>" + (r.weight == null ? "－" : r.weight.toFixed(4) + "%") + "</b>";
   // 浮動株比率は推計値なので、その根拠(非浮動とみなした大株主)を開いて確かめられるようにする
   const holders = add && r.nonfloat && r.nonfloat.length
@@ -306,17 +311,18 @@ function cardHtml(r) {
     : "";
   const risk = r.risk || "low";
   const confTxt = add
-    ? ((r.conf == null || turnFail || isNew) ? "" : '<span class="conf' + (risk === "high" ? " hi" : "") + '">' +
+    ? ((r.conf == null || turnFail) ? "" : '<span class="conf' + (risk === "high" ? " hi" : "") + '">' +
         (r.add ? "採用のまま" : "見送りのまま") + ' <b>' + Math.round(r.conf * 100) + "%</b></span>")
     : (r.margin == null ? "" : '<span class="conf' + (risk === "high" ? " hi" : "") +
         '">足切りまで <b>' + ((r.margin - 1) * 100).toFixed(0) + "%</b></span>");
-  return '<div class="card risk-' + (turnFail || isNew ? "low" : risk) + " g-" + (r.group || "") +
+  return '<div class="card risk-' + (turnFail ? "low" : risk) + " g-" + (r.group || "") +
     '" data-code="' + esc(r.code) + '">' +
     '<div class="hd"><span class="cd">' + esc(r.code) + '</span>' +
     '<span class="nm">' + esc(r.name) + "</span>" + badge +
     (r.kanri ? ' <span class="pill near">監理</span>' : "") +
-    (isNew ? ' <span class="pill near">上場1年未満・推計不安定</span>' : "") +
-    (turnFail || isNew ? "" : risk === "high" ? ' <span class="pill risk">微妙</span>'
+    (ipoSrc ? ' <span class="pill keep">浮動株=IPO売出ベース</span>' : "") +
+    (fewMon ? ' <span class="pill near">回転率は' + r.months + 'ヶ月を年換算</span>' : "") +
+    (turnFail ? "" : risk === "high" ? ' <span class="pill risk">微妙</span>'
       : risk === "mid" ? ' <span class="pill risk2">やや微妙</span>' : "") +
     confTxt + "</div>" +
     '<div class="sub"><span>' + meta2 + "</span></div>" +
@@ -389,6 +395,7 @@ const nGrp = (key, g) => DATA[key].filter(r => r.group === g).length;
 function render() {
   const m = DATA.meta;
   const mp = DATA.added.find(r => r.code === "3350");
+  const go = DATA.added.find(r => r.code === "581A");
   const c = (t, v, s, cls) => '<div class="stat"><div class="t">' + t + '</div><div class="v ' +
     (cls || "") + '">' + v + "</div>" + (s ? '<div class="s">' + s + "</div>" : "") + "</div>";
   document.getElementById("asof").textContent =
@@ -444,9 +451,19 @@ function render() {
     "（新規上場銘柄で非浮動を数割も過大に見積もる原因になります。今回 " + (m.n_rebased || 0) + "銘柄に適用）。" +
     "②「〇〇アセット」のような社名は運用会社と創業家の資産管理会社の区別がつかないので、" +
     "<b>単独で15%以上を持つ場合は資産管理会社(非浮動)とみなし</b>ています。<br>" +
-    '<b class="warn">上場1年未満の銘柄はとくに当てになりません。</b>' +
-    "8月の日次平均が部分月になるうえ、大株主が上場前の資本構成のままのことがあります。" +
-    "そのため足切りから遠くても当落線上として載せています。" +
+    '<b class="warn">新規上場銘柄は大株主が「上場前」時点のことがあります。</b>' +
+    "株探は基準日をタブで出していて、<b>上場前の開示には末尾に * が付きます</b>。" +
+    "上場前の資本構成には<b>売出しが反映されていない</b>ので、そのまま使うと浮動株を極端に少なく見積もります。" +
+    "該当する銘柄は<b>「IPOで市場に出た株数(公募+売出、OA含む) ÷ 発行済株式数」を浮動株比率</b>に使い、" +
+    "全株主の顔ぶれが見えているのでキャリブレーションは掛けていません。<br>" +
+    "例: <b>GO(581A)</b> は大株主が2026年5月時点(上場は6/16)で、上位10名だけで90.7%を占めるように見えますが、" +
+    "実際は<b>公募0株・売出40,482,900株</b>（発行済81,721,200株の49.5%）が市場に出ています。" +
+    "上場前ベースだと浮動株 " + fmtOku(206e8) + " で圏外、売出ベースだと " +
+    (go ? fmtOku(go.float_mktcap) : "") + " で採用と、結論がひっくり返ります。<br><br>" +
+    "<b>推計の当否は上場維持基準でも点検できます。</b>東証の流通株式比率の基準は" +
+    "<b>プライム35%・スタンダード25%・グロース25%</b>（流通株式時価総額は各100億円・10億円・5億円）。" +
+    "TOPIXの浮動株比率とは別物ですが、上場している以上ここを大きく割ることは普通ないので、" +
+    "推計がこれを大幅に下回ったら大株主データが古いか分類を誤っている疑いが濃い、という点検に使えます。" +
     "</div></details>" +
     '<div class="toolbar">' +
       '<span class="seg" id="kindSeg">' +
