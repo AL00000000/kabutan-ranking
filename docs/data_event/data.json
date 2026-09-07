@@ -1,0 +1,1472 @@
+{
+ "updated": "2026-09-08",
+ "events": [
+  {
+   "date": "2021-01-28",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "January 26-27 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2021-03-18",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "March 16-17* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2021-04-29",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "April 27-28 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2021-06-17",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "June 15-16* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2021-07-29",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "July 27-28 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2021-09-23",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "September 21-22* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2021-11-04",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "November 2-3 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2021-12-16",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "December 14-15* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2022-01-27",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "January 25-26 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2022-03-17",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "March 15-16* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2022-05-05",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "May 3-4 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2022-06-16",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "June 14-15* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2022-07-28",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "July 26-27 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2022-09-22",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "September 20-21* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2022-11-03",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "November 1-2 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2022-12-15",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "December 13-14* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2023-02-02",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "Jan/Feb 31-1 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2023-03-23",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "March 21-22* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2023-05-04",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "May 2-3 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2023-06-15",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "June 13-14* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2023-07-27",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "July 25-26 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2023-09-21",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "September 19-20* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2023-11-02",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "Oct/Nov 31-1 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2023-12-14",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "December 12-13* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2024-02-01",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "January 30-31 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2024-03-21",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "March 19-20* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2024-05-02",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "Apr/May 30-1 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2024-06-13",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "June 11-12* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2024-08-01",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "July 30-31 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2024-09-19",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "September 17-18* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2024-11-08",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "November 6-7 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2024-12-19",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "December 17-18* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2025-01-30",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "January 28-29 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2025-03-20",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "March 18-19* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2025-05-08",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "May 6-7 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2025-06-19",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "June 17-18* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2025-07-31",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "July 29-30 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2025-08-23",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "August 22 (notation vote) の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2025-09-18",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "September 16-17* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2025-10-30",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "October 28-29 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2025-12-11",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "December 9-10* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2025-12-16",
+   "time": "22:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "November 2025分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2025-12-18",
+   "time": "22:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "November 2025分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-01-01",
+   "time": "終日",
+   "name": "米国市場 休場(New Year’s Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2026-01-09",
+   "time": "22:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "December 2025分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-01-13",
+   "time": "22:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "December 2025分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-01-19",
+   "time": "終日",
+   "name": "米国市場 休場(Martin Luther King, Jr. Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2026-01-23",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "2025年12月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-01-23",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "1月22日（木）・23日（金）[PDF123KB] の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2026-01-29",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "January 27-28 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2026-01-30",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-02-11",
+   "time": "22:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "January 2026分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-02-13",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-02-13",
+   "time": "22:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "January 2026分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-02-16",
+   "time": "終日",
+   "name": "米国市場 休場(Washington's Birthday)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2026-02-20",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "2026年1月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-03-03",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-03-06",
+   "time": "22:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "February 2026分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-03-11",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "February 2026分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-03-19",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "March 17-18* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2026-03-19",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "3月18日（水）・19日（木）[PDF179KB] の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2026-03-24",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "2月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-03-31",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-04-03",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "March 2026分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-04-03",
+   "time": "終日",
+   "name": "米国市場 休場(Good Friday)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2026-04-10",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "March 2026分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-04-24",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "3月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-04-28",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-04-28",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "4月27日（月）・28日（火）[PDF130KB] の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2026-04-30",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "April 28-29 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2026-05-08",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "April 2026分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-05-12",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "April 2026分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-05-15",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-05-22",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "4月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-05-25",
+   "time": "終日",
+   "name": "米国市場 休場(Memorial Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2026-05-29",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-06-05",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "May 2026分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-06-10",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "May 2026分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-06-16",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "6月15日（月）・16日（火）[PDF211KB] の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2026-06-18",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "June 16-17* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2026-06-19",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "5月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-06-19",
+   "time": "終日",
+   "name": "米国市場 休場(Juneteenth National Independence Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2026-06-30",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-07-02",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "June 2026分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-07-03",
+   "time": "終日",
+   "name": "米国市場 休場(Independence Day)",
+   "country": "US",
+   "note": "米国市場は終日休場(振替)",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2026-07-14",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "June 2026分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-07-24",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "6月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-07-30",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "July 28-29 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2026-07-31",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-07-31",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "7月30日（木）・31日（金）[PDF138KB] の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2026-08-07",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "July 2026分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-08-10",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-08-12",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "July 2026分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-08-21",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "7月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-08-28",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-09-04",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "August 2026分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-09-07",
+   "time": "終日",
+   "name": "米国市場 休場(Labor Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2026-09-11",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "August 2026分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-09-17",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "September 15-16* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2026-09-18",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "8月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-09-18",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "9月17日（木）・18日（金） の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2026-10-02",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-10-02",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "September 2026分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-10-14",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "September 2026分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-10-23",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "9月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-10-29",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "October 27-28 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2026-10-30",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-10-30",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "10月29日（木）・30日（金） の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2026-11-06",
+   "time": "22:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "October 2026分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-11-10",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-11-10",
+   "time": "22:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "October 2026分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-11-20",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "10月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-11-26",
+   "time": "終日",
+   "name": "米国市場 休場(Thanksgiving Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2026-12-01",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-12-04",
+   "time": "22:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "November 2026分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-12-10",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "December 8-9* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2026-12-10",
+   "time": "22:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "November 2026分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-12-18",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "11月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-12-18",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "12月17日（木）・18日（金） の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2026-12-25",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-12-25",
+   "time": "終日",
+   "name": "米国市場 休場(Christmas Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2027-01-01",
+   "time": "終日",
+   "name": "米国市場 休場(New Year’s Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2027-01-18",
+   "time": "終日",
+   "name": "米国市場 休場(Martin Luther King, Jr. Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2027-01-22",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "12月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2027-01-22",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "1月21日（木）・22日（金） の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2027-01-28",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "January 26-27 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2027-01-29",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2027-02-12",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2027-02-15",
+   "time": "終日",
+   "name": "米国市場 休場(Washington's Birthday)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2027-02-19",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "2027年1月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2027-03-02",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2027-03-18",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "March 16-17* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2027-03-18",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "3月17日（水）・18日（木） の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2027-03-19",
+   "time": "08:30",
+   "name": "日本CPI(全国)",
+   "country": "JP",
+   "note": "2月分",
+   "source": "jp_cpi",
+   "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2027-03-26",
+   "time": "終日",
+   "name": "米国市場 休場(Good Friday)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2027-03-30",
+   "time": "08:30",
+   "name": "日本雇用統計(労働力調査)",
+   "country": "JP",
+   "note": null,
+   "source": "jp_empsit",
+   "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2027-04-28",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "4月27日（火）・28日（水） の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2027-04-29",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "April 27-28 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2027-05-31",
+   "time": "終日",
+   "name": "米国市場 休場(Memorial Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2027-06-10",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "June 8-9* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2027-06-11",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "6月10日（木）・11日（金） の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2027-06-18",
+   "time": "終日",
+   "name": "米国市場 休場(Juneteenth National Independence Day)",
+   "country": "US",
+   "note": "米国市場は終日休場(振替)",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2027-07-05",
+   "time": "終日",
+   "name": "米国市場 休場(Independence Day)",
+   "country": "US",
+   "note": "米国市場は終日休場(振替)",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2027-07-22",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "7月21日（水）・22日（木） の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2027-07-29",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "July 27-28 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2027-09-06",
+   "time": "終日",
+   "name": "米国市場 休場(Labor Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2027-09-16",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "September 14-15* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2027-09-22",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "9月21日（火）・22日（水） の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2027-10-28",
+   "time": "03:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "October 26-27 の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2027-10-29",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "10月28日（木）・29日（金） の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2027-11-25",
+   "time": "終日",
+   "name": "米国市場 休場(Thanksgiving Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2027-12-09",
+   "time": "04:00",
+   "name": "FOMC 政策金利発表",
+   "country": "US",
+   "note": "December 7-8* の最終日 14:00 ET",
+   "source": "fomc",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2027-12-17",
+   "time": "昼頃",
+   "name": "日銀 金融政策決定会合",
+   "country": "JP",
+   "note": "12月16日（木）・17日（金） の2日目に結果公表",
+   "source": "boj",
+   "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2027-12-24",
+   "time": "終日",
+   "name": "米国市場 休場(Christmas Day)",
+   "country": "US",
+   "note": "米国市場は終日休場(振替)",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2028-01-17",
+   "time": "終日",
+   "name": "米国市場 休場(Martin Luther King, Jr. Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2028-02-21",
+   "time": "終日",
+   "name": "米国市場 休場(Washington's Birthday)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2028-04-14",
+   "time": "終日",
+   "name": "米国市場 休場(Good Friday)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2028-05-29",
+   "time": "終日",
+   "name": "米国市場 休場(Memorial Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2028-06-19",
+   "time": "終日",
+   "name": "米国市場 休場(Juneteenth National Independence Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2028-07-04",
+   "time": "終日",
+   "name": "米国市場 休場(Independence Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2028-09-04",
+   "time": "終日",
+   "name": "米国市場 休場(Labor Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2028-11-23",
+   "time": "終日",
+   "name": "米国市場 休場(Thanksgiving Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2028-12-25",
+   "time": "終日",
+   "name": "米国市場 休場(Christmas Day)",
+   "country": "US",
+   "note": "米国市場は終日休場",
+   "source": "us_holiday",
+   "url": "https://www.nyse.com/trade/hours-calendars"
+  }
+ ]
+}

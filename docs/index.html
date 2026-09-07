@@ -131,11 +131,11 @@ td.flat { color: var(--muted); }
 .chartTtl { color: var(--accent); font-size: .82rem; font-weight: 700; margin: 0 0 6px 10px; }
 /* 表の中のリンクは、色を変えずに点線の下線でクリックできることを示す。
    既定のリンク色(濃い青)は暗い背景でほぼ読めないため。 */
-#view-selran tbody a, #view-search tbody a {
+#view-selran tbody a, #view-search tbody a, #view-event tbody a {
   color: var(--text); text-decoration: none;
   border-bottom: 1px dotted var(--muted);
 }
-#view-selran tbody a:hover, #view-search tbody a:hover {
+#view-selran tbody a:hover, #view-search tbody a:hover, #view-event tbody a:hover {
   color: var(--accent); border-bottom-color: var(--accent);
 }
 td.new { color: var(--new); font-weight: 700; }
@@ -269,6 +269,7 @@ footer a { color: var(--accent); }
         <button class="tab" data-tab="turnover">市場活況度</button>
         <button class="tab" data-tab="baibai">売買代金</button>
         <button class="tab" data-tab="search">株探検索ランキング</button>
+        <button class="tab" data-tab="event">金融イベント</button>
         <button class="tab" data-tab="selran">セルラン</button>
         <button class="tab" data-tab="intraday">15:24→引け 分析</button>
         <button class="tab" data-tab="yori">寄付からの値上がり率</button>
@@ -850,6 +851,52 @@ footer a { color: var(--accent); }
       本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
     </footer>
   </div><!-- /view-search -->
+
+  <div id="view-event" hidden>
+    <div class="toolbar">
+      <span><label>表示</label><select id="evScopeSel">
+        <option value="future">今後のみ</option>
+        <option value="all">すべて(過去を含む)</option>
+      </select></span>
+      <span><label>種別</label><select id="evKindSel">
+        <option value="">すべて</option>
+        <option value="rate">政策金利(日銀・FOMC)</option>
+        <option value="cpi">CPI</option>
+        <option value="emp">雇用統計</option>
+        <option value="holiday">米国市場の休場</option>
+      </select></span>
+      <span><label>国</label><select id="evCountrySel">
+        <option value="">すべて</option>
+        <option value="JP">日本</option>
+        <option value="US">米国</option>
+      </select></span>
+      <span class="stat" id="evStat"></span>
+    </div>
+    <div class="banner" id="evBanner">読み込み中…</div>
+    <div class="cards" id="evCards"></div>
+    <div class="hintRow">
+      <div class="hint"><b>相場を動かす金融イベントの日程</b>です。雇用統計・CPI・政策金利の日米それぞれと、米国市場の休場日を載せています。<br>
+      日程は<b>すべて一次情報から取得</b>しています(日銀・FRB・BLS・総務省統計局・NYSE)。媒体の経済カレンダーは使っていません。<br>
+      <b>時刻は日本時間です。</b>米国の指標は8:30 ETなので日本時間では同日の21:30または22:30(夏時間で変わります)。<b>FOMCの声明は14:00 ETで、日本時間では翌日の未明</b>になるため、その翌日の日付で載せています。日銀は会合2日目の昼頃に結果が出ます。<br>
+      Discord通知は<b>1週間前と前日の2回</b>。ただし<b>米国市場の休場は当日の日中に1回だけ</b>通知します(前もって知っても打ち手が無く、知りたいのは「今夜は米国が動かない」ということなので)。<br>
+      「今日」の行は色を付けています。過去の分も残してあるので「すべて」で遡れます。</div>
+    </div>
+    <div class="tablecard">
+      <table id="evTbl">
+        <thead><tr><th class="tl">日付</th><th>国</th><th class="tl">イベント</th><th class="tl">時刻(日本時間)</th><th class="tl">備考</th></tr></thead>
+        <tbody id="evBody"><tr><td class="loading" colspan="5">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+    <footer>
+      データ取得元:
+      <a href="https://www.boj.or.jp/mopo/mpmsche_minu/index.htm" target="_blank" rel="noopener">日本銀行</a> /
+      <a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm" target="_blank" rel="noopener">FRB</a> /
+      <a href="https://www.bls.gov/schedule/news_release/cpi.htm" target="_blank" rel="noopener">BLS</a> /
+      <a href="https://www.stat.go.jp/data/cpi/index.html" target="_blank" rel="noopener">総務省統計局</a> /
+      <a href="https://www.nyse.com/trade/hours-calendars" target="_blank" rel="noopener">NYSE</a>。<br>
+      本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
+    </footer>
+  </div><!-- /view-event -->
 
   <div id="view-yori" hidden>
     <div class="embed-note">寄付からの値上がり率ランキング(別サイトを埋め込み表示) — <a href="/Yoritsukikaranoneagari-ranking/" target="_blank" rel="noopener">別タブで開く ↗</a></div>
@@ -3873,6 +3920,99 @@ async function wkInit() {
   if (wkIdx.dates.length) await wkShow(wkIdx.dates[0]);
 }
 
+/* ================= 金融イベント ================= */
+let evData = null, evInited = false, evScope = "future", evKind = "", evCountry = "";
+
+const EV_FLAG = { JP: "🇯🇵", US: "🇺🇸" };
+// ソースを種別セレクトの値に寄せる
+const EV_KIND = {
+  boj: "rate", fomc: "rate",
+  jp_cpi: "cpi", us_cpi: "cpi",
+  jp_empsit: "emp", us_empsit: "emp",
+  us_holiday: "holiday",
+};
+
+const evToday = () => new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
+}).format(new Date());
+
+function evFiltered() {
+  const today = evToday();
+  return (evData.events || []).filter(e => {
+    if (evScope === "future" && e.date < today) return false;
+    if (evKind && EV_KIND[e.source] !== evKind) return false;
+    if (evCountry && e.country !== evCountry) return false;
+    return true;
+  }).sort((a, b) => (a.date + a.time < b.date + b.time ? -1 : 1));
+}
+
+function evRenderCards(rows) {
+  const today = evToday();
+  const next = rows.filter(e => e.date >= today).slice(0, 3);
+  document.getElementById("evCards").innerHTML = next.map(e => {
+    const days = Math.round(
+      (Date.parse(e.date) - Date.parse(today)) / 86400000);
+    const when = days === 0 ? "本日" : days === 1 ? "明日" : `あと${days}日`;
+    return '<div class="card' + (days <= 1 ? " overall" : "") + '"><div class="ttl">' +
+      when + '</div><div class="big" style="font-size:1.05rem">' +
+      (EV_FLAG[e.country] || "") + " " + e.name + '</div><div class="tvsub">' +
+      tvMd(e.date) + " " + (e.time || "") + "</div></div>";
+  }).join("");
+}
+
+function evRenderTable(rows) {
+  const today = evToday();
+  const body = rows.map(e => {
+    const cls = e.date === today ? ' style="background:#16233d"'
+      : e.date < today ? ' class="flat"' : "";
+    const name = e.url
+      ? '<a href="' + e.url + '" target="_blank" rel="noopener">' + e.name + "</a>"
+      : e.name;
+    return "<tr" + cls + '><td class="tl">' + tvMd(e.date) + "</td>" +
+      "<td>" + (EV_FLAG[e.country] || e.country || "") + "</td>" +
+      '<td class="tl">' + name + "</td>" +
+      '<td class="tl">' + (e.time || "") + "</td>" +
+      '<td class="tl"><span class="tvsub">' + (e.note || "") + "</span></td></tr>";
+  }).join("");
+  document.getElementById("evBody").innerHTML = body ||
+    '<tr><td class="loading" colspan="5">該当する予定がありません</td></tr>';
+}
+
+function evRender() {
+  const rows = evFiltered();
+  evRenderCards(rows);
+  evRenderTable(rows);
+  document.getElementById("evStat").textContent =
+    "表示 " + rows.length + " 件 / 記録 " + (evData.events || []).length + " 件";
+}
+
+async function evInit() {
+  try {
+    const res = await fetch("data_event/data.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    evData = await res.json();
+    if (!evData.events || !evData.events.length) throw new Error("データが空です");
+
+    const bind = (id, set) => {
+      const el = document.getElementById(id);
+      el.onchange = () => { set(el.value); evRender(); };
+    };
+    bind("evScopeSel", v => { evScope = v; });
+    bind("evKindSel", v => { evKind = v; });
+    bind("evCountrySel", v => { evCountry = v; });
+
+    const today = evToday();
+    const next = evData.events.filter(e => e.date >= today)
+      .sort((a, b) => (a.date < b.date ? -1 : 1))[0];
+    document.getElementById("evBanner").innerHTML =
+      "更新: <b>" + evData.updated + "</b>" +
+      (next ? " / 次のイベント: <b>" + tvMd(next.date) + " " + next.name + "</b>" : "");
+    evRender();
+  } catch (e) {
+    document.getElementById("evBanner").innerHTML = '<span class="err">読み込みエラー: ' + e + "</span>";
+  }
+}
+
 const VIEW_ID = {
   ranking: "view-ranking", intraday: "view-intraday", split: "view-split",
   yori: "view-yori", minute: "view-minute", min5: "view-min5", sector: "view-sector",
@@ -3882,6 +4022,7 @@ const VIEW_ID = {
   uchu: "view-uchu", topix: "view-topix", turnover: "view-turnover", period: "view-period",
   g623: "view-g623", wk: "view-wk", fx: "view-fx", d0901: "view-d0901",
   selran: "view-selran", baibai: "view-baibai", search: "view-search",
+  event: "view-event",
 };
 function switchTab(name) {
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
@@ -3898,6 +4039,7 @@ function switchTab(name) {
   if (name === "selran" && !srInited) { srInited = true; srInit(); }
   if (name === "baibai" && !bbInited) { bbInited = true; bbInit(); }
   if (name === "search" && !skInited) { skInited = true; skInit(); }
+  if (name === "event" && !evInited) { evInited = true; evInit(); }
   if (name === "period" && !pdInited) { pdInited = true; pdInit(); }
   if (name === "g623" && !g6Inited) { g6Inited = true; g6Init(); }
   if (name === "wk" && !wkInited) { wkInited = true; wkInit(); }
@@ -3930,6 +4072,7 @@ const FEEDS = {
   baibai: { kind: "field", url: "./data_turnover/data.json", field: "updated", freq: "daily" },
   selran: { kind: "field", url: "./data_selran/data.json", field: "updated", freq: "daily" },
   search: { kind: "field", url: "./data_search/data.json", field: "updated", freq: "daily" },
+  event: { kind: "field", url: "./data_event/data.json", field: "updated", freq: "daily" },
   // prices.json は1MB近いので、最終更新日だけを書いた軽い index.json を見る
   period:   { kind: "field", url: "./data_period/index.json", field: "updated", freq: "daily" },
   g623:     { kind: "field", url: "./data_623/index.json", field: "updated", freq: "daily" },
