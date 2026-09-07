@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-02",
+ "updated": "2026-09-08",
  "apps": {
   "1015521325": {
    "name": "Fate/Grand Order",
@@ -55,6 +55,16 @@
    "name": "ドラゴンボールZ ドッカンバトル",
    "release": "2015-02-18",
    "seller": "Bandai Namco Entertainment Inc."
+  },
+  "544007664": {
+   "name": "YouTube",
+   "release": "2012-09-11",
+   "seller": "Google LLC"
+  },
+  "658511662": {
+   "name": "モンスターストライク",
+   "release": "2013-09-27",
+   "seller": "XFLAG, Inc."
   }
  },
  "days": [
@@ -774,7 +784,7 @@
    },
    "top1": {
     "name": "モンスターストライク",
-    "apid": null
+    "apid": "658511662"
    },
    "top1_others": [
     {
@@ -783,7 +793,7 @@
     },
     {
      "name": "YouTube",
-     "apid": null
+     "apid": "544007664"
     }
    ]
   },
@@ -807,7 +817,59 @@
    },
    "top1": {
     "name": "モンスターストライク",
-    "apid": null
+    "apid": "658511662"
+   }
+  },
+  {
+   "date": "2026-09-07",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 37,
+     "high": 29,
+     "low": 38,
+     "samples": 99
+    },
+    "951627670": {
+     "name": "ドラゴンボールZ ドッカンバトル",
+     "last": 17,
+     "high": 12,
+     "low": 17,
+     "samples": 99
+    }
+   },
+   "top1": {
+    "name": "eFootball™",
+    "apid": "1117270703"
+   },
+   "top1_others": [
+    {
+     "name": "ChatGPT",
+     "apid": "6448311069"
+    }
+   ]
+  },
+  {
+   "date": "2026-09-08",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 33,
+     "high": 33,
+     "low": 37,
+     "samples": 102
+    },
+    "951627670": {
+     "name": "ドラゴンボールZ ドッカンバトル",
+     "last": 16,
+     "high": 16,
+     "low": 17,
+     "samples": 102
+    }
+   },
+   "top1": {
+    "name": "eFootball™",
+    "apid": "1117270703"
    }
   }
  ]
