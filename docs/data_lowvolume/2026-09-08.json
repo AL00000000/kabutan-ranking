@@ -1,0 +1,45 @@
+{
+  "date": "2026-09-08",
+  "as_of": "2026-09-08 16:00",
+  "updated": "2026-09-08",
+  "generated": "2026-09-08T16:45:34+09:00",
+  "min_value": 1000,
+  "window_days": 365,
+  "ma_days": 5,
+  "counts": {
+    "scanned": 650,
+    "universe": 593,
+    "hit": 1,
+    "day_low": 1,
+    "ma_low": 0,
+    "watch": 0,
+    "failed": 0,
+    "stale": 0,
+    "skipped": 4
+  },
+  "failed": [],
+  "stocks": [
+    {
+      "rank": 601,
+      "code": "3498",
+      "name": "霞ヶ関Ｃ",
+      "market": "東Ｐ",
+      "close": 7380.0,
+      "change_pct": 0.0,
+      "value": 1107.0,
+      "watch": null,
+      "volume": 149000.0,
+      "prev_min": 161600.0,
+      "ma": 234080,
+      "ma_prev_min": 227920,
+      "is_low": true,
+      "ma_low": false,
+      "avg52": 551299,
+      "vs_avg_pct": 27.0,
+      "prev_date": "2026-09-07",
+      "gap": 1,
+      "hist_days": 244,
+      "short_hist": false
+    }
+  ]
+}
