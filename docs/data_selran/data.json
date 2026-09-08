@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-08",
+ "updated": "2026-09-09",
  "apps": {
   "1015521325": {
    "name": "Fate/Grand Order",
@@ -31,6 +31,11 @@
    "release": "2012-02-20",
    "seller": "GungHo Online Entertainment, INC."
   },
+  "544007664": {
+   "name": "YouTube",
+   "release": "2012-09-11",
+   "seller": "Google LLC"
+  },
   "6448311069": {
    "name": "ChatGPT",
    "release": "2023-05-25",
@@ -40,6 +45,11 @@
    "name": "Pokémon TCG Pocket",
    "release": "2024-10-30",
    "seller": "The Pokemon Company"
+  },
+  "658511662": {
+   "name": "モンスターストライク",
+   "release": "2013-09-27",
+   "seller": "XFLAG, Inc."
   },
   "6756641135": {
    "name": "ホロライブドリームス",
@@ -55,16 +65,6 @@
    "name": "ドラゴンボールZ ドッカンバトル",
    "release": "2015-02-18",
    "seller": "Bandai Namco Entertainment Inc."
-  },
-  "544007664": {
-   "name": "YouTube",
-   "release": "2012-09-11",
-   "seller": "Google LLC"
-  },
-  "658511662": {
-   "name": "モンスターストライク",
-   "release": "2013-09-27",
-   "seller": "XFLAG, Inc."
   }
  },
  "days": [
@@ -854,22 +854,51 @@
    "apps": {
     "6756641135": {
      "name": "ホロライブドリームス",
-     "last": 33,
-     "high": 33,
+     "last": 10,
+     "high": 10,
      "low": 37,
+     "samples": 288
+    },
+    "951627670": {
+     "name": "ドラゴンボールZ ドッカンバトル",
+     "last": 21,
+     "high": 16,
+     "low": 21,
+     "samples": 288
+    }
+   },
+   "top1": {
+    "name": "ChatGPT",
+    "apid": "6448311069"
+   },
+   "top1_others": [
+    {
+     "name": "eFootball™",
+     "apid": "1117270703"
+    }
+   ]
+  },
+  {
+   "date": "2026-09-09",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 9,
+     "high": 8,
+     "low": 10,
      "samples": 102
     },
     "951627670": {
      "name": "ドラゴンボールZ ドッカンバトル",
-     "last": 16,
-     "high": 16,
-     "low": 17,
+     "last": 21,
+     "high": 21,
+     "low": 21,
      "samples": 102
     }
    },
    "top1": {
-    "name": "eFootball™",
-    "apid": "1117270703"
+    "name": "ChatGPT",
+    "apid": "6448311069"
    }
   }
  ]
