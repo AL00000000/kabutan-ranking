@@ -45,6 +45,7 @@ SHARES = BASE / "cache_period" / "shares.json"        # 発行済株式数(株�
 RAWCLOSE = BASE / "cache_period" / "raw_close.json"   # 未調整の最新終値
 OUT623 = BASE / "docs" / "data_623"
 START_623 = "2026-06-23"   # 「6.23-」タブの固定開始日
+OUT0901G = BASE / "docs" / "data_0901g"   # 「9/1-」タブのグループ別(銘柄群は6.23-と共通)
 
 OUT0901 = BASE / "docs" / "data_0901"
 TOPIX_SUMMARY = BASE / "docs" / "data_topix" / "summary.json"
@@ -131,6 +132,23 @@ def load_groups():
             if g and code:
                 groups.setdefault(g, []).append((code, (row.get("銘柄名") or "").strip()))
     return groups
+
+
+def topix_groups():
+    """TOPIX入替タブの推計から「除外」「採用」の2グループを作る。
+
+    risk が "low"(=確定的)のものだけを使う。mid/high(当落線上)は
+    **株価を持っている銘柄が3割前後しかなく**(TOPIX Small 2 の小型株が多く、
+    売買代金ランキングに載らないため日足キャッシュに無い)、
+    グループの平均が母集団を代表しなくなるので入れない。
+    """
+    summary = load_json(TOPIX_SUMMARY, {})
+    out = {}
+    for key, label in (("excluded", "TOPIX除外(確定的)"), ("added", "TOPIX採用(確定的)")):
+        rows = [x for x in summary.get(key, []) if x.get("risk") == "low"]
+        if rows:
+            out[label] = [(x["code"], x.get("name") or "") for x in rows]
+    return out
 
 
 def fetch_index(code):
@@ -253,8 +271,11 @@ def write_0901(cache):
     print(f"wrote 9/1- tab: {len(out)} rows ({START_0901}〜{end}) {size:.0f}KB", flush=True)
 
 
-def write_623(cache, groups, caps):
-    """「6.23-」タブ用。開始日は固定、終了日は取得できた最新営業日まで伸びる。"""
+def write_groups(cache, groups, caps, start, outdir, tag):
+    """テーマ別グループの騰落率を書き出す。開始日は固定、終了日は最新営業日まで伸びる。
+
+    「6.23-」と「9/1-」で **銘柄群はまったく同じ** で、起点日だけが違う。
+    """
     if not groups:
         return
     # 対TOPIXは銘柄ごとに「その銘柄と同じ起点日」で計算する。
@@ -266,13 +287,13 @@ def write_623(cache, groups, caps):
     for gi, (gname, members) in enumerate(groups.items()):
         rets = []
         for code, name in members:
-            r = period_return(cache.get(code) or [], START_623)
+            r = period_return(cache.get(code) or [], start)
             if r is None:
                 continue
             ret, d0, d1 = r
             end = max(end, d1)
             bars = cache[code]
-            tail = [c * v / 1e6 for d, c, v in bars if d >= START_623][-20:]
+            tail = [c * v / 1e6 for d, c, v in bars if d >= start][-20:]
             tv = round(sum(tail) / len(tail), 1) if tail else 0.0
             rets.append({"code": code, "name": name, "ret": round(ret, 2),
                          "val": tv, "from": d0})
@@ -306,18 +327,18 @@ def write_623(cache, groups, caps):
             row[6] = round(row[3] - (tpx_end / c0 - 1) * 100, 2)
 
     bench = [{"name": b["name"], "ret": round(b["ret"], 1)}
-             for b in bench_returns(cache, START_623, end)]
+             for b in bench_returns(cache, start, end)]
 
     # 全グループ共通の基準起点日(6/23以降で最初に市場が開いた日)
-    base_all = min((s[5] or START_623) for s in out_stocks) if out_stocks else START_623
-    save_json(OUT623 / "data.json",
-              {"start": START_623, "base": base_all, "end": end, "updated": end,
+    base_all = min((s[5] or start) for s in out_stocks) if out_stocks else start
+    save_json(outdir / "data.json",
+              {"start": start, "base": base_all, "end": end, "updated": end,
                "benchmarks": bench, "groups": out_groups, "stocks": out_stocks},
               compact=True)
-    save_json(OUT623 / "index.json", {"updated": end, "count": len(out_stocks)})
-    size = (OUT623 / "data.json").stat().st_size / 1024
-    print(f"wrote 6.23- tab: {len(out_groups)} groups / {len(out_stocks)} rows "
-          f"({START_623}〜{end}) {size:.0f}KB", flush=True)
+    save_json(outdir / "index.json", {"updated": end, "count": len(out_stocks)})
+    size = (outdir / "data.json").stat().st_size / 1024
+    print(f"wrote {tag} tab: {len(out_groups)} groups / {len(out_stocks)} rows "
+          f"({start}〜{end}) {size:.0f}KB", flush=True)
 
 
 def universe():
@@ -559,7 +580,9 @@ def main():
     print(f"wrote {len(stocks)} stocks / {len(dates)} days "
           f"({dates[0]}〜{dates[-1]}) {size:.2f}MB", flush=True)
 
-    write_623(cache, groups, caps)
+    groups.update(topix_groups())          # 銘柄群は両タブで共通
+    write_groups(cache, groups, caps, START_623, OUT623, "6.23-")
+    write_groups(cache, groups, caps, START_0901, OUT0901G, "9/1-")
     write_0901(cache)
     return 0
 
