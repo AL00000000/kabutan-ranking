@@ -449,7 +449,14 @@ def main():
     }
     save_json(DOCS / f"{data_date}.json", payload)
 
-    dates = sorted((p.stem for p in DOCS.glob("*.json") if p.stem != "index"), reverse=True)
+    # 同じディレクトリに followup.json / backfill.json など日付でないファイルも置くので、
+    # YYYY-MM-DD の形のものだけを日付一覧に入れる。文字列の降順では "followup" や
+    # "backfill" が日付より前に来るため、混ざると dates[0] が日付でなくなり、
+    # notify_newhigh.py が followup.json を当日分と誤認して通知が止まる。
+    dates = sorted(
+        (p.stem for p in DOCS.glob("????-??-??.json")
+         if re.fullmatch(r"\d{4}-\d{2}-\d{2}", p.stem)),
+        reverse=True)
     save_json(DOCS / "index.json", {"dates": dates, "updated": dates[0] if dates else None})
 
     print(f"52週新高値(高値ベース) {len(stocks)}銘柄 / うち直近{FRESH_DAYS}営業日以内に"
