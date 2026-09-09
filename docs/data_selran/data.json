@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-09",
+ "updated": "2026-09-10",
  "apps": {
   "1015521325": {
    "name": "Fate/Grand Order",
@@ -65,6 +65,11 @@
    "name": "ドラゴンボールZ ドッカンバトル",
    "release": "2015-02-18",
    "seller": "Bandai Namco Entertainment Inc."
+  },
+  "1074866833": {
+   "name": "ABEMA(アベマ) 新しい未来のTV",
+   "release": "2016-02-29",
+   "seller": "ABEMATV, INC."
   }
  },
  "days": [
@@ -883,23 +888,52 @@
    "apps": {
     "6756641135": {
      "name": "ホロライブドリームス",
-     "last": 9,
+     "last": 16,
      "high": 8,
-     "low": 10,
-     "samples": 102
+     "low": 16,
+     "samples": 234
     },
     "951627670": {
      "name": "ドラゴンボールZ ドッカンバトル",
-     "last": 21,
-     "high": 21,
-     "low": 21,
-     "samples": 102
+     "last": 26,
+     "high": 20,
+     "low": 26,
+     "samples": 234
     }
    },
    "top1": {
     "name": "ChatGPT",
     "apid": "6448311069"
    }
+  },
+  {
+   "date": "2026-09-10",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 19,
+     "high": 15,
+     "low": 19,
+     "samples": 102
+    },
+    "951627670": {
+     "name": "ドラゴンボールZ ドッカンバトル",
+     "last": 22,
+     "high": 22,
+     "low": 26,
+     "samples": 102
+    }
+   },
+   "top1": {
+    "name": "ABEMA(アベマ) 新しい未来のTV",
+    "apid": "1074866833"
+   },
+   "top1_others": [
+    {
+     "name": "ChatGPT",
+     "apid": "6448311069"
+    }
+   ]
   }
  ]
 }
