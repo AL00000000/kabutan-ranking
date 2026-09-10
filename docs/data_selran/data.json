@@ -1,10 +1,15 @@
 {
- "updated": "2026-09-10",
+ "updated": "2026-09-11",
  "apps": {
   "1015521325": {
    "name": "Fate/Grand Order",
    "release": "2015-08-12",
    "seller": "Aniplex Inc."
+  },
+  "1074866833": {
+   "name": "ABEMA(アベマ) 新しい未来のTV",
+   "release": "2016-02-29",
+   "seller": "ABEMATV, INC."
   },
   "1091496983": {
    "name": "ピッコマ",
@@ -65,11 +70,6 @@
    "name": "ドラゴンボールZ ドッカンバトル",
    "release": "2015-02-18",
    "seller": "Bandai Namco Entertainment Inc."
-  },
-  "1074866833": {
-   "name": "ABEMA(アベマ) 新しい未来のTV",
-   "release": "2016-02-29",
-   "seller": "ABEMATV, INC."
   }
  },
  "days": [
@@ -911,17 +911,17 @@
    "apps": {
     "6756641135": {
      "name": "ホロライブドリームス",
-     "last": 19,
+     "last": 29,
      "high": 15,
-     "low": 19,
-     "samples": 102
+     "low": 29,
+     "samples": 287
     },
     "951627670": {
      "name": "ドラゴンボールZ ドッカンバトル",
-     "last": 22,
+     "last": 28,
      "high": 22,
-     "low": 26,
-     "samples": 102
+     "low": 29,
+     "samples": 288
     }
    },
    "top1": {
@@ -934,6 +934,29 @@
      "apid": "6448311069"
     }
    ]
+  },
+  {
+   "date": "2026-09-11",
+   "apps": {
+    "6756641135": {
+     "name": "ホロライブドリームス",
+     "last": 32,
+     "high": 29,
+     "low": 32,
+     "samples": 103
+    },
+    "951627670": {
+     "name": "ドラゴンボールZ ドッカンバトル",
+     "last": 24,
+     "high": 24,
+     "low": 28,
+     "samples": 102
+    }
+   },
+   "top1": {
+    "name": "ABEMA(アベマ) 新しい未来のTV",
+    "apid": "1074866833"
+   }
   }
  ]
 }
