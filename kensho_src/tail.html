@@ -1,0 +1,105 @@
+<script id="d" type="application/json">__DATA__</script>
+<script>
+(function(){
+var D=JSON.parse(document.getElementById('d').textContent);
+var NS='http://www.w3.org/2000/svg';
+function el(t,a){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
+var MONO='font-size:11px;font-family:IBM Plex Mono,monospace';
+
+/* ---------- generic log-scale line chart ---------- */
+function lineChart(mount, dates, series, ticks, yearStep, label){
+  var W=880,H=380,ml=44,mr=16,mt=14,mb=26;
+  var iw=W-ml-mr, ih=H-mt-mb, n=dates.length;
+  var lo=Math.log(ticks[0]), hi=Math.log(ticks[ticks.length-1]);
+  var svg=el('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':label});
+  var x=function(i){return ml+iw*i/(n-1);};
+  var y=function(v){return mt+ih-(Math.log(v)-lo)/(hi-lo)*ih;};
+  ticks.forEach(function(t){
+    var yy=y(t);
+    svg.appendChild(el('line',{x1:ml,x2:ml+iw,y1:yy,y2:yy,style:'stroke:var(--line-soft)','stroke-width':1}));
+    var lb=el('text',{x:ml-9,y:yy+4,'text-anchor':'end',style:'fill:var(--ink-3);'+MONO});
+    lb.textContent=(t<1?t:t)+'x'; svg.appendChild(lb);
+  });
+  dates.forEach(function(d,i){
+    var m=d.split('-');
+    if(m[1]==='12' && (+m[0])%yearStep===0){
+      svg.appendChild(el('line',{x1:x(i),x2:x(i),y1:mt,y2:mt+ih,style:'stroke:var(--line-soft)','stroke-width':1}));
+      var lb=el('text',{x:x(i),y:H-6,'text-anchor':'middle',style:'fill:var(--ink-3);'+MONO});
+      lb.textContent=m[0]; svg.appendChild(lb);
+    }
+  });
+  series.forEach(function(s){
+    var arr=D[s.k], dd='', started=false;
+    arr.forEach(function(v,i){ if(v==null)return; dd+=(started?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1); started=true; });
+    svg.appendChild(el('path',{d:dd,fill:'none',style:'stroke:'+s.c,'stroke-width':s.w||2.2,'stroke-opacity':s.o==null?1:s.o,'stroke-linejoin':'round'}));
+    var last=arr[arr.length-1];
+    if(last!=null && s.o==null) svg.appendChild(el('circle',{cx:x(n-1),cy:y(last),r:3.5,style:'fill:'+s.c}));
+  });
+  document.getElementById(mount).appendChild(svg);
+}
+
+lineChart('c0', D.dates, [
+  {k:'n225_px',c:'var(--nikkei)'},
+  {k:'n70_px', c:'var(--teal)'},
+  {k:'hdy_px', c:'var(--brass)',w:2.6}
+], [0.5,1,2,5,10,20], 5, '株価のみで揃えた24.7年の推移');
+
+lineChart('c1', D.dates, [
+  {k:'large_tr',c:'var(--ink-3)',w:1.2,o:.5},
+  {k:'mkt_tr',  c:'var(--slate)'},
+  {k:'n70_tr',  c:'var(--teal)'},
+  {k:'hdy_tr',  c:'var(--brass)',w:2.6}
+], [0.5,1,2,5,10,20], 5, '配当込みで揃えた24.7年の推移');
+
+lineChart('c3', D.dates2, [
+  {k:'mkt2', c:'var(--slate)'},
+  {k:'n2252',c:'var(--nikkei)'},
+  {k:'n702', c:'var(--teal)'},
+  {k:'hdy2', c:'var(--brass)',w:2.6}
+], [1,2,3,5,7], 2, '配当込みで揃えた2016年以降の推移');
+
+/* ---------- rolling 10y excess ---------- */
+(function(){
+  var R=D.rolling,W=880,H=300,ml=40,mr=14,mt=14,mb=34;
+  var iw=W-ml-mr, ih=H-mt-mb;
+  var svg=el('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':'10年保有した場合の市場全体に対する超過リターン'});
+  var lo=-4,hi=10;
+  var y=function(v){return mt+ih-(v-lo)/(hi-lo)*ih;};
+  var bw=iw/R.length, gap=6, bar=(bw-gap)/2;
+  [-2,0,2,4,6,8,10].forEach(function(t){
+    var yy=y(t);
+    svg.appendChild(el('line',{x1:ml,x2:ml+iw,y1:yy,y2:yy,style:'stroke:'+(t===0?'var(--ink-3)':'var(--line-soft)'),'stroke-width':t===0?1.4:1}));
+    var lb=el('text',{x:ml-9,y:yy+4,'text-anchor':'end',style:'fill:var(--ink-3);'+MONO});
+    lb.textContent=(t>0?'+':'')+t; svg.appendChild(lb);
+  });
+  R.forEach(function(r,i){
+    var x0=ml+bw*i+gap/2;
+    [[r.hdy-r.mkt,'var(--brass)',0],[r.n70-r.mkt,'var(--teal)',bar]].forEach(function(s){
+      var v=s[0], top=Math.min(y(v),y(0)), h=Math.abs(y(v)-y(0));
+      svg.appendChild(el('rect',{x:x0+s[2],y:top,width:bar-1,height:Math.max(h,1),rx:1,style:'fill:'+s[1]+';fill-opacity:'+(v<0?.95:.85)}));
+    });
+    if(i%2===0||i===R.length-1){
+      var lb=el('text',{x:x0+bw/2-gap/2,y:H-14,'text-anchor':'middle',style:'fill:var(--ink-3);font-size:10.5px;font-family:IBM Plex Mono,monospace'});
+      lb.textContent="'"+String(r.start).slice(2); svg.appendChild(lb);
+    }
+  });
+  var cap=el('text',{x:ml,y:H-2,style:'fill:var(--ink-3);font-size:10.5px'});
+  cap.textContent='← 10年保有の開始年（12月末）'; svg.appendChild(cap);
+  document.getElementById('c2').appendChild(svg);
+})();
+
+/* ---------- annual table ---------- */
+(function(){
+  var A=D.annual, tb=document.querySelector('#annual tbody');
+  A.years.forEach(function(yr,i){
+    var a=A.hdy[i],b=A.n70[i],m=A.mkt[i],k=A.n225[i];
+    var ex=(a!=null&&m!=null)?(a-m):null;
+    function c(v,s){return '<td class="n '+(v==null?'':(v<0?'neg':(s?'pos':'')))+'">'+(v==null?'—':(s&&v>0?'+':'')+v.toFixed(1))+'</td>';}
+    var tr=document.createElement('tr');
+    if(yr===2020||yr===2008) tr.className='hl';
+    tr.innerHTML='<td class="n">'+yr+(yr===2026?' <span style="color:var(--ink-3);font-size:11px">8月まで</span>':'')+'</td>'+c(a)+c(b)+c(m)+c(k)+c(ex,1);
+    tb.appendChild(tr);
+  });
+})();
+})();
+</script>

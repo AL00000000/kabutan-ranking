@@ -305,6 +305,12 @@ footer a { color: var(--accent); }
         <button class="tab is-ended" data-tab="topix">TOPIX入替確定(推定)</button>
       </div>
     </div>
+    <div class="tabgroup">
+      <span class="tabgroup-label">仮説検証</span>
+      <div class="tabgroup-items">
+        <button class="tab" data-tab="kensho">高配当上位50の25年</button>
+      </div>
+    </div>
   </nav>
 
   <div id="view-ranking">
@@ -988,6 +994,11 @@ footer a { color: var(--accent); }
   <div id="view-shinyo" hidden>
     <div class="embed-note">信用評価損益率 25年チャート(2001/06〜・週次) — <a href="./shinyo.html" target="_blank" rel="noopener">別タブで開く ↗</a></div>
     <iframe class="embed" title="信用評価損益率 25年チャート" data-src="./shinyo.html" loading="lazy"></iframe>
+  </div>
+
+  <div id="view-kensho" hidden>
+    <div class="embed-note">「東証の配当利回り上位50銘柄を均等に買い続けたら」を、条件が一致する実在インデックス(生存者バイアスなし)で<b>24.7年</b>検証したレポート。仮説の立て方・条件設定・期間の揃え方も明記 — <a href="./kensho.html" target="_blank" rel="noopener">別タブで開く ↗</a></div>
+    <iframe class="embed" title="高配当上位50の25年 — 仮説検証レポート" data-src="./kensho.html" loading="lazy"></iframe>
   </div>
 </div>
 
@@ -4068,7 +4079,7 @@ const VIEW_ID = {
   uchu: "view-uchu", topix: "view-topix", turnover: "view-turnover", period: "view-period",
   g623: "view-g623", wk: "view-wk", fx: "view-fx", d0901: "view-d0901",
   selran: "view-selran", baibai: "view-baibai", search: "view-search",
-  event: "view-event",
+  event: "view-event", kensho: "view-kensho",
 };
 function switchTab(name) {
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));

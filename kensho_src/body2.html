@@ -1,0 +1,118 @@
+<section>
+  <h2><span class="n">02</span>使った系列と、その条件・期間</h2>
+  <p class="lead">比較表を読む前に、何をどこまで揃えたかを確認してください。<strong>データ範囲の列がバラバラ</strong>なのが、期間を切り揃えた理由です。</p>
+  <div class="scroll"><table>
+    <thead><tr><th>系列</th><th>母集団</th><th>銘柄数</th><th>ウエイト</th><th>入替</th><th>データ範囲</th><th>実算出開始</th></tr></thead>
+    <tbody>
+      <tr class="hl"><td><span class="tag" style="background:var(--brass)"></span>日経平均高配当株50<br><span class="small">＝条件B</span></td><td>日経平均225銘柄</td><td class="n">50</td><td>配当利回り<br>（流動性調整）</td><td>年1回<br>6月末</td><td class="n">2001/12〜</td><td class="n">2017/01</td></tr>
+      <tr class="hl"><td><span class="tag" style="background:var(--teal)"></span>野村日本株高配当70<br><span class="small">＝条件A</span></td><td>国内上場株<br>（下に注記）</td><td class="n">70</td><td><strong>等金額</strong></td><td>年1回<br>12月初＋臨時</td><td class="n">2000/12〜</td><td class="n">2013年前後</td></tr>
+      <tr><td>野村日本株高配当SMART50</td><td>国内上場株</td><td class="n">50</td><td>傾斜<br>（4指標）</td><td>年4回</td><td class="n">2008/01〜</td><td class="n">—</td></tr>
+      <tr><td><span class="tag" style="background:var(--nikkei)"></span>日経平均株価</td><td>—</td><td class="n">225</td><td>株価平均</td><td>随時</td><td class="n">1985/01〜</td><td class="n">1950/09</td></tr>
+      <tr><td><span class="tag" style="background:var(--nikkei);opacity:.5"></span>日経平均トータルリターン</td><td>—</td><td class="n">225</td><td>株価平均<br>＋配当</td><td>随時</td><td class="n" style="color:var(--neg)">2016/01〜<br>のみ</td><td class="n">2012/12</td></tr>
+      <tr><td><span class="tag" style="background:var(--slate)"></span>Russell/Nomura Total Market</td><td>国内上場株<br>ほぼ全体</td><td class="n">約1,400</td><td>浮動株<br>時価総額</td><td>年1回<br>11月</td><td class="n">1979/12〜</td><td class="n">1996年</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small"><strong>野村高配当70の母集団の実態</strong>：利回りを見る前に「過去3年の経常利益が全てゼロ以上／今期予想決算期が3・6・9・12月／浮動株調整時価総額の累積上位85%以内／過去60日平均売買代金の上位500位以内」で絞られます。つまり実質<strong>「流動性上位500銘柄」の中での利回り上位70</strong>であり、文字どおりの「東証全銘柄から上位50」ではありません。<br>
+  <strong>日経平均トータルリターンの制約</strong>：指数自体は1979年12月末まで遡及算出されていますが、日経が無料公開している時系列CSVは2016年1月以降に限られます。そのため配当込みでの日経平均比較は §05 の10.6年だけです。</p>
+
+  <h3>各系列を「自分の全期間」で見ると</h3>
+  <p class="lead">この表は<strong>期間がバラバラなので、行どうしを比較してはいけません</strong>。各系列で取れる最長期間を示すためのものです。</p>
+  <div class="scroll"><table>
+    <thead><tr><th>系列</th><th>期間</th><th>年数</th><th>年率</th><th>倍率</th></tr></thead>
+    <tbody>
+      <tr><td>日経高配当株50（配当込）</td><td class="n">2001/12→2026/08</td><td class="n">24.7</td><td class="n">13.77%</td><td class="n">24.12x</td></tr>
+      <tr><td>野村高配当70（配当込）</td><td class="n">2000/12→2026/08</td><td class="n">25.7</td><td class="n">10.45%</td><td class="n">12.84x</td></tr>
+      <tr><td>野村高配当SMART50（配当込）</td><td class="n">2008/01→2026/08</td><td class="n">18.6</td><td class="n">13.01%</td><td class="n">9.71x</td></tr>
+      <tr><td>日経平均株価（配当なし）</td><td class="n">1985/01→2026/08</td><td class="n">41.6</td><td class="n">4.20%</td><td class="n">5.53x</td></tr>
+      <tr><td>市場全体（配当込）</td><td class="n">1979/12→2026/08</td><td class="n">46.7</td><td class="n">6.56%</td><td class="n">19.41x</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">日経平均の41.6年が年率4.20%と低いのは、起点の1985年1月がバブル形成の途中で、1989年末のピークを挟んでいるためです。起点を変えるだけで大きく動く数字であり、これも期間を揃える必要がある理由です。</p>
+</section>
+
+<section>
+  <h2><span class="n">03</span>株価のみで揃えて比べる（24.7年）</h2>
+  <p class="lead">ご質問は「株価のパフォーマンス」でした。配当を一切含めず、3系列すべて配当なしベースで揃えると、こうなります。</p>
+  <div class="scroll"><table>
+    <thead><tr><th>系列（すべて配当なし）</th><th>倍率</th><th>年率</th><th>年率変動</th><th>最大下落</th><th>対日経平均</th></tr></thead>
+    <tbody>
+      <tr class="hl"><td><span class="tag" style="background:var(--brass)"></span>条件B 日経高配当株50</td><td class="n">10.84x</td><td class="n">10.14%</td><td class="n">17.3%</td><td class="n neg">-56.3%</td><td class="n pos">+2.40%</td></tr>
+      <tr class="hl"><td><span class="tag" style="background:var(--teal)"></span>条件A 野村高配当70</td><td class="n">6.36x</td><td class="n">7.79%</td><td class="n">16.2%</td><td class="n neg">-50.2%</td><td class="n pos">+0.05%</td></tr>
+      <tr><td><span class="tag" style="background:var(--nikkei)"></span>日経平均株価</td><td class="n">6.29x</td><td class="n">7.74%</td><td class="n">18.9%</td><td class="n neg">-58.3%</td><td class="n">—</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><strong>これが一番重要な結果です。</strong>株価だけで見ると、条件Aは日経平均に<strong>年率0.05%しか勝っていません</strong>（24.7年で6.36倍 対 6.29倍）。条件Aの超過リターンは、ほぼ全て配当から来ています。一方の条件Bは株価だけでも年率+2.40%勝っており、性質が違います。</div>
+  <figure>
+    <div class="legend">
+      <span><i style="background:var(--brass)"></i>条件B 日経高配当株50</span>
+      <span><i style="background:var(--teal)"></i>条件A 野村高配当70</span>
+      <span><i style="background:var(--nikkei)"></i>日経平均株価</span>
+    </div>
+    <div id="c0"></div>
+    <figcaption>すべて配当なし・2001年12月末＝1倍。縦軸は対数。</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2><span class="n">04</span>配当込みで揃えて比べる（24.7年）</h2>
+  <p class="lead">配当を再投資した場合。日経平均の配当込みはこの期間の公表データがないため、同じ大型株の配当込みベンチマークとしてRussell/Nomura大型株を並べています。</p>
+  <figure>
+    <div class="legend">
+      <span><i style="background:var(--brass)"></i>条件B 日経高配当株50</span>
+      <span><i style="background:var(--teal)"></i>条件A 野村高配当70</span>
+      <span><i style="background:var(--slate)"></i>市場全体</span>
+      <span><i style="background:var(--ink-3);opacity:.6"></i>大型株全体</span>
+    </div>
+    <div id="c1"></div>
+    <figcaption>配当再投資・税引前。2001年12月末＝1倍。縦軸は対数。</figcaption>
+  </figure>
+  <div class="scroll"><table>
+    <thead><tr><th>系列（すべて配当込み）</th><th>倍率</th><th>年率</th><th>年率変動</th><th>最大下落</th><th>年率÷変動</th></tr></thead>
+    <tbody>
+      <tr class="hl"><td><span class="tag" style="background:var(--brass)"></span>条件B 日経高配当株50</td><td class="n">24.12x</td><td class="n">13.77%</td><td class="n">17.2%</td><td class="n neg">-49.8%</td><td class="n">0.80</td></tr>
+      <tr class="hl"><td><span class="tag" style="background:var(--teal)"></span>条件A 野村高配当70</td><td class="n">13.03x</td><td class="n">10.97%</td><td class="n">16.1%</td><td class="n neg">-48.3%</td><td class="n">0.68</td></tr>
+      <tr><td>市場バリュー（割安株全体）</td><td class="n">10.10x</td><td class="n">9.83%</td><td class="n">17.3%</td><td class="n neg">-52.7%</td><td class="n">0.57</td></tr>
+      <tr><td>小型株全体</td><td class="n">8.83x</td><td class="n">9.23%</td><td class="n">16.0%</td><td class="n neg">-58.4%</td><td class="n">0.58</td></tr>
+      <tr><td><span class="tag" style="background:var(--slate)"></span>市場全体</td><td class="n">6.89x</td><td class="n">8.14%</td><td class="n">16.5%</td><td class="n neg">-56.3%</td><td class="n">0.49</td></tr>
+      <tr><td>大型株全体</td><td class="n">6.52x</td><td class="n">7.90%</td><td class="n">16.8%</td><td class="n neg">-57.1%</td><td class="n">0.47</td></tr>
+      <tr><td>超大型株全体</td><td class="n">5.89x</td><td class="n">7.45%</td><td class="n">17.6%</td><td class="n neg">-60.4%</td><td class="n">0.42</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">2001年12月末に100万円 → 条件B <span class="num">2,412万円</span>／条件A <span class="num">1,303万円</span>／市場全体 <span class="num">689万円</span>。最大下落はいずれも2007年6月→2009年2月。底の2009年2月から下落前の水準に戻るまで、条件Aは4年7か月、条件Bは5年9か月、市場全体は6年0か月。ピークの2007年6月を起点にすると6年3か月・7年5か月・7年8か月です。</p>
+
+  <h3>税引き後</h3>
+  <div class="scroll"><table>
+    <thead><tr><th></th><th>株価のみ</th><th>配当込み</th><th>配当込み・税引後</th></tr></thead>
+    <tbody>
+      <tr><td>条件B 日経高配当株50</td><td class="n">10.14%</td><td class="n">13.77%</td><td class="n">13.16%</td></tr>
+      <tr><td>条件A 野村高配当70</td><td class="n">7.79%</td><td class="n">10.97%</td><td class="n">10.43%</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">配当に20.315%の源泉徴収を適用した各指数提供元の公表系列。年率0.5〜0.6%が税で消えます。NISA成長投資枠で回避できますが年240万円・生涯1200万円の上限があります。</p>
+</section>
+
+<section>
+  <h2><span class="n">05</span>日経平均の配当込みが取れる10.6年で比べる</h2>
+  <p class="lead">日経が公表する日経平均トータルリターンは2016年1月以降しかありません。その範囲だけ、全系列を配当込みで揃えた結果です。<strong>ここでは条件Aが日経平均に負けています。</strong></p>
+  <figure>
+    <div class="legend">
+      <span><i style="background:var(--brass)"></i>条件B 日経高配当株50</span>
+      <span><i style="background:var(--teal)"></i>条件A 野村高配当70</span>
+      <span><i style="background:var(--nikkei)"></i>日経平均（配当込）</span>
+      <span><i style="background:var(--slate)"></i>市場全体</span>
+    </div>
+    <div id="c3"></div>
+    <figcaption>すべて配当込み・2016年1月末＝1倍。縦軸は対数。</figcaption>
+  </figure>
+  <div class="scroll"><table>
+    <thead><tr><th>2016/01末→2026/08末（10.6年・配当込み）</th><th>倍率</th><th>年率</th><th>年率変動</th><th>最大下落</th></tr></thead>
+    <tbody>
+      <tr><td>野村高配当SMART50（参考）</td><td class="n">6.06x</td><td class="n">18.56%</td><td class="n">16.3%</td><td class="n neg">-28.9%</td></tr>
+      <tr class="hl"><td><span class="tag" style="background:var(--brass)"></span>条件B 日経高配当株50</td><td class="n">5.48x</td><td class="n">17.43%</td><td class="n">16.2%</td><td class="n neg">-31.0%</td></tr>
+      <tr><td><span class="tag" style="background:var(--nikkei)"></span>日経平均（配当込）</td><td class="n">4.64x</td><td class="n">15.61%</td><td class="n">18.0%</td><td class="n neg">-19.2%</td></tr>
+      <tr class="hl"><td><span class="tag" style="background:var(--teal)"></span>条件A 野村高配当70</td><td class="n">4.32x</td><td class="n">14.82%</td><td class="n">15.8%</td><td class="n neg">-31.3%</td></tr>
+      <tr><td><span class="tag" style="background:var(--slate)"></span>市場全体</td><td class="n">3.83x</td><td class="n">13.54%</td><td class="n">14.3%</td><td class="n neg">-19.5%</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">この10.6年で、日経平均の配当寄与は<strong>年率+2.21%</strong>（株価のみ13.40% → 配当込み15.61%）、条件Bの配当寄与は<strong>年率+4.73%</strong>（12.70% → 17.43%）でした。なお条件Aは最大下落でも日経平均より深く（-31.3% 対 -19.2%）、リターンでも負けています。</p>
+</section>
