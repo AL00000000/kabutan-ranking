@@ -98,6 +98,22 @@ def cached_5y(code, fetch=True):
     return raw
 
 
+def stale(c5, short_bars):
+    """5年キャッシュが**分割・併合で調整がズレたまま**かを、重なる日の終値で見る。
+
+    Yahooの終値は分割があると過去まで遡って調整し直される。5年キャッシュを取った
+    あとに分割があると、古い部分だけ未調整のまま残り、継ぎ目で株価が飛ぶ
+    (騰落率が数倍になる)。毎日更新している cache_period と重なる日を突き合わせ、
+    食い違っていたら取り直す。
+    """
+    a = {d: c for d, c, _ in c5}
+    both = [d for d, c, _ in short_bars if d in a and c and a[d]]
+    if not both:
+        return False
+    ref = {d: c for d, c, _ in short_bars}
+    return any(abs(a[d] / ref[d] - 1) > 0.05 for d in sorted(both)[-5:])
+
+
 def merge(old, new):
     """日付をキーに new で上書きしたうえで日付順に並べ直す。"""
     m = {b[0]: b for b in old}
@@ -147,9 +163,14 @@ def main():
     caps = fp.market_caps(fp.load_json(fp.SHARES, {}) or {},
                           fp.load_json(fp.RAWCLOSE, {}) or {})
 
-    series, missing = {}, 0
+    series, missing, refreshed = {}, 0, []
     for i, code in enumerate(codes, 1):
-        bars = merge(cached_5y(code, fetch), short.get(code) or [])
+        c5, sh = cached_5y(code, fetch), short.get(code) or []
+        if fetch and stale(c5, sh):
+            (CACHE5 / f"{code}.json").unlink(missing_ok=True)
+            c5 = cached_5y(code, True)
+            refreshed.append(code)
+        bars = merge(c5, sh)
         bars = [b for b in bars if b[0] >= START and b[1]]
         if len(bars) < 2:
             missing += 1
@@ -158,6 +179,9 @@ def main():
         if i % 200 == 0:
             print(f"  {i}/{len(codes)}", flush=True)
     print(f"株価あり {len(series)} / 無し {missing}", flush=True)
+    if refreshed:
+        print(f"  分割で調整がズレていたため取り直し {len(refreshed)}銘柄: "
+              f"{','.join(refreshed[:20])}", flush=True)
 
     dates = sorted({b[0] for bars in series.values() for b in bars})
     idx = {d: i for i, d in enumerate(dates)}
