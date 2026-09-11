@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-11",
+ "updated": "2026-09-12",
  "events": [
   {
    "date": "2021-01-28",
@@ -416,6 +416,15 @@
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
+   "date": "2026-01-14",
+   "time": "22:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "November 2025分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
    "date": "2026-01-19",
    "time": "終日",
    "name": "米国市場 休場(Martin Luther King, Jr. Day)",
@@ -459,6 +468,15 @@
    "note": null,
    "source": "jp_empsit",
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-01-30",
+   "time": "22:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "December 2025分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2026-02-11",
@@ -506,6 +524,15 @@
    "url": "https://www.stat.go.jp/data/cpi/index.html"
   },
   {
+   "date": "2026-02-27",
+   "time": "22:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "January 2026分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
    "date": "2026-03-03",
    "time": "08:30",
    "name": "日本雇用統計(労働力調査)",
@@ -531,6 +558,15 @@
    "note": "February 2026分",
    "source": "us_cpi",
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-03-18",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "February 2026分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2026-03-19",
@@ -596,6 +632,15 @@
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
+   "date": "2026-04-14",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "March 2026分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
    "date": "2026-04-24",
    "time": "08:30",
    "name": "日本CPI(全国)",
@@ -650,6 +695,15 @@
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
+   "date": "2026-05-13",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "April 2026分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
    "date": "2026-05-15",
    "time": "08:30",
    "name": "日本雇用統計(労働力調査)",
@@ -702,6 +756,15 @@
    "note": "May 2026分",
    "source": "us_cpi",
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-06-11",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "May 2026分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2026-06-16",
@@ -776,6 +839,15 @@
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
+   "date": "2026-07-15",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "June 2026分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
    "date": "2026-07-24",
    "time": "08:30",
    "name": "日本CPI(全国)",
@@ -812,6 +884,15 @@
    "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
   },
   {
+   "date": "2026-08-04",
+   "time": "時刻未定",
+   "name": "任天堂 Direct",
+   "country": "JP",
+   "note": "「ファイアーエムブレム 万紫千紅 Direct 2026.8.4」を公開。楽曲配信やコミック連載などの最新情報も一挙ご紹介。",
+   "source": "nintendo",
+   "url": "https://topics.nintendo.co.jp/jp/topics/article/73213551-6815-4885-acdc-758a6dbdea31"
+  },
+  {
    "date": "2026-08-07",
    "time": "21:30",
    "name": "米雇用統計",
@@ -837,6 +918,15 @@
    "note": "July 2026分",
    "source": "us_cpi",
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-08-13",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "July 2026分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2026-08-21",
@@ -873,6 +963,15 @@
    "note": "米国市場は終日休場",
    "source": "us_holiday",
    "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2026-09-10",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "August 2026分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2026-09-11",
@@ -938,6 +1037,15 @@
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
+   "date": "2026-10-15",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "September 2026分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
    "date": "2026-10-23",
    "time": "08:30",
    "name": "日本CPI(全国)",
@@ -1001,6 +1109,15 @@
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
+   "date": "2026-11-13",
+   "time": "22:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "October 2026分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
    "date": "2026-11-20",
    "time": "08:30",
    "name": "日本CPI(全国)",
@@ -1053,6 +1170,15 @@
    "note": "November 2026分",
    "source": "us_cpi",
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-12-15",
+   "time": "22:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "November 2026分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2026-12-18",

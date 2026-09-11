@@ -887,9 +887,10 @@ footer a { color: var(--accent); }
       <span><label>種別</label><select id="evKindSel">
         <option value="">すべて</option>
         <option value="rate">政策金利(日銀・FOMC)</option>
-        <option value="cpi">CPI</option>
+        <option value="cpi">物価(CPI・PPI)</option>
         <option value="emp">雇用統計</option>
         <option value="holiday">米国市場の休場</option>
+        <option value="nintendo">任天堂 Direct</option>
       </select></span>
       <span><label>国</label><select id="evCountrySel">
         <option value="">すべて</option>
@@ -901,10 +902,10 @@ footer a { color: var(--accent); }
     <div class="banner" id="evBanner">読み込み中…</div>
     <div class="cards" id="evCards"></div>
     <div class="hintRow">
-      <div class="hint"><b>相場を動かす金融イベントの日程</b>です。雇用統計・CPI・政策金利の日米それぞれと、米国市場の休場日を載せています。<br>
+      <div class="hint"><b>相場を動かす金融イベントの日程</b>です。雇用統計・CPI・PPI・政策金利の日米それぞれと、米国市場の休場日、任天堂Directを載せています。<br>
       日程は<b>すべて一次情報から取得</b>しています(日銀・FRB・BLS・総務省統計局・NYSE)。媒体の経済カレンダーは使っていません。<br>
       <b>時刻は日本時間です。</b>米国の指標は8:30 ETなので日本時間では同日の21:30または22:30(夏時間で変わります)。<b>FOMCの声明は14:00 ETで、日本時間では翌日の未明</b>になるため、その翌日の日付で載せています。日銀は会合2日目の昼頃に結果が出ます。<br>
-      Discord通知は<b>1週間前と前日の2回</b>。ただし<b>米国市場の休場は当日の日中に1回だけ</b>通知します(前もって知っても打ち手が無く、知りたいのは「今夜は米国が動かない」ということなので)。<br>
+      Discord通知は<b>1週間前と前日の2回</b>。ただし例外が2つあります。<b>米国市場の休場は当日の日中に1回だけ</b>(前もって知っても打ち手が無く、知りたいのは「今夜は米国が動かない」ということなので)。<b>任天堂Directは年間日程が無く放送の1〜2日前に告知される</b>ため、1週間前は原理的に出せません。代わりに<b>告知を見つけた時点で通知し、前日と当日にも出します</b>。<br>
       「今日」の行は色を付けています。過去の分も残してあるので「すべて」で遡れます。</div>
     </div>
     <div class="tablecard">
@@ -4064,9 +4065,10 @@ const EV_FLAG = { JP: "🇯🇵", US: "🇺🇸" };
 // ソースを種別セレクトの値に寄せる
 const EV_KIND = {
   boj: "rate", fomc: "rate",
-  jp_cpi: "cpi", us_cpi: "cpi",
+  jp_cpi: "cpi", us_cpi: "cpi", us_ppi: "cpi",
   jp_empsit: "emp", us_empsit: "emp",
   us_holiday: "holiday",
+  nintendo: "nintendo",
 };
 
 const evToday = () => new Intl.DateTimeFormat("en-CA", {
