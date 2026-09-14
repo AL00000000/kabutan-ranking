@@ -15,3 +15,13 @@ state_0901.json
 cache_bars_mo/
 state_newhigh.json
 cache_bars_5y/
+
+# PBR要請→グロース検証(pbr_growth)の生データ。再取得可能なので追跡しない
+cache_bars_10y/
+pbr_growth/itype_raw/
+pbr_growth/jpx_hist/
+pbr_growth/panel.json
+pbr_growth/itype_*.xls
+pbr_growth/data_j.xlsx
+pbr_growth/jpx05.html
+pbr_growth/*.log
