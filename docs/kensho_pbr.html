@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="ja" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PBR要請とグロース株</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F6F6F2; --surface:#FFFFFF; --surface-2:#EFEFE9; --line:#DBDBD2; --line-soft:#E8E8E1;
+  --ink:#1B2026; --ink-2:#4E5560; --ink-3:#7C838D;
+  --brass:#9C6B18; --brass-soft:#C9952F; --teal:#2F6A5C; --slate:#4E718D; --nikkei:#9A5340;
+  --pos:#2C6E4E; --neg:#A8443A; --band:#F2EDE0;
+  --shadow:0 1px 2px rgba(27,32,38,.05),0 6px 18px -10px rgba(27,32,38,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161A; --surface:#191E24; --surface-2:#20262D; --line:#2E353D; --line-soft:#252C33;
+    --ink:#E9E7E1; --ink-2:#A8AEB6; --ink-3:#79808A;
+    --brass:#DCA946; --brass-soft:#B9852C; --teal:#64AE9A; --slate:#86A9C6; --nikkei:#D28B70;
+    --pos:#5FB489; --neg:#D97B6D; --band:#242019;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161A; --surface:#191E24; --surface-2:#20262D; --line:#2E353D; --line-soft:#252C33;
+  --ink:#E9E7E1; --ink-2:#A8AEB6; --ink-3:#79808A;
+  --brass:#DCA946; --brass-soft:#B9852C; --teal:#64AE9A; --slate:#86A9C6; --nikkei:#D28B70;
+  --pos:#5FB489; --neg:#D97B6D; --band:#242019;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;
+  font-size:15.5px; line-height:1.85; margin:0;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:920px;margin:0 auto;padding:0 22px 96px}
+h1,h2,h3{font-family:"Shippori Mincho B1",'Yu Mincho',serif;font-weight:700;text-wrap:balance;line-height:1.4;margin:0}
+.num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+/* header */
+header.top{border-bottom:1px solid var(--line);padding:56px 0 30px;margin-bottom:40px}
+.eyebrow{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);font-weight:700;font-family:"IBM Plex Mono",monospace;margin-bottom:16px}
+h1{font-size:clamp(28px,5.2vw,42px);letter-spacing:.01em}
+.sub{color:var(--ink-2);font-size:15px;margin-top:16px;max-width:62ch}
+
+/* answer cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:34px 0 8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:20px 20px 18px;box-shadow:var(--shadow);border-top:3px solid var(--c,var(--slate))}
+.card .lbl{font-size:12px;color:var(--ink-2);line-height:1.55;min-height:3.1em}
+.card .big{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:31px;font-weight:600;color:var(--c,var(--ink));letter-spacing:-.02em;margin-top:10px}
+.card .foot{font-size:11.5px;color:var(--ink-3);margin-top:4px;font-family:"IBM Plex Mono",monospace}
+
+section{margin-top:56px}
+h2{font-size:22px;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:8px;display:flex;align-items:baseline;gap:12px}
+h2 .n{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--brass);font-weight:600;letter-spacing:.08em}
+h3{font-size:16px;margin:30px 0 10px}
+p{margin:14px 0}
+.lead{color:var(--ink-2)}
+.small{font-size:13px;color:var(--ink-3);line-height:1.7}
+
+/* tables */
+.scroll{overflow-x:auto;margin:18px 0;border:1px solid var(--line);border-radius:3px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:9px 13px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line-soft)}
+th{background:var(--surface-2);font-weight:700;font-size:11.5px;letter-spacing:.04em;color:var(--ink-2);border-bottom:1px solid var(--line)}
+td:first-child,th:first-child{text-align:left;white-space:normal;min-width:190px}
+tbody tr:last-child td{border-bottom:none}
+tr.hl td{background:var(--band)}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:baseline}
+.pos{color:var(--pos)} .neg{color:var(--neg)}
+
+/* charts */
+figure{margin:22px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:20px 18px 14px;box-shadow:var(--shadow)}
+figcaption{font-size:12.5px;color:var(--ink-3);margin-top:12px;line-height:1.65}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:18px;font-size:12.5px;margin-bottom:14px}
+.legend span{display:flex;align-items:center;gap:7px;color:var(--ink-2)}
+.legend i{width:14px;height:3px;border-radius:2px;display:block}
+
+/* caveat */
+.caveats{margin-top:22px;display:grid;gap:2px}
+.cv{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:0 3px 3px 0;padding:16px 20px}
+.cv h4{margin:0 0 6px;font-size:14.5px;font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700}
+.cv p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.75}
+.badge{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.06em;padding:2px 7px;border-radius:2px;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line);margin-right:8px;vertical-align:1px}
+.badge.m{color:var(--teal);border-color:var(--teal)}
+.badge.i{color:var(--brass);border-color:var(--brass)}
+
+ul{padding-left:1.15em;margin:12px 0}
+li{margin:7px 0;color:var(--ink-2);font-size:14px}
+li strong{color:var(--ink)}
+a{color:var(--brass);text-underline-offset:3px}
+footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3);line-height:1.8}
+@media (max-width:620px){ td:first-child,th:first-child{min-width:140px} .wrap{padding:0 16px 70px} }
+
+/* process steps */
+.steps{counter-reset:st;display:grid;gap:2px;margin-top:20px}
+.step{background:var(--surface);border:1px solid var(--line);padding:18px 22px 18px 62px;position:relative;border-radius:3px}
+.step::before{counter-increment:st;content:counter(st);position:absolute;left:20px;top:18px;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;color:var(--brass);border:1px solid var(--brass);border-radius:50%;width:24px;height:24px;display:grid;place-items:center}
+.step h4{margin:0 0 6px;font-size:15px;font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700}
+.step p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.75}
+.step p+p{margin-top:8px}
+.kv{font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:var(--surface-2);padding:1px 6px;border-radius:2px;border:1px solid var(--line)}
+.note{background:var(--band);border:1px solid var(--line);border-radius:3px;padding:14px 18px;font-size:13.5px;color:var(--ink-2);line-height:1.75;margin:18px 0}
+.note strong{color:var(--ink)}
+</style>
+
+
+<style>
+/* --- サイト(kabutan-ranking)のダーク配色に合わせる --- */
+:root[data-theme="dark"]{
+  --bg:#0a0f1c; --surface:#101830; --surface-2:#16203c; --line:#1e2a48; --line-soft:#17203a;
+  --ink:#dbe4f5; --ink-2:#9fb0cd; --ink-3:#7787a5;
+  --brass:#ffd166; --brass-soft:#c9952f; --teal:#5fd3b4; --slate:#4da3ff; --nikkei:#ff8f7a;
+  --pos:#4da3ff; --neg:#ff5b6a; --band:#16203c;
+  --shadow:0 1px 2px rgba(0,0,0,.45),0 8px 24px -12px rgba(0,0,0,.75);
+}
+body{font-size:15px}
+.wrap{max-width:100%;padding:0 4px 48px}
+header.top{padding:20px 0 26px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">仮説検証 / 2023-03-31 TSE</div>
+  <h1>PBR是正要請のあと、<br>グロース株に何が起きたのか</h1>
+  <p class="sub">「プライムの株主還元が厚くなって個人の資金がグロースに入らなくなり、
+  決算のときしか動かなくなった」という仮説を、日足10年ぶんと、JPXが公表している
+  市場別・投資部門別の売買実績で検証した。結論は<b>結果は確認、原因は否定</b>。</p>
+
+  <div class="cards">
+    <div class="card" style="--c:var(--brass)">
+      <div class="lbl">3年で株価2倍になった割合<br>グロース系</div>
+      <div class="big" style="font-size:25px">22.9% → 8.1%</div>
+      <div class="foot">2017–2019 → 2023H2–2026</div>
+    </div>
+    <div class="card" style="--c:var(--slate)">
+      <div class="lbl">同・プライム系<br>（完全に逆転した）</div>
+      <div class="big" style="font-size:25px">7.4% → 20.9%</div>
+      <div class="foot">2017–2019 → 2023H2–2026</div>
+    </div>
+    <div class="card" style="--c:var(--pos)">
+      <div class="lbl">個人のグロース買い越し<br>（抜けるどころか増えた）</div>
+      <div class="big">+4,871</div>
+      <div class="foot">億円 / 2025年</div>
+    </div>
+    <div class="card" style="--c:var(--nikkei)">
+      <div class="lbl">海外投資家のプライム買い越し<br>（買ったのはこちら）</div>
+      <div class="big">+57,739</div>
+      <div class="foot">億円 / 2025年</div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <h2><span class="n">01</span>仮説を3つに分けた</h2>
+  <p class="lead">元の仮説はひと続きの因果だが、検証可能性がまったく違う3つの主張でできている。
+  分けないと、どれが確かめられてどれが確かめられていないのか分からなくなる。</p>
+  <div class="steps">
+    <div class="step"><h4>A　要請でプライムの株主還元が厚くなった</h4>
+      <p>実測可能。方向としてはほぼ確実だが、今回の直接の検証対象ではない。</p></div>
+    <div class="step"><h4>B　その結果、個人の資金がグロースに入らなくなった</h4>
+      <p><b>価格から推測する必要がない。</b>JPXが市場別・週次で投資部門別の売買実績を
+      公表していて、グロース市場で個人がいくら買い越したかがそのまま読める。
+      ここを価格の動きから推論しようとするのが、そもそもの遠回りだった。</p></div>
+    <div class="step"><h4>C　だから決算でしか動かなくなった</h4>
+      <p>日足で測れる。ただし後述のとおり、<b>「決算に集中したか」は決算発表日の
+      データなしには原理的に測れない</b>ことが検証の途中で分かった。</p></div>
+  </div>
+  <div class="note"><strong>因果そのものは、この設計では証明できない。</strong>
+  2023年3月の前後には日銀のYCC修正・マイナス金利解除（2024-03）・新NISA開始（2024-01）・
+  グロース市場の上場維持基準の見直し議論が重なっていて、要請の効果だけを取り出せない。
+  到達できるのは「現象が起きたか」と「タイミングが整合的か」まで。</div>
+</section>
+
+<section>
+  <h2><span class="n">02</span>母集団の作り方でほぼ決まる</h2>
+  <p>JPXの上場銘柄一覧は<b>現時点のスナップショットしか配っていない</b>。
+  これをそのまま使うと、グロースからプライムへ市場変更した銘柄——つまり成功した会社——が
+  母集団から抜ける。抜けた集団を見て「グロースは上がらなくなった」と言うのは同語反復になる。</p>
+  <p>そこで Wayback Machine から過去のマスタを5時点ぶん復元して所属履歴を作り、
+  <b>各期間の期首時点の市場区分でコホートを固定</b>した。市場変更しても追跡を続けている。</p>
+  <div class="scroll"><table>
+    <thead><tr><th>2023年1月時点のグロース 513銘柄のその後</th><th>銘柄数</th><th>割合</th></tr></thead>
+    <tbody>
+      <tr><td>グロースのまま</td><td class="n">416</td><td class="n">81.1%</td></tr>
+      <tr class="hl"><td>スタンダードへ市場変更</td><td class="n">37</td><td class="n">7.2%</td></tr>
+      <tr class="hl"><td>プライムへ市場変更</td><td class="n">17</td><td class="n">3.3%</td></tr>
+      <tr><td>消滅（上場廃止・TOB等）</td><td class="n">43</td><td class="n">8.4%</td></tr>
+    </tbody></table></div>
+  <p class="small">現在の市場区分だけで母集団を切ると、この18.9%（97銘柄）が丸ごと落ちる。
+  2016年まで遡るとさらに深刻で、2016年8月のマザーズ系277銘柄のうち、10年後もグロース系に
+  残っているのは39.7%しかない。</p>
+</section>
+
+<section>
+  <h2><span class="n">03</span>結果1 ── 勝者の頭数が逆転した</h2>
+  <p class="lead">各3年窓で、その窓の間に株価が2倍以上になった銘柄の割合。
+  選抜は期間ごとに独立して行っている（現時点から振り返って勝者を選ぶと後知恵になるため）。</p>
+  <figure>
+    <div class="legend">
+      <span><i style="background:var(--brass)"></i>グロース系</span>
+      <span><i style="background:var(--slate)"></i>プライム系</span>
+      <span><i style="background:var(--teal)"></i>スタンダード系</span>
+    </div>
+    <svg viewBox="0 0 880 230" role="img" aria-label="3年で2倍になった割合">
+<line x1="52" x2="868" y1="188.0" y2="188.0" stroke="var(--line-soft)"/>
+<text x="44" y="192.0" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">0%</text>
+<line x1="52" x2="868" y1="144.5" y2="144.5" stroke="var(--line-soft)"/>
+<text x="44" y="148.5" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">7%</text>
+<line x1="52" x2="868" y1="101.0" y2="101.0" stroke="var(--line-soft)"/>
+<text x="44" y="105.0" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">14%</text>
+<line x1="52" x2="868" y1="57.5" y2="57.5" stroke="var(--line-soft)"/>
+<text x="44" y="61.5" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">20%</text>
+<line x1="52" x2="868" y1="14.0" y2="14.0" stroke="var(--line-soft)"/>
+<text x="44" y="18.0" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">27%</text>
+<rect x="90.4" y="40.5" width="59.1" height="147.5" fill="var(--brass)" rx="1"/>
+<text x="120.0" y="35.5" text-anchor="middle" font-size="10.5" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">22.9</text>
+<rect x="158.4" y="140.5" width="59.1" height="47.5" fill="var(--slate)" rx="1"/>
+<text x="188.0" y="135.5" text-anchor="middle" font-size="10.5" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">7.4</text>
+<rect x="226.4" y="105.1" width="59.1" height="82.9" fill="var(--teal)" rx="1"/>
+<text x="256.0" y="100.1" text-anchor="middle" font-size="10.5" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">12.9</text>
+<text x="188.0" y="208" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">2017–2019</text>
+<text x="188.0" y="222" text-anchor="middle" font-size="10" fill="var(--ink-3)">コロナ前</text>
+<rect x="362.4" y="154.6" width="59.1" height="33.4" fill="var(--brass)" rx="1"/>
+<text x="392.0" y="149.6" text-anchor="middle" font-size="10.5" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">5.2</text>
+<rect x="430.4" y="173.5" width="59.1" height="14.5" fill="var(--slate)" rx="1"/>
+<text x="460.0" y="168.5" text-anchor="middle" font-size="10.5" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">2.3</text>
+<rect x="498.4" y="161.7" width="59.1" height="26.3" fill="var(--teal)" rx="1"/>
+<text x="528.0" y="156.7" text-anchor="middle" font-size="10.5" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">4.1</text>
+<text x="460.0" y="208" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">2020–2022</text>
+<text x="460.0" y="222" text-anchor="middle" font-size="10" fill="var(--ink-3)">コロナ〜金利上昇</text>
+<rect x="634.4" y="136.0" width="59.1" height="52.0" fill="var(--brass)" rx="1"/>
+<text x="664.0" y="131.0" text-anchor="middle" font-size="10.5" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">8.1</text>
+<rect x="702.4" y="53.9" width="59.1" height="134.1" fill="var(--slate)" rx="1"/>
+<text x="732.0" y="48.9" text-anchor="middle" font-size="10.5" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">20.9</text>
+<rect x="770.4" y="99.5" width="59.1" height="88.5" fill="var(--teal)" rx="1"/>
+<text x="800.0" y="94.5" text-anchor="middle" font-size="10.5" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">13.8</text>
+<text x="732.0" y="208" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">2023H2–2026</text>
+<text x="732.0" y="222" text-anchor="middle" font-size="10" fill="var(--ink-3)">PBR要請後</text>
+</svg>
+    <figcaption>期首時点の市場区分で固定したコホート。市場変更した銘柄も追跡を継続している。</figcaption>
+  </figure>
+  <p>2017–2019はグロースがプライムの<b>3.1倍</b>の確率で2倍になっていた。
+  2023H2–2026はプライムがグロースの<b>2.6倍</b>。完全にひっくり返っている。
+  体感されていた「グロースが上がらない」は、この意味では正しい。</p>
+</section>
+
+<section>
+  <h2><span class="n">04</span>結果2 ── 個人の資金は抜けていない</h2>
+  <p class="lead">ここが仮説の中心であり、そして<b>実測と食い違った</b>ところ。</p>
+  <figure>
+    <div class="legend">
+      <span><i style="background:var(--slate)"></i>個人</span>
+      <span><i style="background:var(--nikkei)"></i>海外投資家</span>
+    </div>
+    <svg viewBox="0 0 880 250" role="img" aria-label="グロース市場の差引き">
+<line x1="62" x2="868" y1="220.0" y2="220.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="54" y="224.0" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">-3,642</text>
+<line x1="62" x2="868" y1="169.0" y2="169.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="54" y="173.0" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">-1,392</text>
+<line x1="62" x2="868" y1="118.0" y2="118.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="54" y="122.0" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">+858</text>
+<line x1="62" x2="868" y1="67.0" y2="67.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="54" y="71.0" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">+3,108</text>
+<line x1="62" x2="868" y1="16.0" y2="16.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="54" y="20.0" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">+5,359</text>
+<line x1="62" x2="868" y1="137.5" y2="137.5" stroke="var(--ink-3)" stroke-width="1.2"/>
+<rect x="69.0" y="131.9" width="28.2" height="5.6" fill="var(--slate)" rx="1"/>
+<rect x="100.0" y="136.1" width="28.2" height="1.4" fill="var(--nikkei)" rx="1"/>
+<text x="98.6" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">15</text>
+<rect x="142.3" y="121.9" width="28.2" height="15.5" fill="var(--slate)" rx="1"/>
+<rect x="173.3" y="137.5" width="28.2" height="14.6" fill="var(--nikkei)" rx="1"/>
+<text x="171.9" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">16</text>
+<rect x="215.6" y="118.7" width="28.2" height="18.8" fill="var(--slate)" rx="1"/>
+<rect x="246.6" y="137.5" width="28.2" height="16.1" fill="var(--nikkei)" rx="1"/>
+<text x="245.2" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">17</text>
+<rect x="288.9" y="130.9" width="28.2" height="6.6" fill="var(--slate)" rx="1"/>
+<rect x="319.9" y="137.5" width="28.2" height="21.0" fill="var(--nikkei)" rx="1"/>
+<text x="318.5" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">18</text>
+<rect x="362.1" y="127.2" width="28.2" height="10.2" fill="var(--slate)" rx="1"/>
+<rect x="393.1" y="137.5" width="28.2" height="4.4" fill="var(--nikkei)" rx="1"/>
+<text x="391.7" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">19</text>
+<rect x="435.4" y="90.4" width="28.2" height="47.1" fill="var(--slate)" rx="1"/>
+<rect x="466.4" y="137.5" width="28.2" height="5.6" fill="var(--nikkei)" rx="1"/>
+<text x="465.0" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">20</text>
+<rect x="508.7" y="67.7" width="28.2" height="69.8" fill="var(--slate)" rx="1"/>
+<rect x="539.7" y="137.5" width="28.2" height="47.7" fill="var(--nikkei)" rx="1"/>
+<text x="538.3" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">21</text>
+<rect x="582.0" y="60.4" width="28.2" height="77.0" fill="var(--slate)" rx="1"/>
+<rect x="613.0" y="137.5" width="28.2" height="63.4" fill="var(--nikkei)" rx="1"/>
+<text x="611.5" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">22</text>
+<rect x="655.2" y="52.9" width="28.2" height="84.5" fill="var(--slate)" rx="1"/>
+<rect x="686.2" y="137.5" width="28.2" height="75.0" fill="var(--nikkei)" rx="1"/>
+<text x="684.8" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">23</text>
+<rect x="728.5" y="70.3" width="28.2" height="67.1" fill="var(--slate)" rx="1"/>
+<rect x="759.5" y="137.5" width="28.2" height="45.5" fill="var(--nikkei)" rx="1"/>
+<text x="758.1" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">24</text>
+<rect x="801.8" y="27.0" width="28.2" height="110.4" fill="var(--slate)" rx="1"/>
+<rect x="832.8" y="137.5" width="28.2" height="69.0" fill="var(--nikkei)" rx="1"/>
+<text x="831.4" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">25</text>
+</svg>
+    <figcaption><b>グロース市場</b>の売買差引き（縦軸は億円、買い越しが上）。
+    2022年3月までは東証マザーズ、2022年4月からは東証グロース。</figcaption>
+  </figure>
+  <figure>
+    <svg viewBox="0 0 880 250" role="img" aria-label="プライム市場の差引き">
+<line x1="62" x2="868" y1="220.0" y2="220.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="54" y="224.0" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">-6.5兆</text>
+<line x1="62" x2="868" y1="169.0" y2="169.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="54" y="173.0" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">-3.2兆</text>
+<line x1="62" x2="868" y1="118.0" y2="118.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="54" y="122.0" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">-0.0兆</text>
+<line x1="62" x2="868" y1="67.0" y2="67.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="54" y="71.0" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">+3.2兆</text>
+<line x1="62" x2="868" y1="16.0" y2="16.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="54" y="20.0" text-anchor="end" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">+6.4兆</text>
+<line x1="62" x2="868" y1="117.2" y2="117.2" stroke="var(--ink-3)" stroke-width="1.2"/>
+<rect x="69.0" y="117.2" width="28.2" height="78.6" fill="var(--slate)" rx="1"/>
+<rect x="100.0" y="117.2" width="28.2" height="5.2" fill="var(--nikkei)" rx="1"/>
+<text x="98.6" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">15</text>
+<rect x="142.3" y="117.2" width="28.2" height="50.4" fill="var(--slate)" rx="1"/>
+<rect x="173.3" y="117.2" width="28.2" height="57.7" fill="var(--nikkei)" rx="1"/>
+<text x="171.9" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">16</text>
+<rect x="215.6" y="117.2" width="28.2" height="93.4" fill="var(--slate)" rx="1"/>
+<rect x="246.6" y="104.6" width="28.2" height="12.6" fill="var(--nikkei)" rx="1"/>
+<text x="245.2" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">17</text>
+<rect x="288.9" y="117.2" width="28.2" height="5.1" fill="var(--slate)" rx="1"/>
+<rect x="319.9" y="117.2" width="28.2" height="85.9" fill="var(--nikkei)" rx="1"/>
+<text x="318.5" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">18</text>
+<rect x="362.1" y="117.2" width="28.2" height="68.4" fill="var(--slate)" rx="1"/>
+<rect x="393.1" y="117.2" width="28.2" height="6.9" fill="var(--nikkei)" rx="1"/>
+<text x="391.7" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">19</text>
+<rect x="435.4" y="117.2" width="28.2" height="19.1" fill="var(--slate)" rx="1"/>
+<rect x="466.4" y="117.2" width="28.2" height="51.8" fill="var(--nikkei)" rx="1"/>
+<text x="465.0" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">20</text>
+<rect x="508.7" y="117.2" width="28.2" height="2.0" fill="var(--slate)" rx="1"/>
+<rect x="539.7" y="107.6" width="28.2" height="9.6" fill="var(--nikkei)" rx="1"/>
+<text x="538.3" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">21</text>
+<rect x="582.0" y="105.7" width="28.2" height="11.5" fill="var(--slate)" rx="1"/>
+<rect x="613.0" y="117.2" width="28.2" height="29.9" fill="var(--nikkei)" rx="1"/>
+<text x="611.5" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">22</text>
+<rect x="655.2" y="117.2" width="28.2" height="53.0" fill="var(--slate)" rx="1"/>
+<rect x="686.2" y="61.5" width="28.2" height="55.7" fill="var(--nikkei)" rx="1"/>
+<text x="684.8" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">23</text>
+<rect x="728.5" y="117.2" width="28.2" height="35.6" fill="var(--slate)" rx="1"/>
+<rect x="759.5" y="112.9" width="28.2" height="4.4" fill="var(--nikkei)" rx="1"/>
+<text x="758.1" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">24</text>
+<rect x="801.8" y="117.2" width="28.2" height="59.7" fill="var(--slate)" rx="1"/>
+<rect x="832.8" y="25.2" width="28.2" height="92.0" fill="var(--nikkei)" rx="1"/>
+<text x="831.4" y="240" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">25</text>
+</svg>
+    <figcaption><b>プライム市場</b>（2022年3月までは東証一部）。
+    縦軸は兆円。グロースとは桁が2つ違う点に注意。</figcaption>
+  </figure>
+  <div class="scroll"><table>
+    <thead><tr><th>年</th><th>G 個人</th><th>G 海外</th><th>G 個人比率</th>
+      <th>P 個人</th><th>P 海外</th></tr></thead>
+    <tbody><tr><td>2015年</td><td class="n pos">+245</td><td class="n pos">+62</td><td class="n">73.3%</td><td class="n neg">-49,299</td><td class="n neg">-3,258</td></tr><tr><td>2016年</td><td class="n pos">+686</td><td class="n neg">-644</td><td class="n">68.3%</td><td class="n neg">-31,634</td><td class="n neg">-36,220</td></tr><tr><td>2017年</td><td class="n pos">+829</td><td class="n neg">-711</td><td class="n">65.1%</td><td class="n neg">-58,640</td><td class="n pos">+7,914</td></tr><tr><td>2018年</td><td class="n pos">+291</td><td class="n neg">-926</td><td class="n">58.3%</td><td class="n neg">-3,184</td><td class="n neg">-53,917</td></tr><tr><td>2019年</td><td class="n pos">+451</td><td class="n neg">-193</td><td class="n">55.8%</td><td class="n neg">-42,932</td><td class="n neg">-4,346</td></tr><tr><td>2020年</td><td class="n pos">+2,078</td><td class="n neg">-245</td><td class="n">54.2%</td><td class="n neg">-11,994</td><td class="n neg">-32,504</td></tr><tr><td>2021年</td><td class="n pos">+3,079</td><td class="n neg">-2,107</td><td class="n">56.2%</td><td class="n neg">-1,232</td><td class="n pos">+6,021</td></tr><tr><td>2022年 <span class="badge i">市場再編</span></td><td class="n pos">+3,399</td><td class="n neg">-2,795</td><td class="n">54.8%</td><td class="n pos">+7,246</td><td class="n neg">-18,743</td></tr><tr class="hl"><td>2023年 <span class="badge i">PBR要請</span></td><td class="n pos">+3,729</td><td class="n neg">-3,311</td><td class="n">55.4%</td><td class="n neg">-33,229</td><td class="n pos">+34,962</td></tr><tr><td>2024年 <span class="badge i">新NISA</span></td><td class="n pos">+2,962</td><td class="n neg">-2,005</td><td class="n">57.2%</td><td class="n neg">-22,338</td><td class="n pos">+2,734</td></tr><tr><td>2025年</td><td class="n pos">+4,871</td><td class="n neg">-3,043</td><td class="n">54.8%</td><td class="n neg">-37,461</td><td class="n pos">+57,739</td></tr></tbody></table></div>
+  <p class="small">単位は億円、買い越しが+。週次データを年で合計している。通年ぶんのデータが揃わない2026年は、グラフ・表とも除外した。</p>
+  <p><b>個人はグロースを買い越し続けている。</b>しかも金額は減るどころか増えていて、
+  総売買代金で正規化しても比率は上がっている。個人比率も52〜57%で安定していて低下していない。
+  一方で<b>個人はプライムを大幅に売り越している</b>。</p>
+  <p>プライムを買ったのは<b>海外投資家</b>だった。2015〜2022年はほぼ売り越しだったのが、
+  2023年に転じて以降は一貫した買い越しになっている。グロースでは逆に海外が売り手で、
+  それを個人が引き受ける形になっている。個人が買い越しているのに株価が下がるのは、
+  海外の売りを吸収しているためで、矛盾しない。</p>
+  <div class="note">つまり「個人の資金がグロースから株主還元銘柄へ移った」のではなく、
+  <strong>「海外投資家がプライムに入りグロースから抜けた。個人はその逆をやって買い支えたが、
+  足りなかった」</strong>というのが実際の需給。仮説Bは否定された。</div>
+</section>
+
+<section>
+  <h2><span class="n">05</span>結果3 ── 値動きの質はグロース側では変わっていない</h2>
+  <p class="lead">各期間の勝者だけを取り出して、上昇がどれだけ少数の日に偏っていたかを見る。
+  「実質何日」は、上昇の大きい日から順に足していって3年間の累積リターンに届くまでの日数
+  （約730営業日中）。</p>
+  <div class="scroll"><table>
+    <thead><tr><th rowspan="2">期間</th>
+      <th colspan="3">グロース系</th><th colspan="3">プライム系</th><th colspan="3">スタンダード系</th></tr>
+      <tr><th>勝者</th><th>上位5日</th><th>実質何日</th>
+        <th>勝者</th><th>上位5日</th><th>実質何日</th>
+        <th>勝者</th><th>上位5日</th><th>実質何日</th></tr></thead>
+    <tbody><tr><td>2017–2019</td><td class="n">53</td><td class="n">0.73</td><td class="n">8</td><td class="n">121</td><td class="n">0.60</td><td class="n">11</td><td class="n">123</td><td class="n">0.70</td><td class="n">8</td></tr><tr><td>2020–2022</td><td class="n">12</td><td class="n">0.87</td><td class="n">6</td><td class="n">37</td><td class="n">0.67</td><td class="n">9</td><td class="n">39</td><td class="n">0.84</td><td class="n">7</td></tr><tr><td>2023H2–2026</td><td class="n">38</td><td class="n">0.80</td><td class="n">7</td><td class="n">351</td><td class="n">0.52</td><td class="n">13</td><td class="n">175</td><td class="n">0.67</td><td class="n">9</td></tr></tbody></table></div>
+  <p><b>グロースの勝者は昔から8日前後で上昇していた。</b>
+  2017–2019が8日、2023H2–2026が7日でほとんど変わらない。
+  最も集中していたのは2020–2022（6日）で、要請後ではない。
+  グロース側には、要請のタイミングと結びつく変化が見当たらない。</p>
+  <p>変わったのはプライムで、勝者が121社→351社に増えたうえ、上昇の仕方が
+  11日→13日と<b>より分散した</b>。
+  連騰の平均日数も 1.95日→2.03日 と伸びている。</p>
+  <div class="note"><strong>体感の位置がずれていた可能性が高い。</strong>
+  「じりじり上がる銘柄が消えた」ように見えるのは、グロースで起きた変化ではなく、
+  グロースに元々そういう銘柄が少なく、プライム側でそれが増えたことの反映と読める。
+  <span class="badge i">解釈</span>これは測定結果からの解釈であって、因果の主張ではない。</div>
+</section>
+
+<section>
+  <h2><span class="n">06</span>測れなかったこと</h2>
+  <p class="lead">検証の途中で、当初使うつもりだった指標が<b>目的に対して無効</b>だと分かった。
+  結果と同じくらい重要なので記録しておく。</p>
+  <p>「絶対値の大きい上位N日」でリターンを分ける方式（集中度、イベント／非イベント内訳）は、
+  <b>日次リターンの順序を入れ替えても値がまったく変わらない</b>。
+  上位N日の選び方が集合演算なので当然で、実際にシャッフルして確認した。</p>
+  <div class="scroll"><table>
+    <thead><tr><th>系列</th><th>集中度</th><th>イベント日リターン</th>
+      <th>分散比(20日)</th><th>連騰平均</th></tr></thead>
+    <tbody>
+      <tr class="hl"><td>原系列</td><td class="n">0.0831</td><td class="n">-0.0762</td>
+        <td class="n">0.697</td><td class="n">1.903</td></tr>
+      <tr><td>シャッフル1</td><td class="n">0.0831</td><td class="n">-0.0762</td>
+        <td class="n">0.408</td><td class="n">1.735</td></tr>
+      <tr><td>シャッフル2</td><td class="n">0.0831</td><td class="n">-0.0762</td>
+        <td class="n">1.119</td><td class="n">1.844</td></tr>
+      <tr><td>シャッフル3</td><td class="n">0.0831</td><td class="n">-0.0762</td>
+        <td class="n">0.907</td><td class="n">2.070</td></tr>
+    </tbody></table></div>
+  <p>つまりこれらは<b>リターン分布の裾の形を要約しているだけ</b>で、
+  「いつ動いたか」の情報をひとつも持っていない。
+  順序に依存する＝タイミングを測れるのは<b>分散比と連騰日数だけ</b>だった。</p>
+  <p>したがって<b>「決算にリターンが集中するようになったか」は、統計的なジャンプの定義では
+  原理的に判定できない</b>。決算発表日そのもののデータが要る。これは未着手。</p>
+  <p>なお、タイミングを測れる分散比のほうで見ると、トレンド持続性の低下は
+  グロース（0.634→0.614）よりプライム（0.732→0.658）のほうが大きく、仮説とは逆向きだった。</p>
+</section>
+
+<section>
+  <h2><span class="n">07</span>この数字を割り引くべき理由</h2>
+  <div class="caveats">
+    <div class="cv"><h4>消滅した銘柄が入っていない</h4>
+      <p>2023年1月のグロースコホートの8.4%（43銘柄）は、株価データの取得元が上場廃止銘柄を
+      返さないため分析に含められない。TOBによる高値での退出と経営難による廃止が混在していて、
+      除外がリターン分布をどちらに歪めるかは事前には言えない。</p></div>
+    <div class="cv"><h4>分散比は市場間で比較できない</h4>
+      <p>ビッド・アスク・バウンスが1日分散を膨らませるため、流動性の低い銘柄ほど分散比が
+      低く出る。使えるのは同一グループ内の時系列変化だけで、水準の比較は無効。</p></div>
+    <div class="cv"><h4>市場全体の急落日が混入している</h4>
+      <p>2024年8月5日の暴落のような日は、ほぼ全銘柄で「絶対値上位の日」になる。
+      銘柄固有のイベントを見るには、市場成分を除いた残差リターンで測り直す必要がある。</p></div>
+    <div class="cv"><h4>マザーズとグロースは厳密には同じでない</h4>
+      <p>2022年4月の市場再編をまたぐ比較では、マザーズをグロースの前身として扱っている。
+      JASDAQがスタンダードとグロースに分かれた分の不連続は残る。</p></div>
+    <div class="cv"><h4>因果は示せていない</h4>
+      <p>同時期に日銀の政策変更・新NISA・上場維持基準の見直し議論が重なっている。
+      示せたのは現象と需給の実態までで、PBR要請がその原因だとは言えない。</p></div>
+  </div>
+</section>
+
+<footer>
+  データ出所 ── 日足: Yahoo Finance（10年・分割調整済み、3,711銘柄）／
+  市場区分の履歴: JPX「東証上場銘柄一覧」5時点（Wayback Machine 経由で復元）／
+  投資部門別売買状況: JPX 週次589ファイル・2015-01〜2026-07（同上。本家は直近5週のみ公開）。<br>
+  集計スクリプトは <span class="kv">kabutan-ranking/pbr_growth/</span>。
+  未着手 ── 決算発表日を構築して、上昇が集中している日が決算日なのかを判定すること。
+</footer>
+
+</div>
+</body>
+</html>
