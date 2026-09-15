@@ -506,6 +506,15 @@
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
+   "date": "2026-02-13",
+   "time": "上場日",
+   "name": "IPO （株）ＴＯブックス代表者インタビュー",
+   "country": "JP",
+   "note": "500A・上場承認 2026/01/09",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
    "date": "2026-02-16",
    "time": "終日",
    "name": "米国市場 休場(Washington's Birthday)",
@@ -524,6 +533,15 @@
    "url": "https://www.stat.go.jp/data/cpi/index.html"
   },
   {
+   "date": "2026-02-24",
+   "time": "上場日",
+   "name": "IPO イノバセル（株）代表者インタビュー",
+   "country": "JP",
+   "note": "504A・上場承認 2026/01/19",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
    "date": "2026-02-27",
    "time": "22:30",
    "name": "米PPI",
@@ -531,6 +549,15 @@
    "note": "January 2026分",
    "source": "us_ppi",
    "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
+   "date": "2026-02-27",
+   "time": "上場日",
+   "name": "IPO （株）ギークリー代表者インタビュー",
+   "country": "JP",
+   "note": "505A・上場承認 2026/01/22",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
    "date": "2026-03-03",
@@ -596,6 +623,33 @@
    "url": "https://www.stat.go.jp/data/cpi/index.html"
   },
   {
+   "date": "2026-03-25",
+   "time": "上場日",
+   "name": "IPO （株）ベーシック代表者インタビュー",
+   "country": "JP",
+   "note": "519A・上場承認 2026/02/17",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-03-25",
+   "time": "上場日",
+   "name": "IPO ジェイファーマ（株）代表者インタビュー",
+   "country": "JP",
+   "note": "520A・上場承認 2026/02/19",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-03-27",
+   "time": "上場日",
+   "name": "IPO （株）セイワホールディングス代表者インタビュー",
+   "country": "JP",
+   "note": "523A・上場承認 2026/02/20",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
    "date": "2026-03-31",
    "time": "08:30",
    "name": "日本雇用統計(労働力調査)",
@@ -603,6 +657,60 @@
    "note": null,
    "source": "jp_empsit",
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-04-01",
+   "time": "上場日",
+   "name": "IPO ARCHION（株）*",
+   "country": "JP",
+   "note": "543A・上場承認 2026/03/02",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-04-01",
+   "time": "上場日",
+   "name": "IPO GMSグループ（株）*",
+   "country": "JP",
+   "note": "544A・上場承認 2026/03/02",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-04-01",
+   "time": "上場日",
+   "name": "IPO （株）トランヴィア*",
+   "country": "JP",
+   "note": "545A・上場承認 2026/03/02",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-04-01",
+   "time": "上場日",
+   "name": "IPO MIRAINIホールディングス（株）*",
+   "country": "JP",
+   "note": "546A・上場承認 2026/03/02",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-04-01",
+   "time": "上場日",
+   "name": "IPO ムニノバホールディングス（株）*",
+   "country": "JP",
+   "note": "547A・上場承認 2026/03/02",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-04-02",
+   "time": "上場日",
+   "name": "IPO （株）ビタブリッドジャパン代表者インタビュー",
+   "country": "JP",
+   "note": "542A・上場承認 2026/02/27",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
    "date": "2026-04-03",
@@ -623,6 +731,33 @@
    "url": "https://www.nyse.com/trade/hours-calendars"
   },
   {
+   "date": "2026-04-06",
+   "time": "上場日",
+   "name": "IPO （株）システムエグゼ",
+   "country": "JP",
+   "note": "548A・上場承認 2026/03/03",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-04-07",
+   "time": "上場日",
+   "name": "IPO ヒトトヒトホールディングス（株）代表者インタビュー",
+   "country": "JP",
+   "note": "549A・上場承認 2026/03/03",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-04-09",
+   "time": "上場日",
+   "name": "IPO （株）ソフトテックス代表者インタビュー",
+   "country": "JP",
+   "note": "550A・上場承認 2026/03/06",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
    "date": "2026-04-10",
    "time": "21:30",
    "name": "米CPI",
@@ -641,6 +776,33 @@
    "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
+   "date": "2026-04-21",
+   "time": "上場日",
+   "name": "IPO （株）バトンズ代表者インタビュー",
+   "country": "JP",
+   "note": "554A・上場承認 2026/03/17",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-04-22",
+   "time": "上場日",
+   "name": "IPO （株）SQUEEZE代表者インタビュー",
+   "country": "JP",
+   "note": "558A・上場承認 2026/03/24",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-04-23",
+   "time": "上場日",
+   "name": "IPO 犬猫生活（株）代表者インタビュー",
+   "country": "JP",
+   "note": "556A・上場承認 2026/03/23",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
    "date": "2026-04-24",
    "time": "08:30",
    "name": "日本CPI(全国)",
@@ -648,6 +810,15 @@
    "note": "3月分",
    "source": "jp_cpi",
    "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-04-24",
+   "time": "上場日",
+   "name": "IPO 梅乃宿酒造（株）代表者インタビュー",
+   "country": "JP",
+   "note": "559A・上場承認 2026/03/25",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
    "date": "2026-04-28",
@@ -740,6 +911,15 @@
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
   },
   {
+   "date": "2026-06-01",
+   "time": "上場日",
+   "name": "IPO 前澤ホールディングス（株）*",
+   "country": "JP",
+   "note": "575A・上場承認 2026/05/01",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
    "date": "2026-06-05",
    "time": "21:30",
    "name": "米雇用統計",
@@ -765,6 +945,15 @@
    "note": "May 2026分",
    "source": "us_ppi",
    "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
+   "date": "2026-06-16",
+   "time": "上場日",
+   "name": "IPO GO（株）代表者インタビュー",
+   "country": "JP",
+   "note": "581A・上場承認 2026/05/14",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
    "date": "2026-06-16",
@@ -803,6 +992,15 @@
    "url": "https://www.nyse.com/trade/hours-calendars"
   },
   {
+   "date": "2026-06-23",
+   "time": "上場日",
+   "name": "IPO LiNKX（株）代表者インタビュー",
+   "country": "JP",
+   "note": "584A・上場承認 2026/05/21",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
    "date": "2026-06-30",
    "time": "08:30",
    "name": "日本雇用統計(労働力調査)",
@@ -810,6 +1008,24 @@
    "note": null,
    "source": "jp_empsit",
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2026-06-30",
+   "time": "上場日",
+   "name": "IPO ネイス（株）代表者インタビュー",
+   "country": "JP",
+   "note": "589A・上場承認 2026/05/27",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-07-01",
+   "time": "上場日",
+   "name": "IPO ギフティグループ（株）*",
+   "country": "JP",
+   "note": "590A・上場承認 2026/06/01",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
    "date": "2026-07-02",
@@ -848,6 +1064,24 @@
    "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
+   "date": "2026-07-15",
+   "time": "上場日",
+   "name": "IPO チャットプラス（株）代表者インタビュー",
+   "country": "JP",
+   "note": "598A・上場承認 2026/06/11",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-07-22",
+   "time": "上場日",
+   "name": "IPO （株）ティアフォー代表者インタビュー",
+   "country": "JP",
+   "note": "593A・上場承認 2026/06/29",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
    "date": "2026-07-24",
    "time": "08:30",
    "name": "日本CPI(全国)",
@@ -855,6 +1089,24 @@
    "note": "6月分",
    "source": "jp_cpi",
    "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-07-29",
+   "time": "上場日",
+   "name": "IPO （株）アイ・グリッド・ソリューションズ",
+   "country": "JP",
+   "note": "603A・上場承認 2026/06/25",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-07-29",
+   "time": "上場日",
+   "name": "IPO （株）ビーエイブル代表者インタビュー",
+   "country": "JP",
+   "note": "604A・上場承認 2026/06/25",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
    "date": "2026-07-30",
@@ -885,12 +1137,12 @@
   },
   {
    "date": "2026-08-04",
-   "time": "時刻未定",
-   "name": "任天堂 Direct",
+   "time": "上場日",
+   "name": "IPO （株）エブリー代表者インタビュー",
    "country": "JP",
-   "note": "「ファイアーエムブレム 万紫千紅 Direct 2026.8.4」を公開。楽曲配信やコミック連載などの最新情報も一挙ご紹介。",
-   "source": "nintendo",
-   "url": "https://topics.nintendo.co.jp/jp/topics/article/73213551-6815-4885-acdc-758a6dbdea31"
+   "note": "607A・上場承認 2026/06/30",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
    "date": "2026-08-07",
@@ -983,6 +1235,33 @@
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
+   "date": "2026-09-11",
+   "time": "上場日",
+   "name": "IPO （株）KOMPEITO代表者インタビュー",
+   "country": "JP",
+   "note": "618A・上場承認 2026/08/12",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-09-16",
+   "time": "上場日",
+   "name": "IPO （株）オリバー",
+   "country": "JP",
+   "note": "619A・上場承認 2026/08/13",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-09-16",
+   "time": "上場日",
+   "name": "IPO （株）オーディオストック",
+   "country": "JP",
+   "note": "621A・上場承認 2026/08/14",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
    "date": "2026-09-17",
    "time": "03:00",
    "name": "FOMC 政策金利発表",
@@ -990,6 +1269,15 @@
    "note": "September 15-16* の最終日 14:00 ET",
    "source": "fomc",
    "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2026-09-17",
+   "time": "上場日",
+   "name": "IPO （株）Skyfall",
+   "country": "JP",
+   "note": "625A・上場承認 2026/08/17",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
    "date": "2026-09-18",
@@ -1002,12 +1290,84 @@
   },
   {
    "date": "2026-09-18",
+   "time": "上場日",
+   "name": "IPO （株）テクノクラフト",
+   "country": "JP",
+   "note": "622A・上場承認 2026/08/14",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-09-18",
+   "time": "上場日",
+   "name": "IPO （株）ベルテックス",
+   "country": "JP",
+   "note": "623A・上場承認 2026/08/14",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-09-18",
+   "time": "上場日",
+   "name": "IPO akippa（株）",
+   "country": "JP",
+   "note": "627A・上場承認 2026/08/18",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-09-18",
    "time": "昼頃",
    "name": "日銀 金融政策決定会合",
    "country": "JP",
    "note": "9月17日（木）・18日（金） の2日目に結果公表",
    "source": "boj",
    "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2026-09-25",
+   "time": "上場日",
+   "name": "IPO （株）レイヤード",
+   "country": "JP",
+   "note": "634A・上場承認 2026/08/24",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-09-29",
+   "time": "上場日",
+   "name": "IPO クラサスケミカル（株）",
+   "country": "JP",
+   "note": "646A・上場承認 2026/09/07",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-10-01",
+   "time": "上場日",
+   "name": "IPO （株）ASNOVACompanies*",
+   "country": "JP",
+   "note": "640A・上場承認 2026/09/01",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-10-01",
+   "time": "上場日",
+   "name": "IPO NOKGroup（株）*",
+   "country": "JP",
+   "note": "641A・上場承認 2026/09/01",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-10-01",
+   "time": "上場日",
+   "name": "IPO キューデンホールディングス（株）*",
+   "country": "JP",
+   "note": "642A・上場承認 2026/09/01",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
    "date": "2026-10-02",
@@ -1044,6 +1404,15 @@
    "note": "September 2026分",
    "source": "us_ppi",
    "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
+   "date": "2026-10-15",
+   "time": "上場日",
+   "name": "IPO （株）ルクレ",
+   "country": "JP",
+   "note": "648A・上場承認 2026/09/08",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
    "date": "2026-10-23",
