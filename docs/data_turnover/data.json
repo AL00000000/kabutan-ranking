@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-15",
+ "updated": "2026-09-16",
  "days": [
   {
    "date": "2026-08-19",
@@ -1474,6 +1474,92 @@
      "name": "キオクシア",
      "volume": 29060500.0,
      "turnover": 1497643.0
+    }
+   }
+  },
+  {
+   "date": "2026-09-16",
+   "total": 7138055.0,
+   "prime": 6707515.0,
+   "prime_volume": 176909.0,
+   "prime_risen": 1048.0,
+   "prime_fallen": 452.0,
+   "standard": 172530.0,
+   "standard_volume": 45636.0,
+   "standard_risen": 688.0,
+   "standard_fallen": 639.0,
+   "growth": 258010.0,
+   "growth_volume": 48161.07,
+   "growth_risen": 208.0,
+   "growth_fallen": 336.0,
+   "total_volume": 270706.07,
+   "top": [
+    {
+     "code": "285A",
+     "name": "ｷｵｸｼｱHD",
+     "market": "プライム",
+     "turnover": 1364401.0
+    },
+    {
+     "code": "9984",
+     "name": "ｿﾌﾄﾊﾞﾝｸG",
+     "market": "プライム",
+     "turnover": 410306.0
+    },
+    {
+     "code": "6976",
+     "name": "太陽誘電",
+     "market": "プライム",
+     "turnover": 264153.0
+    },
+    {
+     "code": "6857",
+     "name": "ｱﾄﾞﾊﾞﾝﾃ",
+     "market": "プライム",
+     "turnover": 197951.0
+    },
+    {
+     "code": "6981",
+     "name": "村田製",
+     "market": "プライム",
+     "turnover": 154836.0
+    },
+    {
+     "code": "5803",
+     "name": "フジクラ",
+     "market": "プライム",
+     "turnover": 125906.0
+    },
+    {
+     "code": "8306",
+     "name": "三菱UFJ",
+     "market": "プライム",
+     "turnover": 124042.0
+    },
+    {
+     "code": "4062",
+     "name": "ｲﾋﾞﾃﾞﾝ",
+     "market": "プライム",
+     "turnover": 123372.0
+    },
+    {
+     "code": "8035",
+     "name": "東ｴﾚｸ",
+     "market": "プライム",
+     "turnover": 104109.0
+    },
+    {
+     "code": "6098",
+     "name": "ﾘｸﾙｰﾄHD",
+     "market": "プライム",
+     "turnover": 91309.0
+    }
+   ],
+   "stocks": {
+    "285A": {
+     "name": "キオクシア",
+     "volume": 27253000.0,
+     "turnover": 1364401.0
     }
    }
   }
