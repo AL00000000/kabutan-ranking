@@ -25,3 +25,6 @@ pbr_growth/itype_*.xls
 pbr_growth/data_j.xlsx
 pbr_growth/jpx05.html
 pbr_growth/*.log
+
+# 事業整理タブのDiscord通知の重複防止用(ローカル状態)
+state_jigyou.json

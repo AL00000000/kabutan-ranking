@@ -265,6 +265,10 @@ footer a { color: var(--accent); }
 #nhFollow h3 { font-size: .86rem; font-weight: 700; margin-bottom: 3px; }
 #nhFollow .note { color: var(--muted); font-size: .76rem; margin-bottom: 8px; line-height: 1.6; }
 #nhFollow table { width: auto; font-size: .84rem; }
+/* 事業整理タブ: 表題だけを折り返し、残りの幅を全部使わせる */
+#jgTbl td.jgTitle { white-space: normal; width: 100%; min-width: 18em; line-height: 1.45; }
+#jgTbl td.jgTitle .muted { font-size: .78rem; }
+#jgTbl td { vertical-align: top; }
 #nhFollow th, #nhFollow td { padding: 5px 14px 5px 0; text-align: right; white-space: nowrap; }
 #nhFollow th { color: var(--muted); font-weight: 600; font-size: .78rem; cursor: default; }
 #nhFollow th:first-child, #nhFollow td:first-child { text-align: left; color: var(--muted); }
@@ -298,6 +302,7 @@ footer a { color: var(--accent); }
         <button class="tab" data-tab="stop">ストップ高・安</button>
         <button class="tab" data-tab="newhigh">新高値</button>
         <button class="tab" data-tab="lowvolume">出来高52週最低</button>
+        <button class="tab" data-tab="jigyou">事業整理の開示</button>
         <button class="tab" data-tab="stoplow">ストップ安→追証決済時検証</button>
         <button class="tab" data-tab="streaks">指数連騰日数</button>
         <button class="tab" data-tab="pts">PTS株価</button>
@@ -606,6 +611,39 @@ footer a { color: var(--accent); }
       本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
     </footer>
   </div><!-- /view-lowvolume -->
+
+  <div id="view-jigyou" hidden>
+    <div class="toolbar">
+      <span><label>表示</label><select id="jgMode">
+        <option value="day">日次</option>
+        <option value="stock">銘柄別(回数順)</option>
+      </select></span>
+      <span id="jgDateWrap"><label>日付</label><select id="jgDateSel"></select></span>
+      <span><label>分類</label><select id="jgCatSel"><option value="">すべて</option></select></span>
+      <span><label for="jgWeak">確度『低』も表示</label><input id="jgWeak" class="chk" type="checkbox"></span>
+      <span><label for="jgRepeatOnly">複数回のみ</label><input id="jgRepeatOnly" class="chk" type="checkbox"></span>
+      <input id="jgQ" type="search" placeholder="銘柄名・コード・表題で絞り込み">
+      <span class="stat" id="jgStat"></span>
+    </div>
+    <div class="banner" id="jgBanner">読み込み中…</div>
+    <div class="hintRow">
+      <div class="hint"><b>その日の適時開示を全件チェックして、事業整理に当たるものだけを抜き出したタブ</b>です。1日の開示は平均200件ほどありますが、ここに残るのは5〜6件です。<br>
+      判定は<b>タイトルの語句マッチ</b>で行い、当たった開示だけPDF本文を取得して金額・業績影響・理由を正規表現で拾っています。AIによる要約や判断は使っていません(判定ルールは <code>jigyou_keywords.json</code> を編集すれば変わります)。<br>
+      <b>確度</b>は、タイトルだけで事業整理と言い切れるかを表します。<span class="rec">高</span>=子会社の解散・事業譲渡・構造改革などタイトルで確定するもの。<span class="rec">中</span>=タイトルが「特別損失の計上」だけだが、本文に撤退・閉鎖などの語があったもの。<span class="rec">低</span>=本文にも手掛かりが無く、単なる有価証券評価損の可能性が高いもの(既定では非表示)。<b>「特別損失の計上」というタイトルは事業整理とは限らない</b>ため、この区別を入れています。<br>
+      <b>「銘柄別」表示が本題</b>です。単発の事業譲渡は珍しくありませんが、<b>同じ会社が短期間に何度も出している</b>なら整理が実際に進んでいます。回数順に並ぶので、そこを見るためのタブです。<br>
+      <b>取得側の開示は除外しています。</b>「株式取得（子会社化）」「孫会社化」「資本業務提携」「公開買付けへの賛同」は事業の拡大や資本政策であって整理ではないためです。不動産会社の「販売用不動産の売却」も本業なので外しています。</div>
+    </div>
+    <div class="tablecard">
+      <table id="jgTbl">
+        <thead><tr id="jgHeadRow"></tr></thead>
+        <tbody id="jgBody"><tr><td class="loading" colspan="9">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+    <footer>
+      適時開示: <a href="https://www.release.tdnet.info/inbs/I_main_00.html" target="_blank" rel="noopener">TDnet(東京証券取引所)</a> / 市場休場日は更新されません。<br>
+      機械的な語句マッチによる抽出です。取りこぼしや誤検出があります。本サイトのデータの正確性は保証されません。投資判断はご自身の責任で行ってください。
+    </footer>
+  </div><!-- /view-jigyou -->
 
   <div id="view-period" hidden>
     <!-- 母集団の切り替え。期間の設定は下のツールバーで共通なので、
@@ -2725,6 +2763,171 @@ async function lvInit() {
 }
 
 
+/* ---- 事業整理の開示(TDnet適時開示の語句マッチ) ---- */
+let jgDay = null, jgSum = null, jgInited = false;
+
+const JG_MARK = {
+  "子会社整理": "🏢", "事業譲渡・撤退": "🚪", "分割・再編": "🔀",
+  "構造改革": "🛠", "人員削減": "👥", "拠点整理": "📍", "損失計上": "📉",
+};
+const JG_CONF_CLS = { "高": "up", "中": "", "低": "muted", "保留": "muted" };
+const jgEl = id => document.getElementById(id);
+const jgEsc = s => String(s == null ? "" : s).replace(/[&<>"]/g,
+  c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const jgCats = cs => (cs || []).map(c => (JG_MARK[c] || "") + jgEsc(c)).join(" ");
+
+function jgMatch(q, ...parts) {
+  if (!q) return true;
+  const s = parts.join(" ").toLowerCase();
+  return q.toLowerCase().split(/\s+/).filter(Boolean).every(t => s.includes(t));
+}
+
+function jgFillCats() {
+  const seen = new Set();
+  for (const it of (jgDay ? jgDay.items : [])) (it.cats || []).forEach(c => seen.add(c));
+  for (const st of (jgSum ? jgSum.stocks : [])) Object.keys(st.cats || {}).forEach(c => seen.add(c));
+  const sel = jgEl("jgCatSel"), cur = sel.value;
+  sel.innerHTML = '<option value="">すべて</option>'
+    + [...seen].sort().map(c => '<option value="' + jgEsc(c) + '">'
+      + (JG_MARK[c] || "") + jgEsc(c) + "</option>").join("");
+  sel.value = cur;
+}
+
+const JG_DAY_COLS = ["時刻", "コード", "銘柄名", "分類", "確度", "表題", "金額", "業績影響", "1年内"];
+const JG_STOCK_COLS = ["回数", "コード", "銘柄名", "分類の内訳", "初回", "直近", "開示"];
+
+function jgRender() {
+  const mode = jgEl("jgMode").value;
+  const cat = jgEl("jgCatSel").value;
+  const weak = jgEl("jgWeak").checked;
+  const rep = jgEl("jgRepeatOnly").checked;
+  const q = jgEl("jgQ").value.trim();
+  jgEl("jgDateWrap").style.display = mode === "day" ? "" : "none";
+  jgEl("jgRepeatOnly").parentElement.style.display = mode === "day" ? "" : "none";
+
+  const cols = mode === "day" ? JG_DAY_COLS : JG_STOCK_COLS;
+  jgEl("jgHeadRow").innerHTML = cols.map(c => "<th>" + c + "</th>").join("");
+  const tb = jgEl("jgBody");
+  tb.innerHTML = "";
+  let rows = [], total = 0;
+
+  if (mode === "day") {
+    const all = jgDay ? jgDay.items : [];
+    total = all.length;
+    rows = all.filter(it =>
+      (weak || it.conf !== "低")
+      && (!cat || (it.cats || []).includes(cat))
+      && (!rep || (it.repeat || 1) > 1)
+      && jgMatch(q, it.code, it.name, it.title));
+    const order = { "高": 0, "中": 1, "保留": 2, "低": 3 };
+    rows.sort((a, b) => (order[a.conf] ?? 9) - (order[b.conf] ?? 9)
+      || (b.repeat || 1) - (a.repeat || 1));
+  } else {
+    const all = jgSum ? jgSum.stocks : [];
+    total = all.length;
+    rows = all.filter(st =>
+      (!cat || Object.keys(st.cats || {}).includes(cat))
+      && jgMatch(q, st.code, st.name, (st.rows || []).map(r => r.title).join(" ")));
+  }
+
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td class="loading" colspan="' + cols.length + '">該当なし</td></tr>';
+  } else if (mode === "day") {
+    tb.innerHTML = rows.map(it => {
+      const pdf = it.pdf || {};
+      const amt = (pdf.amounts || []).map(a =>
+        jgEsc(a.k) + " <b>" + jgEsc(a.v) + "</b>").join("<br>") || "—";
+      const rp = (it.repeat || 1) > 1
+        ? '<span class="rec">' + it.repeat + "回目</span>" : "—";
+      return "<tr>"
+        + "<td>" + jgEsc(it.time) + "</td>"
+        + "<td>" + jgEsc(it.code) + "</td>"
+        + "<td>" + jgEsc(it.name) + "</td>"
+        + "<td>" + jgCats(it.cats) + "</td>"
+        + '<td class="' + (JG_CONF_CLS[it.conf] || "") + '">' + jgEsc(it.conf || "") + "</td>"
+        // 表題だけを折り返す。他を nowrap に残さないと、幅を取り合って銘柄名が
+        // 1文字ずつ折り返されてしまう
+        + '<td class="jgTitle">'
+        + '<a href="' + jgEsc(it.url) + '" target="_blank" rel="noopener">'
+        + jgEsc(it.title) + "</a>"
+        + (pdf.excerpt ? '<br><span class="muted">' + jgEsc(pdf.excerpt) + "</span>" : "")
+        + "</td>"
+        + "<td>" + amt + "</td>"
+        + "<td>" + jgEsc(pdf.impact || "—") + "</td>"
+        + "<td>" + rp + "</td></tr>";
+    }).join("");
+  } else {
+    tb.innerHTML = rows.map(st => {
+      const br = Object.entries(st.cats || {})
+        .sort((a, b) => b[1] - a[1])
+        .map(([c, n]) => (JG_MARK[c] || "") + jgEsc(c) + (n > 1 ? " ×" + n : "")).join(" / ");
+      const list = (st.rows || []).map(r =>
+        '<div><span class="muted">' + jgEsc(r.date) + "</span> "
+        + '<a href="' + jgEsc(r.url) + '" target="_blank" rel="noopener">'
+        + jgEsc(r.title) + "</a></div>").join("");
+      return "<tr>"
+        + '<td class="' + (st.n >= 2 ? "up" : "") + '"><b>' + st.n + "</b></td>"
+        + "<td>" + jgEsc(st.code) + "</td>"
+        + "<td>" + jgEsc(st.name) + "</td>"
+        + "<td>" + br + "</td>"
+        + "<td>" + jgEsc(st.first) + "</td>"
+        + "<td>" + jgEsc(st.last) + "</td>"
+        + '<td class="jgTitle">' + list + "</td></tr>";
+    }).join("");
+  }
+
+  jgEl("jgStat").innerHTML = "表示 <b>" + rows.length + "</b> / "
+    + (mode === "day" ? "該当 " + total + " 件" : "該当 " + total + " 銘柄");
+}
+
+async function jgLoadDay(ymd) {
+  const res = await fetch("data_jigyou/" + ymd + ".json", { cache: "no-cache" });
+  jgDay = await res.json();
+  jgFillCats();
+  jgRender();
+}
+
+function jgBanner() {
+  const c = (jgDay && jgDay.counts) || {};
+  const span = jgSum && jgSum.span ? jgSum.span[0] + " 〜 " + jgSum.span[1] : "-";
+  jgEl("jgBanner").innerHTML =
+    "<b>" + (jgDay ? jgDay.date : "-") + "</b> の適時開示 <b>" + (c.all ?? "-")
+    + "</b>件 → 事業整理 <b>" + ((c.hit ?? 0) - (c.weak ?? 0)) + "</b>件"
+    + (c.weak ? '（ほかに確度『低』' + c.weak + "件）" : "")
+    + " / 蓄積期間: " + span
+    + " / データ時点: " + ((jgDay && jgDay.as_of) || "-");
+}
+
+async function jgInit() {
+  try {
+    const [ir, sr] = await Promise.all([
+      fetch("data_jigyou/index.json", { cache: "no-cache" }),
+      fetch("data_jigyou/summary.json", { cache: "no-cache" }),
+    ]);
+    // 初回実行前はファイルがまだ無い。404のHTMLをJSONとして読むとエラーになるので先に弾く
+    const idx = ir.ok ? await ir.json() : {};
+    jgSum = sr.ok ? await sr.json() : { stocks: [] };
+    const dates = idx.dates || [];
+    const sel = jgEl("jgDateSel");
+    sel.innerHTML = dates.map(d => '<option value="' + d + '">' + d + "</option>").join("");
+    sel.onchange = () => jgLoadDay(sel.value).then(jgBanner);
+    jgEl("jgMode").onchange = jgRender;
+    jgEl("jgCatSel").onchange = jgRender;
+    jgEl("jgWeak").onchange = jgRender;
+    jgEl("jgRepeatOnly").onchange = jgRender;
+    jgEl("jgQ").oninput = jgRender;
+    if (dates.length) { await jgLoadDay(dates[0]); jgBanner(); }
+    else {
+      jgEl("jgBanner").textContent = "データがありません";
+      jgEl("jgBody").innerHTML =
+        '<tr><td class="loading" colspan="9">データがありません</td></tr>';
+    }
+  } catch (e) {
+    jgEl("jgBanner").innerHTML = '<span class="err">読み込みエラー: ' + e + "</span>";
+  }
+}
+
+
 /* ---- 市場活況度(東証3市場の売買代金) ---- */
 let tvData = null, tvInited = false, tvRange = 20;
 
@@ -4165,7 +4368,8 @@ const VIEW_ID = {
   yori: "view-yori", minute: "view-minute", min5: "view-min5", sector: "view-sector",
   stop: "view-stop", stoplow: "view-stoplow", streaks: "view-streaks",
   pts: "view-pts", watch: "view-watch", shinyo: "view-shinyo",
-  newhigh: "view-newhigh", lowvolume: "view-lowvolume", jukyu: "view-jukyu",
+  newhigh: "view-newhigh", lowvolume: "view-lowvolume", jigyou: "view-jigyou",
+  jukyu: "view-jukyu",
   uchu: "view-uchu", topix: "view-topix", turnover: "view-turnover", period: "view-period",
   wk: "view-wk", fx: "view-fx",
   selran: "view-selran", baibai: "view-baibai", search: "view-search",
@@ -4182,6 +4386,7 @@ function switchTab(name) {
   if (name === "split" && !spInited) { spInited = true; spInit(); }
   if (name === "newhigh" && !nhInited) { nhInited = true; nhInit(); }
   if (name === "lowvolume" && !lvInited) { lvInited = true; lvInit(); }
+  if (name === "jigyou" && !jgInited) { jgInited = true; jgInit(); }
   if (name === "turnover" && !tvInited) { tvInited = true; tvInit(); }
   if (name === "selran" && !srInited) { srInited = true; srInit(); }
   if (name === "baibai" && !bbInited) { bbInited = true; bbInit(); }
@@ -4214,6 +4419,7 @@ const FEEDS = {
   stop:     { kind: "index", url: "/Stop-takayasu/data/index.json", freq: "daily" },
   newhigh:  { kind: "index", url: "./data_newhigh/index.json", freq: "daily" },
   lowvolume: { kind: "index", url: "./data_lowvolume/index.json", freq: "daily" },
+  jigyou:   { kind: "index", url: "./data_jigyou/index.json", freq: "daily" },
   turnover: { kind: "field", url: "./data_turnover/data.json", field: "updated", freq: "daily" },
   baibai: { kind: "field", url: "./data_turnover/data.json", field: "updated", freq: "daily" },
   selran: { kind: "field", url: "./data_selran/data.json", field: "updated", freq: "daily" },

@@ -1,0 +1,139 @@
+{
+ "date": "2026-09-02",
+ "as_of": "2026-09-16 15:32",
+ "counts": {
+  "all": 151,
+  "hit": 5,
+  "weak": 0
+ },
+ "items": [
+  {
+   "id": "1279092",
+   "time": "18:00",
+   "code": "8439",
+   "name": "東京センチュリー",
+   "title": "（開示事項の経過）連結子会社の異動（株式譲渡）に関する株式譲渡契約締結のお知らせ",
+   "url": "https://www.release.tdnet.info/inbs/140120260827527459.pdf",
+   "market": "東",
+   "cats": [
+    "子会社整理"
+   ],
+   "pdf": {
+    "amounts": [],
+    "scale": [],
+    "impact": null,
+    "excerpt": null,
+    "chars": 1043
+   },
+   "conf": "高",
+   "repeat": 1
+  },
+  {
+   "id": "1279019",
+   "time": "15:30",
+   "code": "4592",
+   "name": "Ｇ－サンバイオ",
+   "title": "(訂正)「ミナリス社米国工場閉鎖に伴うアクーゴ(R)生産体制の国内統合に関するお知らせ」の一部訂正について",
+   "url": "https://www.release.tdnet.info/inbs/140120260902530414.pdf",
+   "market": "東",
+   "cats": [
+    "拠点整理"
+   ],
+   "pdf": {
+    "amounts": [],
+    "scale": [],
+    "impact": null,
+    "excerpt": null,
+    "chars": 1876
+   },
+   "conf": "高",
+   "repeat": 2
+  },
+  {
+   "id": "1278995",
+   "time": "15:00",
+   "code": "5451",
+   "name": "ヨドコウ",
+   "title": "（開示事項の経過）連結子会社の異動（出資持分譲渡）の完了に関するお知らせ",
+   "url": "https://www.release.tdnet.info/inbs/140120260902530380.pdf",
+   "market": "東",
+   "cats": [
+    "子会社整理"
+   ],
+   "pdf": {
+    "amounts": [],
+    "scale": [
+     {
+      "k": "純資産",
+      "v": "6,087百万円"
+     },
+     {
+      "k": "総資産",
+      "v": "6,281百万円"
+     },
+     {
+      "k": "売上高",
+      "v": "7,550百万円"
+     },
+     {
+      "k": "営業利益",
+      "v": "8,851百万円"
+     }
+    ],
+    "impact": null,
+    "excerpt": null,
+    "chars": 2497
+   },
+   "conf": "高",
+   "repeat": 1
+  },
+  {
+   "id": "1278971",
+   "time": "11:30",
+   "code": "6905",
+   "name": "コーセル",
+   "title": "（開示事項の経過）連結子会社の異動（株式譲渡）に関するお知らせ",
+   "url": "https://www.release.tdnet.info/inbs/140120260901530154.pdf",
+   "market": "東",
+   "cats": [
+    "子会社整理"
+   ],
+   "pdf": {
+    "amounts": [
+     {
+      "k": "特別損失",
+      "v": "3,633百万円"
+     }
+    ],
+    "scale": [],
+    "impact": "精査中",
+    "excerpt": "るVoltaris GmbH（旧SCUR-Alpha 820 GmbH）に譲渡する株式譲渡契約を締結し",
+    "chars": 705
+   },
+   "conf": "高",
+   "repeat": 1
+  },
+  {
+   "id": "1278949",
+   "time": "08:50",
+   "code": "7287",
+   "name": "日本精機",
+   "title": "連結子会社における一部事業譲渡に関するお知らせ",
+   "url": "https://www.release.tdnet.info/inbs/140120260901529444.pdf",
+   "market": "東",
+   "cats": [
+    "子会社整理",
+    "事業譲渡・撤退"
+   ],
+   "pdf": {
+    "amounts": [],
+    "scale": [],
+    "impact": "軽微",
+    "excerpt": "ＮＳヨーロッパは、当社の連結子会社で、欧州において四輪車、二輪車用計器等の販売・設計開発事業を展",
+    "chars": 2127
+   },
+   "conf": "高",
+   "repeat": 1
+  }
+ ]
+}
