@@ -331,6 +331,7 @@ footer a { color: var(--accent); }
       <div class="tabgroup-items">
         <button class="tab" data-tab="kensho">高配当上位50の25年</button>
         <button class="tab" data-tab="kenshopbr">PBR要請とグロース株</button>
+        <button class="tab" data-tab="kensho1up">1UP企業取材の翌日</button>
       </div>
     </div>
   </nav>
@@ -1018,6 +1019,11 @@ footer a { color: var(--accent); }
   <div id="view-kenshopbr" hidden>
     <div class="embed-note">「PBR是正要請でプライムの還元が厚くなり、個人の資金がグロースに入らなくなった」という仮説を、日足10年と<b>JPXの市場別・投資部門別売買実績(2015年〜589週)</b>で検証したレポート。結果は確認、原因は否定 — <a href="./kensho_pbr.html" target="_blank" rel="noopener">別タブで開く ↗</a></div>
     <iframe class="embed" title="PBR要請とグロース株 — 仮説検証レポート" data-src="./kensho_pbr.html" loading="lazy"></iframe>
+  </div>
+
+  <div id="view-kensho1up" hidden>
+    <div class="embed-note">YouTube「1UP投資部屋」が金曜20:00に公開する企業インタビューの<b>翌営業日の値動き</b>を、2021年以降の全94本で検証したレポート。同じ銘柄の平常時・グロース250と比較。翌日は上がりやすいが上昇は寄り付きで出る — <a href="./kensho_1up.html" target="_blank" rel="noopener">別タブで開く ↗</a></div>
+    <iframe class="embed" title="1UP企業取材の翌日 — 仮説検証レポート" data-src="./kensho_1up.html" loading="lazy"></iframe>
   </div>
 </div>
 
@@ -4373,7 +4379,7 @@ const VIEW_ID = {
   uchu: "view-uchu", topix: "view-topix", turnover: "view-turnover", period: "view-period",
   wk: "view-wk", fx: "view-fx",
   selran: "view-selran", baibai: "view-baibai", search: "view-search",
-  event: "view-event", kensho: "view-kensho", kenshopbr: "view-kenshopbr",
+  event: "view-event", kensho: "view-kensho", kenshopbr: "view-kenshopbr", kensho1up: "view-kensho1up",
 };
 function switchTab(name) {
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));

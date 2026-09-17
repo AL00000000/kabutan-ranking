@@ -28,3 +28,8 @@ pbr_growth/*.log
 
 # 事業整理タブのDiscord通知の重複防止用(ローカル状態)
 state_jigyou.json
+
+# 1UP企業取材検証の再取得可能な生データ
+kensho_1up/cache/
+kensho_1up/videos_flat.json
+kensho_1up/*.txt
