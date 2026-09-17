@@ -332,6 +332,7 @@ footer a { color: var(--accent); }
         <button class="tab" data-tab="kensho">高配当上位50の25年</button>
         <button class="tab" data-tab="kenshopbr">PBR要請とグロース株</button>
         <button class="tab" data-tab="kensho1up">1UP企業取材の翌日</button>
+        <button class="tab" data-tab="kenshokaiun">海運株の予想PER</button>
       </div>
     </div>
   </nav>
@@ -1024,6 +1025,11 @@ footer a { color: var(--accent); }
   <div id="view-kensho1up" hidden>
     <div class="embed-note">YouTube「1UP投資部屋」が金曜20:00に公開する企業インタビューの<b>翌営業日の値動き</b>を、2021年以降の全94本で検証したレポート。同じ銘柄の平常時・グロース250と比較。翌日は上がりやすいが上昇は寄り付きで出る — <a href="./kensho_1up.html" target="_blank" rel="noopener">別タブで開く ↗</a></div>
     <iframe class="embed" title="1UP企業取材の翌日 — 仮説検証レポート" data-src="./kensho_1up.html" loading="lazy"></iframe>
+  </div>
+
+  <div id="view-kenshokaiun" hidden>
+    <div class="embed-note">日本郵船・商船三井・川崎汽船（＋中堅5社）の<b>会社予想ベースの予想PER</b>を、決算短信・業績修正のPDFから当時の値で再現し、<b>2005年から株価と重ねて</b>並べたレポート。予想PERは1倍台から赤字予想まで振れ、低PERの日ほど1年後の成績が良かった — <a href="./kensho_kaiun.html" target="_blank" rel="noopener">別タブで開く ↗</a></div>
+    <iframe class="embed" title="海運株の予想PER — 仮説検証レポート" data-src="./kensho_kaiun.html" loading="lazy"></iframe>
   </div>
 </div>
 
@@ -4379,7 +4385,7 @@ const VIEW_ID = {
   uchu: "view-uchu", topix: "view-topix", turnover: "view-turnover", period: "view-period",
   wk: "view-wk", fx: "view-fx",
   selran: "view-selran", baibai: "view-baibai", search: "view-search",
-  event: "view-event", kensho: "view-kensho", kenshopbr: "view-kenshopbr", kensho1up: "view-kensho1up",
+  event: "view-event", kensho: "view-kensho", kenshopbr: "view-kenshopbr", kensho1up: "view-kensho1up", kenshokaiun: "view-kenshokaiun",
 };
 function switchTab(name) {
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));

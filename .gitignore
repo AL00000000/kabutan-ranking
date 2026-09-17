@@ -33,3 +33,7 @@ state_jigyou.json
 kensho_1up/cache/
 kensho_1up/videos_flat.json
 kensho_1up/*.txt
+
+# 海運株の予想PER検証(kensho_kaiun)のPDF・株価キャッシュ。再取得可能なので追跡しない
+kensho_kaiun/cache/
+kensho_kaiun/*.log
