@@ -1,0 +1,45 @@
+{
+  "date": "2026-09-18",
+  "as_of": "2026-09-18 16:00",
+  "updated": "2026-09-18",
+  "generated": "2026-09-18T16:45:37+09:00",
+  "min_value": 1000,
+  "window_days": 365,
+  "ma_days": 5,
+  "counts": {
+    "scanned": 750,
+    "universe": 708,
+    "hit": 1,
+    "day_low": 0,
+    "ma_low": 1,
+    "watch": 1,
+    "failed": 0,
+    "stale": 0,
+    "skipped": 7
+  },
+  "failed": [],
+  "stocks": [
+    {
+      "rank": 8,
+      "code": "5803",
+      "name": "フジクラ",
+      "market": "東Ｐ",
+      "close": 4952.0,
+      "change_pct": 1.75,
+      "value": 184906.0,
+      "watch": "AI半導体/電線",
+      "volume": 37410000.0,
+      "prev_min": 26196900.0,
+      "ma": 32139720,
+      "ma_prev_min": 32337000,
+      "is_low": false,
+      "ma_low": true,
+      "avg52": 60106750,
+      "vs_avg_pct": 62.2,
+      "prev_date": "2026-09-16",
+      "gap": 2,
+      "hist_days": 243,
+      "short_hist": false
+    }
+  ]
+}
