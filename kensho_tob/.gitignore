@@ -1,0 +1,6 @@
+# 取得元のキャッシュ(再取得できるので置かない。IRBANKのHTMLは1件130KBある)
+raw_irbank/
+raw_jpx/
+raw_company/
+*.log
+perpbr*.xlsx
