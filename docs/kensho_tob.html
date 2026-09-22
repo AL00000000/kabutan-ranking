@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ja" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TOBされる会社は安いのか</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F6F6F2; --surface:#FFFFFF; --surface-2:#EFEFE9; --line:#DBDBD2; --line-soft:#E8E8E1;
+  --ink:#1B2026; --ink-2:#4E5560; --ink-3:#7C838D;
+  --brass:#9C6B18; --brass-soft:#C9952F; --teal:#2F6A5C; --slate:#4E718D; --nikkei:#9A5340;
+  --pos:#2C6E4E; --neg:#A8443A; --band:#F2EDE0;
+  --shadow:0 1px 2px rgba(27,32,38,.05),0 6px 18px -10px rgba(27,32,38,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161A; --surface:#191E24; --surface-2:#20262D; --line:#2E353D; --line-soft:#252C33;
+    --ink:#E9E7E1; --ink-2:#A8AEB6; --ink-3:#79808A;
+    --brass:#DCA946; --brass-soft:#B9852C; --teal:#64AE9A; --slate:#86A9C6; --nikkei:#D28B70;
+    --pos:#5FB489; --neg:#D97B6D; --band:#242019;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161A; --surface:#191E24; --surface-2:#20262D; --line:#2E353D; --line-soft:#252C33;
+  --ink:#E9E7E1; --ink-2:#A8AEB6; --ink-3:#79808A;
+  --brass:#DCA946; --brass-soft:#B9852C; --teal:#64AE9A; --slate:#86A9C6; --nikkei:#D28B70;
+  --pos:#5FB489; --neg:#D97B6D; --band:#242019;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;
+  font-size:15.5px; line-height:1.85; margin:0;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:920px;margin:0 auto;padding:0 22px 96px}
+h1,h2,h3{font-family:"Shippori Mincho B1",'Yu Mincho',serif;font-weight:700;text-wrap:balance;line-height:1.4;margin:0}
+.num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+/* header */
+header.top{border-bottom:1px solid var(--line);padding:56px 0 30px;margin-bottom:40px}
+.eyebrow{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);font-weight:700;font-family:"IBM Plex Mono",monospace;margin-bottom:16px}
+h1{font-size:clamp(28px,5.2vw,42px);letter-spacing:.01em}
+.sub{color:var(--ink-2);font-size:15px;margin-top:16px;max-width:62ch}
+
+/* answer cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:34px 0 8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:20px 20px 18px;box-shadow:var(--shadow);border-top:3px solid var(--c,var(--slate))}
+.card .lbl{font-size:12px;color:var(--ink-2);line-height:1.55;min-height:3.1em}
+.card .big{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:31px;font-weight:600;color:var(--c,var(--ink));letter-spacing:-.02em;margin-top:10px}
+.card .foot{font-size:11.5px;color:var(--ink-3);margin-top:4px;font-family:"IBM Plex Mono",monospace}
+
+section{margin-top:56px}
+h2{font-size:22px;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:8px;display:flex;align-items:baseline;gap:12px}
+h2 .n{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--brass);font-weight:600;letter-spacing:.08em}
+h3{font-size:16px;margin:30px 0 10px}
+p{margin:14px 0}
+.lead{color:var(--ink-2)}
+.small{font-size:13px;color:var(--ink-3);line-height:1.7}
+
+/* tables */
+.scroll{overflow-x:auto;margin:18px 0;border:1px solid var(--line);border-radius:3px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:9px 13px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line-soft)}
+th{background:var(--surface-2);font-weight:700;font-size:11.5px;letter-spacing:.04em;color:var(--ink-2);border-bottom:1px solid var(--line)}
+td:first-child,th:first-child{text-align:left;white-space:normal;min-width:190px}
+tbody tr:last-child td{border-bottom:none}
+tr.hl td{background:var(--band)}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:baseline}
+.pos{color:var(--pos)} .neg{color:var(--neg)}
+
+/* charts */
+figure{margin:22px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:20px 18px 14px;box-shadow:var(--shadow)}
+figcaption{font-size:12.5px;color:var(--ink-3);margin-top:12px;line-height:1.65}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:18px;font-size:12.5px;margin-bottom:14px}
+.legend span{display:flex;align-items:center;gap:7px;color:var(--ink-2)}
+.legend i{width:14px;height:3px;border-radius:2px;display:block}
+
+/* caveat */
+.caveats{margin-top:22px;display:grid;gap:2px}
+.cv{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:0 3px 3px 0;padding:16px 20px}
+.cv h4{margin:0 0 6px;font-size:14.5px;font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700}
+.cv p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.75}
+.badge{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.06em;padding:2px 7px;border-radius:2px;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line);margin-right:8px;vertical-align:1px}
+.badge.m{color:var(--teal);border-color:var(--teal)}
+.badge.i{color:var(--brass);border-color:var(--brass)}
+
+ul{padding-left:1.15em;margin:12px 0}
+li{margin:7px 0;color:var(--ink-2);font-size:14px}
+li strong{color:var(--ink)}
+a{color:var(--brass);text-underline-offset:3px}
+footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3);line-height:1.8}
+@media (max-width:620px){ td:first-child,th:first-child{min-width:140px} .wrap{padding:0 16px 70px} }
+
+/* process steps */
+.steps{counter-reset:st;display:grid;gap:2px;margin-top:20px}
+.step{background:var(--surface);border:1px solid var(--line);padding:18px 22px 18px 62px;position:relative;border-radius:3px}
+.step::before{counter-increment:st;content:counter(st);position:absolute;left:20px;top:18px;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;color:var(--brass);border:1px solid var(--brass);border-radius:50%;width:24px;height:24px;display:grid;place-items:center}
+.step h4{margin:0 0 6px;font-size:15px;font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700}
+.step p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.75}
+.step p+p{margin-top:8px}
+.kv{font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:var(--surface-2);padding:1px 6px;border-radius:2px;border:1px solid var(--line)}
+.note{background:var(--band);border:1px solid var(--line);border-radius:3px;padding:14px 18px;font-size:13.5px;color:var(--ink-2);line-height:1.75;margin:18px 0}
+.note strong{color:var(--ink)}
+</style>
+
+
+<style>
+/* --- サイト(kabutan-ranking)のダーク配色に合わせる --- */
+:root[data-theme="dark"]{
+  --bg:#0a0f1c; --surface:#101830; --surface-2:#16203c; --line:#1e2a48; --line-soft:#17203a;
+  --ink:#dbe4f5; --ink-2:#9fb0cd; --ink-3:#7787a5;
+  --brass:#ffd166; --brass-soft:#c9952f; --teal:#5fd3b4; --slate:#4da3ff; --nikkei:#ff8f7a;
+  --pos:#4da3ff; --neg:#ff5b6a; --band:#16203c;
+  --shadow:0 1px 2px rgba(0,0,0,.45),0 8px 24px -12px rgba(0,0,0,.75);
+}
+body{font-size:15px}
+.wrap{max-width:100%;padding:0 4px 48px}
+header.top{padding:20px 0 26px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">2024.01 — 2026.09 ／ TOB対象 299社 ／ 公表直前のPBR</div>
+  <h1>TOBされる会社は安いのか</h1>
+  <p class="sub">「東証のPBR1倍割れ是正要請で、市場に評価されないくらいなら買収された方がいいと考える会社が増えているのではないか。だとすれば低PBR株を先に仕込む意味がある」──
+  この仮説を、2024年以降にTOBされた全299社の<strong>公表直前のPBR</strong>で確かめました。結論から書くと、<strong>TOB対象は市場平均より割安ではありません</strong>。</p>
+
+  <div class="cards">
+    <div class="card" style="--c:var(--brass)"><div class="lbl">TOB対象の公表直前PBR<br>中央値</div><div class="big">1.25倍</div><div class="foot">n=288</div></div>
+    <div class="card" style="--c:var(--slate)"><div class="lbl">同じ時期の普通の上場企業<br>中央値（対照群）</div><div class="big">1.10倍</div><div class="foot">n=284・2025-06-30</div></div>
+    <div class="card" style="--c:var(--neg)"><div class="lbl">TOB対象のうち<br>PBR1倍割れだった比率</div><div class="big">36.8%</div><div class="foot">市場は44.0%</div></div>
+    <div class="card" style="--c:var(--teal)"><div class="lbl">1倍割れ株を持っていて<br>TOBに当たる確率（概算）</div><div class="big">年2〜3%</div><div class="foot">2024-2025年</div></div>
+  </div>
+</header>
+
+<section>
+  <h2><span class="n">01</span>何を測ったか</h2>
+  <p class="lead">「TOBされた会社のPBR」は、いつ時点のPBRを指すかで答えが変わります。公表後の株価はTOB価格に張り付くので、公表日を1日でも後ろに取ると<strong>全社が実態より高く出ます</strong>。ここで測ったのは<strong>市場がまだ知らなかった最後の終値</strong>のPBRです。</p>
+  <div class="steps">
+    <div class="step"><h4>母集団は「買われる側が出した開示」で作る</h4>
+      <p>TDnetの適時開示を2024/1/1から2026-09-22まで1日ずつ全件見て、公開買付関連を2,218件拾い、そこに出てくる候補コード676社をさらに会社単位で引き直しました。対象会社は自分で意見表明やMBOの開示を出すので、<span class="kv">買付者が非上場のファンドやSPC</span>でも取りこぼしません。</p>
+      <p><strong>自己株TOB（自社株買い）は買収ではないので除外</strong>。「公開買付けに準ずる行為として政令で定める買集め行為」も別物なので除外しています。</p></div>
+    <div class="step"><h4>公表日は「市場が最初に知った日」</h4>
+      <p>同じ案件の続報は180日でまとめ、いちばん古い当事者開示の日を公表日としました。買付者の予告が先で意見表明が後という順（牧野フライス）もあるため、案件として認める条件は「意見表明・賛同・MBOのいずれかが1件でも含まれること」にし、日付はクラスタの先頭を使っています。</p></div>
+    <div class="step"><h4>PBRは公表直前の終値ベース</h4>
+      <p>公表が<span class="kv">引け後</span>なら当日の終値、<span class="kv">場中</span>ならその日の終値はもう汚れているので前営業日の終値を使います。東証の取引終了は2024年11月5日から15:30に延びたので、その前後で判定時刻を変えています。</p>
+      <p>株価とPBRはIRBANKから取りました。<strong>TOBが成立すると上場廃止になり、株探もYahooもデータごと消えます</strong>が、IRBANKには残ります。</p></div>
+    <div class="step"><h4>比べる相手（対照群）を用意する</h4>
+      <p>「TOB対象の中央値は1.25倍」だけでは高いのか安いのか分かりません。2023年1月時点の東証一覧から乱数で300社を抜き（その後上場廃止になった会社を落とさないため）、同じIRBANKで同じ日のPBRを取りました。2024/6・2025/6・2026/6の3時点です。</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">02</span>結果 — 分布はほぼ重なる</h2>
+  <figure>
+    <div class="legend"><span><i style="background:var(--brass)"></i>TOB対象 288社</span><span><i style="background:var(--slate)"></i>対照群 284社（2025-06-30）</span></div>
+    <svg viewBox="0 0 708 320" role="img" aria-label="PBRの分布">
+<text x="82" y="26" text-anchor="end" font-size="12" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">0〜0.5倍</text>
+<rect x="92" y="14" width="280.4" height="12" rx="2" fill="var(--brass)"/>
+<text x="379.4" y="24" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">11.5%</text>
+<rect x="92" y="29" width="327.4" height="12" rx="2" fill="var(--slate)"/>
+<text x="426.4" y="39" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">13.4%</text>
+<text x="82" y="68" text-anchor="end" font-size="12" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">0.5〜0.8倍</text>
+<rect x="92" y="56" width="305.8" height="12" rx="2" fill="var(--brass)"/>
+<text x="404.8" y="66" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">12.5%</text>
+<rect x="92" y="71" width="560.0" height="12" rx="2" fill="var(--slate)"/>
+<text x="659.0" y="81" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">22.9%</text>
+<text x="82" y="110" text-anchor="end" font-size="12" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">0.8〜1倍</text>
+<rect x="92" y="98" width="314.3" height="12" rx="2" fill="var(--brass)"/>
+<text x="413.3" y="108" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">12.8%</text>
+<rect x="92" y="113" width="189.5" height="12" rx="2" fill="var(--slate)"/>
+<text x="288.5" y="123" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">7.7%</text>
+<text x="82" y="152" text-anchor="end" font-size="12" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">1〜1.5倍</text>
+<rect x="92" y="140" width="526.7" height="12" rx="2" fill="var(--brass)"/>
+<text x="625.7" y="150" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">21.5%</text>
+<rect x="92" y="155" width="525.5" height="12" rx="2" fill="var(--slate)"/>
+<text x="624.5" y="165" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">21.5%</text>
+<text x="82" y="194" text-anchor="end" font-size="12" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">1.5〜2倍</text>
+<rect x="92" y="182" width="229.4" height="12" rx="2" fill="var(--brass)"/>
+<text x="328.4" y="192" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">9.4%</text>
+<rect x="92" y="197" width="249.8" height="12" rx="2" fill="var(--slate)"/>
+<text x="348.8" y="207" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">10.2%</text>
+<text x="82" y="236" text-anchor="end" font-size="12" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">2〜3倍</text>
+<rect x="92" y="224" width="331.3" height="12" rx="2" fill="var(--brass)"/>
+<text x="430.3" y="234" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">13.5%</text>
+<rect x="92" y="239" width="189.5" height="12" rx="2" fill="var(--slate)"/>
+<text x="288.5" y="249" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">7.7%</text>
+<text x="82" y="278" text-anchor="end" font-size="12" fill="var(--ink-2)" font-family="IBM Plex Mono,monospace">3倍以上</text>
+<rect x="92" y="266" width="458.8" height="12" rx="2" fill="var(--brass)"/>
+<text x="557.8" y="276" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">18.8%</text>
+<rect x="92" y="281" width="396.3" height="12" rx="2" fill="var(--slate)"/>
+<text x="495.3" y="291" font-size="11" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">16.2%</text>
+</svg>
+    <figcaption>公表直前PBRの分布。TOB対象がとくに低PBRに偏っている、という形にはなっていません。0.5〜0.8倍の帯はむしろ対照群のほうが厚く、2〜3倍の帯はTOB対象のほうが厚いです。</figcaption>
+  </figure>
+
+  <div class="scroll"><table>
+    <thead><tr><th>集計のしかた</th><th>n</th><th>平均</th><th>中央値</th><th>トリム平均</th><th>1倍割れ</th></tr></thead>
+    <tbody>
+      <tr class="hl"><td>全件そのまま</td><td class="n">288</td><td class="n">2.13倍</td><td class="n">1.25倍</td><td class="n">1.60倍</td><td class="n">36.8%</td></tr>
+      <tr><td>高PBRになりやすい業種を除く</td><td class="n">166</td><td class="n">1.71倍</td><td class="n">1.02倍</td><td class="n">1.25倍</td><td class="n">48.2%</td></tr>
+      <tr><td>業種相対PBR（業種平均＝1.00）</td><td class="n">283</td><td class="n">1.38</td><td class="n">1.02</td><td class="n">1.15</td><td class="n">49.5%</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">平均2.13倍に対し中央値1.25倍。最大は28.5倍（ベースフード）、最小は0.27倍（桂川電機）で、<strong>平均はグロースの高PBR銘柄に引っ張られています</strong>。外れ値の影響を抜く方法を3通り並べました。除外した業種は情報・通信業／サービス業／医薬品／精密機器／電気機器／その他製品です。業種相対PBRは各社のPBRを「同じ月・同じ市場・同じ33業種の平均PBR（JPXの月次統計）」で割ったもので、1.00未満なら業種平均より割安を意味します。中央値1.02は<strong>業種の中でも平均並み</strong>ということです。</p>
+</section>
+
+<section>
+  <h2><span class="n">03</span>対照群と並べる — ここで仮説が否定される</h2>
+  <div class="scroll"><table>
+    <thead><tr><th></th><th>TOB n</th><th>TOB中央値</th><th>TOB 1倍割れ</th><th>市場中央値</th><th>市場 1倍割れ</th></tr></thead>
+    <tbody>
+      <tr><td>2024年</td><td class="n">92</td><td class="n">1.17</td><td class="n">40.2%</td><td class="n">1.05</td><td class="n">47.8%</td></tr>
+      <tr><td>2025年</td><td class="n">130</td><td class="n">1.22</td><td class="n">38.5%</td><td class="n">1.10</td><td class="n">44.0%</td></tr>
+      <tr><td>2026年</td><td class="n">66</td><td class="n">1.37</td><td class="n">28.8%</td><td class="n">1.17</td><td class="n">39.3%</td></tr>
+    </tbody>
+  </table></div>
+  <p><span class="badge m">実測</span>どの年も<strong>TOB対象のほうがPBRが高く、1倍割れの比率は低い</strong>。年を追うごとにTOB対象のPBRは上がり（1.17→1.37倍）、1倍割れ比率は下がっています（40%→29%）。</p>
+
+  <h3>市場区分をそろえても同じ</h3>
+  <p class="small">TOB対象にグロース市場の銘柄が多ければ、それだけで平均PBRは上がります。構成の違いで見かけの差が出ていないか、市場区分をそろえて確かめました。</p>
+  <div class="scroll"><table>
+    <thead><tr><th></th><th>TOB n</th><th>TOB中央値</th><th>TOB 1倍割れ</th><th>市場中央値</th><th>市場 1倍割れ</th></tr></thead>
+    <tbody>
+      <tr><td>2024年 プライム市場</td><td class="n">34</td><td class="n">1.37</td><td class="n">32.4%</td><td class="n">1.07</td><td class="n">45.5%</td></tr>
+<tr><td>2024年 スタンダード市場</td><td class="n">46</td><td class="n">0.96</td><td class="n">54.3%</td><td class="n">0.80</td><td class="n">67.3%</td></tr>
+<tr><td>2024年 グロース市場</td><td class="n">11</td><td class="n">2.03</td><td class="n">0.0%</td><td class="n">2.11</td><td class="n">13.0%</td></tr>
+      <tr><td>2025年 プライム市場</td><td class="n">53</td><td class="n">1.28</td><td class="n">26.4%</td><td class="n">1.13</td><td class="n">42.5%</td></tr>
+<tr><td>2025年 スタンダード市場</td><td class="n">56</td><td class="n">0.79</td><td class="n">60.7%</td><td class="n">0.75</td><td class="n">60.6%</td></tr>
+<tr><td>2025年 グロース市場</td><td class="n">18</td><td class="n">2.88</td><td class="n">5.6%</td><td class="n">3.08</td><td class="n">13.6%</td></tr>
+      <tr><td>2026年 プライム市場</td><td class="n">23</td><td class="n">1.26</td><td class="n">26.1%</td><td class="n">1.17</td><td class="n">36.2%</td></tr>
+<tr><td>2026年 スタンダード市場</td><td class="n">35</td><td class="n">1.29</td><td class="n">37.1%</td><td class="n">0.81</td><td class="n">56.7%</td></tr>
+<tr><td>2026年 グロース市場</td><td class="n">7</td><td class="n">2.49</td><td class="n">0.0%</td><td class="n">1.96</td><td class="n">13.6%</td></tr>
+    </tbody>
+  </table></div>
+  <p><span class="badge i">推論</span>そろえても結論は変わりません。<strong>「安いから買われる」より「欲しいから買われる」</strong>と読むほうが、このデータには合っています。ただしこれは買収の動機を直接調べたものではなく、PBRの分布から読んだ解釈です。</p>
+</section>
+
+<section>
+  <h2><span class="n">04</span>内訳</h2>
+  <h3>業種別（5社以上）</h3>
+  <div class="scroll"><table>
+    <thead><tr><th>33業種</th><th>n</th><th>中央値</th><th>平均</th><th>1倍割れ</th></tr></thead>
+    <tbody><tr><td>情報・通信業</td><td class="n">53</td><td class="n">2.65</td><td class="n">3.53</td><td class="n">8%</td></tr>
+<tr><td>サービス業</td><td class="n">38</td><td class="n">1.94</td><td class="n">2.87</td><td class="n">18%</td></tr>
+<tr><td>小売業</td><td class="n">27</td><td class="n">1.76</td><td class="n">2.34</td><td class="n">30%</td></tr>
+<tr><td>電気機器</td><td class="n">21</td><td class="n">1.02</td><td class="n">1.04</td><td class="n">48%</td></tr>
+<tr><td>卸売業</td><td class="n">20</td><td class="n">0.85</td><td class="n">1.58</td><td class="n">60%</td></tr>
+<tr><td>不動産業</td><td class="n">16</td><td class="n">1.40</td><td class="n">1.78</td><td class="n">31%</td></tr>
+<tr><td>建設業</td><td class="n">16</td><td class="n">1.10</td><td class="n">1.24</td><td class="n">38%</td></tr>
+<tr><td>化学</td><td class="n">15</td><td class="n">0.90</td><td class="n">1.40</td><td class="n">67%</td></tr>
+<tr><td>機械</td><td class="n">14</td><td class="n">0.98</td><td class="n">1.50</td><td class="n">57%</td></tr>
+<tr><td>輸送用機器</td><td class="n">8</td><td class="n">0.96</td><td class="n">1.23</td><td class="n">50%</td></tr>
+<tr><td>食料品</td><td class="n">6</td><td class="n">1.13</td><td class="n">5.71</td><td class="n">50%</td></tr>
+<tr><td>倉庫・運輸関連業</td><td class="n">6</td><td class="n">1.22</td><td class="n">1.32</td><td class="n">17%</td></tr>
+<tr><td>その他製品</td><td class="n">5</td><td class="n">0.39</td><td class="n">1.00</td><td class="n">60%</td></tr>
+<tr><td>陸運業</td><td class="n">5</td><td class="n">0.77</td><td class="n">1.06</td><td class="n">80%</td></tr>
+<tr><td>鉄鋼</td><td class="n">5</td><td class="n">0.49</td><td class="n">0.49</td><td class="n">100%</td></tr>
+<tr><td>不明</td><td class="n">5</td><td class="n">1.06</td><td class="n">1.16</td><td class="n">40%</td></tr></tbody>
+  </table></div>
+  <p class="small">最多は情報・通信業。件数が多いうえにPBRも高く、全体の平均を押し上げています。</p>
+
+  <h3>市場別・種別</h3>
+  <div class="scroll"><table>
+    <thead><tr><th>市場</th><th>n</th><th>中央値</th><th>平均</th><th>1倍割れ</th></tr></thead>
+    <tbody><tr><td>スタンダード市場</td><td class="n">137</td><td class="n">0.98</td><td class="n">1.42</td><td class="n">53%</td></tr>
+<tr><td>プライム市場</td><td class="n">110</td><td class="n">1.31</td><td class="n">2.17</td><td class="n">28%</td></tr>
+<tr><td>グロース市場</td><td class="n">36</td><td class="n">2.56</td><td class="n">4.85</td><td class="n">3%</td></tr>
+<tr><td>不明</td><td class="n">5</td><td class="n">1.06</td><td class="n">1.16</td><td class="n">40%</td></tr></tbody>
+  </table></div>
+  <div class="scroll"><table>
+    <thead><tr><th>種別</th><th>n</th><th>中央値</th><th>平均</th><th>1倍割れ</th></tr></thead>
+    <tbody><tr><td>賛同</td><td class="n">224</td><td class="n">1.30</td><td class="n">2.27</td><td class="n">34%</td></tr>
+<tr><td>MBO</td><td class="n">63</td><td class="n">1.04</td><td class="n">1.62</td><td class="n">48%</td></tr>
+<tr><td>反対/留保</td><td class="n">1</td><td class="n">2.14</td><td class="n">2.14</td><td class="n">0%</td></tr></tbody>
+  </table></div>
+  <p class="small">MBO（経営陣による買収）は中央値1.04倍で第三者によるTOBより低いものの、それでも市場全体の中央値を下回ってはいません。</p>
+</section>
+
+<section>
+  <h2><span class="n">05</span>では「低PBRを仕込んでTOBを待つ」は成立するか</h2>
+  <div class="scroll"><table>
+    <thead><tr><th></th><th>1倍割れの母集団（概算）</th><th>うちTOBされた社数</th><th>年率</th></tr></thead>
+    <tbody><tr><td>2024年</td><td class="n">1,815社</td><td class="n">37社</td><td class="n">2.04%</td></tr><tr><td>2025年</td><td class="n">1,673社</td><td class="n">50社</td><td class="n">2.99%</td></tr><tr><td>2026年（9/22まで）</td><td class="n">1,492社</td><td class="n">19社</td><td class="n">1.27%</td></tr></tbody>
+  </table></div>
+  <p><span class="badge i">概算</span>対照群の1倍割れ比率を東証の上場社数（約3,800社）に当てはめた母集団に対し、その年にTOBされた1倍割れ企業の数を割ったものです。<strong>1倍割れ株を1銘柄持っていてTOBに当たる確率は年2〜3%</strong>。しかも§03のとおり<strong>1倍割れであることが当選確率を上げていない</strong>ので、低PBRで絞る意味はこのデータからは出てきません。</p>
+</section>
+
+<section>
+  <h2><span class="n">06</span>この検証が答えていないこと</h2>
+  <div class="caveats">
+    <div class="cv"><h4>決算発表との関係は見ていない</h4><p>「決算をまたいで持つ」の部分、つまり決算発表日とTOB公表日に結びつきがあるかどうかは、この検証では調べていません。別途やるならTOB公表日と直近の決算発表日の間隔を見ることになります。</p></div>
+    <div class="cv"><h4>対照群は300社の標本</h4><p>全上場企業ではなく乱数抽出です。中央値の推定としては十分ですが、小数第2位の差を云々できる精度ではありません。生存バイアスを避けるため母集団は2023年1月時点の一覧から取り、各時点で上場廃止済みの会社は除いています。</p></div>
+    <div class="cv"><h4>PBRの定義はIRBANKのものに依存</h4><p>純資産ベースで、時価総額÷純資産。TOB対象も対照群も同じ物差しなので比較は成立しますが、他社サイトの数字とは細部が合わないことがあります。業種相対PBRの分母に使ったJPXの月次統計は<strong>小数1桁まで</strong>しか公表されておらず、かつ中央値ではなく平均です。</p></div>
+    <div class="cv"><h4>REIT等はPBRが取れず除外</h4><p>299社のうち11社はPBRが取得できませんでした（REIT、純資産が特殊な会社など）。集計は288社です。</p></div>
+    <div class="cv"><h4>2026年は途中まで</h4><p>2026年は9月22日時点までの集計です。年間の件数として他の年と直接は比べられません。</p></div>
+  </div>
+</section>
+
+<footer>
+  データ: TDnet適時開示（yanoshin TDnet API）／ 株価・PBR: IRBANK ／ 業種・市場区分: JPX東証上場銘柄一覧（過去分を含む）／ 業種平均PBR: JPX「規模別・業種別PER・PBR」月次<br>
+  集計期間 2024-01-01 〜 2026-09-22（最後のTOB公表は2026-09-17）。スクリプトとデータは kabutan-ranking/kensho_tob/ にあります。
+</footer>
+
+</div>
+</body>
+</html>
