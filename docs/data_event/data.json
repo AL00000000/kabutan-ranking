@@ -1344,6 +1344,15 @@
   },
   {
    "date": "2026-10-01",
+   "time": "05:00頃",
+   "name": "決算 マイクロン・テクノロジー",
+   "country": "US",
+   "note": "MU・日程確定(Yahoo)",
+   "source": "kessan",
+   "url": "https://finance.yahoo.com/quote/MU/"
+  },
+  {
+   "date": "2026-10-01",
    "time": "上場日",
    "name": "IPO （株）ASNOVACompanies*",
    "country": "JP",
@@ -1397,6 +1406,15 @@
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
+   "date": "2026-10-14",
+   "time": "21:30頃",
+   "name": "決算 ASML",
+   "country": "US",
+   "note": "ASML・日程確定(Yahoo)",
+   "source": "kessan",
+   "url": "https://finance.yahoo.com/quote/ASML/"
+  },
+  {
    "date": "2026-10-15",
    "time": "21:30",
    "name": "米PPI",
@@ -1404,6 +1422,15 @@
    "note": "September 2026分",
    "source": "us_ppi",
    "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
+   "date": "2026-10-15",
+   "time": "21:30頃",
+   "name": "決算 TSMC",
+   "country": "US",
+   "note": "TSM・日程確定(Yahoo)",
+   "source": "kessan",
+   "url": "https://finance.yahoo.com/quote/TSM/"
   },
   {
    "date": "2026-10-15",
@@ -1415,6 +1442,15 @@
    "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
+   "date": "2026-10-22",
+   "time": "05:00頃",
+   "name": "決算 ラムリサーチ",
+   "country": "US",
+   "note": "LRCX・日程確定(Yahoo)",
+   "source": "kessan",
+   "url": "https://finance.yahoo.com/quote/LRCX/"
+  },
+  {
    "date": "2026-10-23",
    "time": "08:30",
    "name": "日本CPI(全国)",
@@ -1422,6 +1458,15 @@
    "note": "9月分",
    "source": "jp_cpi",
    "url": "https://www.stat.go.jp/data/cpi/index.html"
+  },
+  {
+   "date": "2026-10-28",
+   "time": "決算発表",
+   "name": "決算 サムスン電子",
+   "country": "KR",
+   "note": "005930.KS・日程確定(Yahoo)",
+   "source": "kessan",
+   "url": "https://finance.yahoo.com/quote/005930.KS/"
   },
   {
    "date": "2026-10-29",
@@ -1449,6 +1494,24 @@
    "note": "10月29日（木）・30日（金） の2日目に結果公表",
    "source": "boj",
    "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2026-11-05",
+   "time": "05:00頃",
+   "name": "決算 アーム・ホールディングス",
+   "country": "US",
+   "note": "ARM・日程確定(Yahoo)",
+   "source": "kessan",
+   "url": "https://finance.yahoo.com/quote/ARM/"
+  },
+  {
+   "date": "2026-11-05",
+   "time": "05:00頃",
+   "name": "決算 クアルコム",
+   "country": "US",
+   "note": "QCOM・日程確定(Yahoo)",
+   "source": "kessan",
+   "url": "https://finance.yahoo.com/quote/QCOM/"
   },
   {
    "date": "2026-11-06",
@@ -1479,12 +1542,30 @@
   },
   {
    "date": "2026-11-13",
+   "time": "05:00頃",
+   "name": "決算 アプライド・マテリアルズ",
+   "country": "US",
+   "note": "AMAT・日程確定(Yahoo)",
+   "source": "kessan",
+   "url": "https://finance.yahoo.com/quote/AMAT/"
+  },
+  {
+   "date": "2026-11-13",
    "time": "22:30",
    "name": "米PPI",
    "country": "US",
    "note": "October 2026分",
    "source": "us_ppi",
    "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
+   "date": "2026-11-18",
+   "time": "05:00頃",
+   "name": "決算 エヌビディア",
+   "country": "US",
+   "note": "NVDA・日程確定(Yahoo)",
+   "source": "kessan",
+   "url": "https://finance.yahoo.com/quote/NVDA/"
   },
   {
    "date": "2026-11-20",
@@ -1530,6 +1611,15 @@
    "note": "December 8-9* の最終日 14:00 ET",
    "source": "fomc",
    "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2026-12-10",
+   "time": "05:00頃",
+   "name": "決算 ブロードコム",
+   "country": "US",
+   "note": "AVGO・日程確定(Yahoo)",
+   "source": "kessan",
+   "url": "https://finance.yahoo.com/quote/AVGO/"
   },
   {
    "date": "2026-12-10",
