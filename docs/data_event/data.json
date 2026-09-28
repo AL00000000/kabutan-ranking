@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-28",
+ "updated": "2026-09-29",
  "events": [
   {
    "date": "2021-01-28",
@@ -1488,12 +1488,30 @@
   },
   {
    "date": "2026-10-30",
+   "time": "上場日",
+   "name": "IPO トグルホールディングス（株）",
+   "country": "JP",
+   "note": "652A・上場承認 2026/09/28",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-10-30",
    "time": "昼頃",
    "name": "日銀 金融政策決定会合",
    "country": "JP",
    "note": "10月29日（木）・30日（金） の2日目に結果公表",
    "source": "boj",
    "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
+  },
+  {
+   "date": "2026-11-02",
+   "time": "上場日",
+   "name": "IPO MabGenesis（株）",
+   "country": "JP",
+   "note": "653A・上場承認 2026/09/28",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
    "date": "2026-11-05",
