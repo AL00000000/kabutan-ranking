@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-30",
+ "updated": "2026-10-03",
  "events": [
   {
    "date": "2021-01-28",
@@ -1093,7 +1093,7 @@
   {
    "date": "2026-07-29",
    "time": "上場日",
-   "name": "IPO （株）アイ・グリッド・ソリューションズ",
+   "name": "IPO （株）アイ・グリッド・ソリューションズ代表者インタビュー",
    "country": "JP",
    "note": "603A・上場承認 2026/06/25",
    "source": "ipo",
@@ -1336,20 +1336,11 @@
   {
    "date": "2026-09-29",
    "time": "上場日",
-   "name": "IPO クラサスケミカル（株）",
+   "name": "IPO クラサスケミカル（株）代表者インタビュー",
    "country": "JP",
    "note": "646A・上場承認 2026/09/07",
    "source": "ipo",
    "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
-  },
-  {
-   "date": "2026-10-01",
-   "time": "05:00頃",
-   "name": "決算 マイクロン・テクノロジー",
-   "country": "US",
-   "note": "MU・日程確定(Yahoo)",
-   "source": "kessan",
-   "url": "https://finance.yahoo.com/quote/MU/"
   },
   {
    "date": "2026-10-01",
@@ -1478,6 +1469,33 @@
    "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
   },
   {
+   "date": "2026-10-29",
+   "time": "05:00頃",
+   "name": "決算 KLA",
+   "country": "US",
+   "note": "KLAC・日程確定(Yahoo)",
+   "source": "kessan",
+   "url": "https://finance.yahoo.com/quote/KLAC/"
+  },
+  {
+   "date": "2026-10-29",
+   "time": "決算発表",
+   "name": "決算 イビデン",
+   "country": "JP",
+   "note": "4062・3月期第２",
+   "source": "kessan",
+   "url": "https://kabutan.jp/stock/?code=4062"
+  },
+  {
+   "date": "2026-10-30",
+   "time": "05:00頃",
+   "name": "決算 サンディスク",
+   "country": "US",
+   "note": "SNDK・日程確定(Yahoo)",
+   "source": "kessan",
+   "url": "https://finance.yahoo.com/quote/SNDK/"
+  },
+  {
    "date": "2026-10-30",
    "time": "08:30",
    "name": "日本雇用統計(労働力調査)",
@@ -1505,11 +1523,47 @@
    "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
   },
   {
+   "date": "2026-10-30",
+   "time": "決算発表",
+   "name": "決算 キオクシアホールディングス",
+   "country": "JP",
+   "note": "285A・3月期第２",
+   "source": "kessan",
+   "url": "https://kabutan.jp/stock/?code=285A"
+  },
+  {
+   "date": "2026-10-30",
+   "time": "決算発表",
+   "name": "決算 レーザーテック",
+   "country": "JP",
+   "note": "6920・6月期第１",
+   "source": "kessan",
+   "url": "https://kabutan.jp/stock/?code=6920"
+  },
+  {
+   "date": "2026-10-30",
+   "time": "決算発表",
+   "name": "決算 東京エレクトロン",
+   "country": "JP",
+   "note": "8035・3月期第２",
+   "source": "kessan",
+   "url": "https://kabutan.jp/stock/?code=8035"
+  },
+  {
    "date": "2026-11-02",
    "time": "上場日",
    "name": "IPO MabGenesis（株）",
    "country": "JP",
    "note": "653A・上場承認 2026/09/28",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-11-04",
+   "time": "上場日",
+   "name": "IPO AllganizeHoldings（株）",
+   "country": "JP",
+   "note": "656A・上場承認 2026/09/30",
    "source": "ipo",
    "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
@@ -1539,6 +1593,15 @@
    "note": "October 2026分",
    "source": "us_empsit",
    "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-11-06",
+   "time": "上場日",
+   "name": "IPO （株）estie",
+   "country": "JP",
+   "note": "658A・上場承認 2026/10/01",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
    "date": "2026-11-10",
