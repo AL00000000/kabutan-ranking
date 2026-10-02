@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-28",
+ "updated": "2026-10-02",
  "days": [
   {
    "date": "2026-08-19",
@@ -20,7 +20,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 48076900.0,
+     "volume": 144232142.0,
      "turnover": 2433797.0,
      "turnover_basis": "kabutan1524"
     }
@@ -45,7 +45,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 44620700.0,
+     "volume": 133863439.0,
      "turnover": 2312810.0,
      "turnover_basis": "kabutan1524"
     }
@@ -70,7 +70,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 39845000.0,
+     "volume": 119536195.0,
      "turnover": 2133466.0,
      "turnover_basis": "kabutan1524"
     }
@@ -95,7 +95,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 32745000.0,
+     "volume": 98235982.0,
      "turnover": 1687341.0,
      "turnover_basis": "kabutan1524"
     }
@@ -182,7 +182,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 30502000.0,
+     "volume": 91506915.0,
      "turnover": 1535832.0
     }
    }
@@ -268,7 +268,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 23640300.0,
+     "volume": 70921609.0,
      "turnover": 1190714.0
     }
    }
@@ -354,7 +354,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 36006900.0,
+     "volume": 108021780.0,
      "turnover": 1879689.0
     }
    }
@@ -440,7 +440,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 31954100.0,
+     "volume": 95863259.0,
      "turnover": 1590239.0
     }
    }
@@ -526,7 +526,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 40319000.0,
+     "volume": 120958210.0,
      "turnover": 1956449.0
     }
    }
@@ -612,7 +612,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 29654100.0,
+     "volume": 88963190.0,
      "turnover": 1496272.0
     }
    }
@@ -698,7 +698,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 26203700.0,
+     "volume": 78611886.0,
      "turnover": 1332436.0
     }
    }
@@ -784,7 +784,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 22745000.0,
+     "volume": 68235682.0,
      "turnover": 1167343.0
     }
    }
@@ -870,7 +870,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 30527100.0,
+     "volume": 91582216.0,
      "turnover": 1647339.0
     }
    }
@@ -956,7 +956,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 31323500.0,
+     "volume": 93971440.0,
      "turnover": 1842171.0
     }
    }
@@ -1042,7 +1042,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 34694700.0,
+     "volume": 104085141.0,
      "turnover": 2066288.0
     }
    }
@@ -1128,7 +1128,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 30759700.0,
+     "volume": 92280023.0,
      "turnover": 1758855.0
     }
    }
@@ -1214,7 +1214,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 28715100.0,
+     "volume": 86146161.0,
      "turnover": 1631938.0
     }
    }
@@ -1300,7 +1300,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 28051100.0,
+     "volume": 84154142.0,
      "turnover": 1512817.0
     }
    }
@@ -1386,7 +1386,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 28534900.0,
+     "volume": 85605556.0,
      "turnover": 1430689.0
     }
    }
@@ -1472,7 +1472,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 29060500.0,
+     "volume": 87182372.0,
      "turnover": 1497643.0
     }
    }
@@ -1558,7 +1558,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 27253000.0,
+     "volume": 81759818.0,
      "turnover": 1364401.0
     }
    }
@@ -1644,7 +1644,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 25108400.0,
+     "volume": 75325953.0,
      "turnover": 1262015.0
     }
    }
@@ -1730,7 +1730,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 34475500.0,
+     "volume": 103427534.0,
      "turnover": 1818861.0
     }
    }
@@ -1816,7 +1816,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 27809600.0,
+     "volume": 83429634.0,
      "turnover": 1547717.0
     }
    }
@@ -1902,7 +1902,7 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 21757800.0,
+     "volume": 65274053.0,
      "turnover": 1210848.0
     }
    }
@@ -1988,8 +1988,226 @@
    "stocks": {
     "285A": {
      "name": "キオクシア",
-     "volume": 18399200.0,
+     "volume": 55198152.0,
      "turnover": 1005379.0
+    }
+   }
+  },
+  {
+   "date": "2026-09-29",
+   "total": 7745365.0,
+   "prime": 7322408.0,
+   "prime_volume": 244155.0,
+   "prime_risen": 170.0,
+   "prime_fallen": 1318.0,
+   "standard": 246781.0,
+   "standard_volume": 48220.0,
+   "standard_risen": 370.0,
+   "standard_fallen": 1022.0,
+   "growth": 176176.0,
+   "growth_volume": 36564.89,
+   "growth_risen": 178.0,
+   "growth_fallen": 368.0,
+   "total_volume": 328939.89,
+   "stocks": {
+    "285A": {
+     "name": "キオクシア",
+     "volume": 41572200.0
+    }
+   }
+  },
+  {
+   "date": "2026-09-30",
+   "total": 9641894.0,
+   "prime": 9121230.0,
+   "prime_volume": 276231.0,
+   "prime_risen": 1127.0,
+   "prime_fallen": 368.0,
+   "standard": 257824.0,
+   "standard_volume": 51142.0,
+   "standard_risen": 870.0,
+   "standard_fallen": 483.0,
+   "growth": 262840.0,
+   "growth_volume": 41106.56,
+   "growth_risen": 347.0,
+   "growth_fallen": 185.0,
+   "total_volume": 368479.56,
+   "stocks": {
+    "285A": {
+     "name": "キオクシア",
+     "volume": 39125500.0
+    }
+   }
+  },
+  {
+   "date": "2026-10-01",
+   "total": 9136787.0,
+   "prime": 8722879.0,
+   "prime_volume": 264961.0,
+   "prime_risen": 750.0,
+   "prime_fallen": 747.0,
+   "standard": 207104.0,
+   "standard_volume": 42729.0,
+   "standard_risen": 553.0,
+   "standard_fallen": 773.0,
+   "growth": 206804.0,
+   "growth_volume": 46264.54,
+   "growth_risen": 229.0,
+   "growth_fallen": 306.0,
+   "total_volume": 353954.54,
+   "top": [
+    {
+     "code": "285A",
+     "name": "ｷｵｸｼｱHD",
+     "market": "プライム",
+     "turnover": 989464.0
+    },
+    {
+     "code": "6857",
+     "name": "ｱﾄﾞﾊﾞﾝﾃ",
+     "market": "プライム",
+     "turnover": 553414.0
+    },
+    {
+     "code": "9984",
+     "name": "ｿﾌﾄﾊﾞﾝｸG",
+     "market": "プライム",
+     "turnover": 412813.0
+    },
+    {
+     "code": "6976",
+     "name": "太陽誘電",
+     "market": "プライム",
+     "turnover": 315075.0
+    },
+    {
+     "code": "6981",
+     "name": "村田製",
+     "market": "プライム",
+     "turnover": 252135.0
+    },
+    {
+     "code": "6920",
+     "name": "ﾚｰｻﾞｰﾃｸ",
+     "market": "プライム",
+     "turnover": 235754.0
+    },
+    {
+     "code": "8035",
+     "name": "東ｴﾚｸ",
+     "market": "プライム",
+     "turnover": 214877.0
+    },
+    {
+     "code": "8306",
+     "name": "三菱UFJ",
+     "market": "プライム",
+     "turnover": 204535.0
+    },
+    {
+     "code": "5803",
+     "name": "フジクラ",
+     "market": "プライム",
+     "turnover": 193907.0
+    },
+    {
+     "code": "4062",
+     "name": "ｲﾋﾞﾃﾞﾝ",
+     "market": "プライム",
+     "turnover": 148706.0
+    }
+   ],
+   "stocks": {
+    "285A": {
+     "name": "キオクシア",
+     "volume": 52342100.0,
+     "turnover": 989464.0
+    }
+   }
+  },
+  {
+   "date": "2026-10-02",
+   "total": 8751002.0,
+   "prime": 8297870.0,
+   "prime_volume": 251171.0,
+   "prime_risen": 215.0,
+   "prime_fallen": 1306.0,
+   "standard": 268482.0,
+   "standard_volume": 54744.0,
+   "standard_risen": 364.0,
+   "standard_fallen": 997.0,
+   "growth": 184650.0,
+   "growth_volume": 49296.68,
+   "growth_risen": 165.0,
+   "growth_fallen": 392.0,
+   "total_volume": 355211.68,
+   "top": [
+    {
+     "code": "285A",
+     "name": "ｷｵｸｼｱHD",
+     "market": "プライム",
+     "turnover": 780910.0
+    },
+    {
+     "code": "6857",
+     "name": "ｱﾄﾞﾊﾞﾝﾃ",
+     "market": "プライム",
+     "turnover": 654134.0
+    },
+    {
+     "code": "9984",
+     "name": "ｿﾌﾄﾊﾞﾝｸG",
+     "market": "プライム",
+     "turnover": 381145.0
+    },
+    {
+     "code": "6976",
+     "name": "太陽誘電",
+     "market": "プライム",
+     "turnover": 346723.0
+    },
+    {
+     "code": "6920",
+     "name": "ﾚｰｻﾞｰﾃｸ",
+     "market": "プライム",
+     "turnover": 318681.0
+    },
+    {
+     "code": "5803",
+     "name": "フジクラ",
+     "market": "プライム",
+     "turnover": 305536.0
+    },
+    {
+     "code": "8035",
+     "name": "東ｴﾚｸ",
+     "market": "プライム",
+     "turnover": 231936.0
+    },
+    {
+     "code": "5801",
+     "name": "古河電",
+     "market": "プライム",
+     "turnover": 180845.0
+    },
+    {
+     "code": "6981",
+     "name": "村田製",
+     "market": "プライム",
+     "turnover": 158676.0
+    },
+    {
+     "code": "4062",
+     "name": "ｲﾋﾞﾃﾞﾝ",
+     "market": "プライム",
+     "turnover": 137539.0
+    }
+   ],
+   "stocks": {
+    "285A": {
+     "name": "キオクシア",
+     "volume": 41082900.0,
+     "turnover": 780910.0
     }
    }
   }
@@ -2021,10 +2239,10 @@
     "source": "MONEY PLUS(単一銘柄の過去最高)"
    },
    "volume": {
-    "value": 91539100,
+    "value": 144232142.0,
     "unit": "株",
-    "date": "2026-07-30",
-    "source": "株探・Yahooファイナンスの日足全期間(2024-12-18の上場来)"
+    "date": "2026-08-19",
+    "source": "自動更新"
    }
   }
  }
