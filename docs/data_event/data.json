@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-06",
+ "updated": "2026-10-07",
  "events": [
   {
    "date": "2021-01-28",
@@ -1647,6 +1647,15 @@
    "note": "October 2026分",
    "source": "us_cpi",
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-11-10",
+   "time": "上場日",
+   "name": "IPO （株）RECEPTIONIST",
+   "country": "JP",
+   "note": "660A・上場承認 2026/10/06",
+   "source": "ipo",
+   "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
    "date": "2026-11-10",
