@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-04",
+ "updated": "2026-10-06",
  "events": [
   {
    "date": "2021-01-28",
@@ -1453,6 +1453,15 @@
   {
    "date": "2026-10-28",
    "time": "決算発表",
+   "name": "決算 アドバンテスト",
+   "country": "JP",
+   "note": "6857・3月期第２",
+   "source": "kessan",
+   "url": "https://kabutan.jp/stock/?code=6857"
+  },
+  {
+   "date": "2026-10-28",
+   "time": "決算発表",
    "name": "決算 サムスン電子",
    "country": "KR",
    "note": "005930.KS・日程確定(Yahoo)",
@@ -1586,6 +1595,15 @@
    "url": "https://finance.yahoo.com/quote/QCOM/"
   },
   {
+   "date": "2026-11-05",
+   "time": "決算発表",
+   "name": "決算 太陽誘電",
+   "country": "JP",
+   "note": "6976・3月期第２",
+   "source": "kessan",
+   "url": "https://kabutan.jp/stock/?code=6976"
+  },
+  {
    "date": "2026-11-06",
    "time": "22:30",
    "name": "米雇用統計",
@@ -1602,6 +1620,15 @@
    "note": "658A・上場承認 2026/10/01",
    "source": "ipo",
    "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-11-09",
+   "time": "決算発表",
+   "name": "決算 KOKUSAI ELECTRIC",
+   "country": "JP",
+   "note": "6525・3月期第２",
+   "source": "kessan",
+   "url": "https://kabutan.jp/stock/?code=6525"
   },
   {
    "date": "2026-11-10",
@@ -1622,6 +1649,15 @@
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
+   "date": "2026-11-10",
+   "time": "決算発表",
+   "name": "決算 フジクラ",
+   "country": "JP",
+   "note": "5803・3月期第２",
+   "source": "kessan",
+   "url": "https://kabutan.jp/stock/?code=5803"
+  },
+  {
    "date": "2026-11-13",
    "time": "05:00頃",
    "name": "決算 アプライド・マテリアルズ",
@@ -1638,6 +1674,15 @@
    "note": "October 2026分",
    "source": "us_ppi",
    "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
+   "date": "2026-11-13",
+   "time": "決算発表",
+   "name": "決算 ウェルネス・コミュニケーションズ",
+   "country": "JP",
+   "note": "366A・3月期第２",
+   "source": "kessan",
+   "url": "https://kabutan.jp/stock/?code=366A"
   },
   {
    "date": "2026-11-18",
