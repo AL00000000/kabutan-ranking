@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-07",
+ "updated": "2026-10-08",
  "events": [
   {
    "date": "2021-01-28",
@@ -1674,6 +1674,15 @@
    "note": "660A・上場承認 2026/10/06",
    "source": "ipo",
    "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
+  },
+  {
+   "date": "2026-11-10",
+   "time": "決算発表",
+   "name": "決算 フジクラ",
+   "country": "JP",
+   "note": "5803・3月期第２",
+   "source": "kessan",
+   "url": "https://kabutan.jp/stock/?code=5803"
   },
   {
    "date": "2026-11-13",
