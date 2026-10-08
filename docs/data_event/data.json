@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-08",
+ "updated": "2026-10-09",
  "events": [
   {
    "date": "2021-01-28",
@@ -1701,6 +1701,15 @@
    "note": "October 2026分",
    "source": "us_ppi",
    "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
+   "date": "2026-11-13",
+   "time": "決算発表",
+   "name": "決算 ウェルネス・コミュニケーションズ",
+   "country": "JP",
+   "note": "366A・3月期第２",
+   "source": "kessan",
+   "url": "https://kabutan.jp/stock/?code=366A"
   },
   {
    "date": "2026-11-18",
