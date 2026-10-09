@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-09",
+ "updated": "2026-10-10",
  "events": [
   {
    "date": "2021-01-28",
@@ -371,24 +371,6 @@
    "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
   },
   {
-   "date": "2025-12-16",
-   "time": "22:30",
-   "name": "米雇用統計",
-   "country": "US",
-   "note": "November 2025分",
-   "source": "us_empsit",
-   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
-  },
-  {
-   "date": "2025-12-18",
-   "time": "22:30",
-   "name": "米CPI",
-   "country": "US",
-   "note": "November 2025分",
-   "source": "us_cpi",
-   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
-  },
-  {
    "date": "2026-01-01",
    "time": "終日",
    "name": "米国市場 休場(New Year’s Day)",
@@ -396,33 +378,6 @@
    "note": "米国市場は終日休場",
    "source": "us_holiday",
    "url": "https://www.nyse.com/trade/hours-calendars"
-  },
-  {
-   "date": "2026-01-09",
-   "time": "22:30",
-   "name": "米雇用統計",
-   "country": "US",
-   "note": "December 2025分",
-   "source": "us_empsit",
-   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
-  },
-  {
-   "date": "2026-01-13",
-   "time": "22:30",
-   "name": "米CPI",
-   "country": "US",
-   "note": "December 2025分",
-   "source": "us_cpi",
-   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
-  },
-  {
-   "date": "2026-01-14",
-   "time": "22:30",
-   "name": "米PPI",
-   "country": "US",
-   "note": "November 2025分",
-   "source": "us_ppi",
-   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2026-01-19",
@@ -470,24 +425,6 @@
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
   },
   {
-   "date": "2026-01-30",
-   "time": "22:30",
-   "name": "米PPI",
-   "country": "US",
-   "note": "December 2025分",
-   "source": "us_ppi",
-   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
-  },
-  {
-   "date": "2026-02-11",
-   "time": "22:30",
-   "name": "米雇用統計",
-   "country": "US",
-   "note": "January 2026分",
-   "source": "us_empsit",
-   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
-  },
-  {
    "date": "2026-02-13",
    "time": "08:30",
    "name": "日本雇用統計(労働力調査)",
@@ -495,15 +432,6 @@
    "note": null,
    "source": "jp_empsit",
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
-  },
-  {
-   "date": "2026-02-13",
-   "time": "22:30",
-   "name": "米CPI",
-   "country": "US",
-   "note": "January 2026分",
-   "source": "us_cpi",
-   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
    "date": "2026-02-13",
@@ -543,15 +471,6 @@
   },
   {
    "date": "2026-02-27",
-   "time": "22:30",
-   "name": "米PPI",
-   "country": "US",
-   "note": "January 2026分",
-   "source": "us_ppi",
-   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
-  },
-  {
-   "date": "2026-02-27",
    "time": "上場日",
    "name": "IPO （株）ギークリー代表者インタビュー",
    "country": "JP",
@@ -567,33 +486,6 @@
    "note": null,
    "source": "jp_empsit",
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
-  },
-  {
-   "date": "2026-03-06",
-   "time": "22:30",
-   "name": "米雇用統計",
-   "country": "US",
-   "note": "February 2026分",
-   "source": "us_empsit",
-   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
-  },
-  {
-   "date": "2026-03-11",
-   "time": "21:30",
-   "name": "米CPI",
-   "country": "US",
-   "note": "February 2026分",
-   "source": "us_cpi",
-   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
-  },
-  {
-   "date": "2026-03-18",
-   "time": "21:30",
-   "name": "米PPI",
-   "country": "US",
-   "note": "February 2026分",
-   "source": "us_ppi",
-   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2026-03-19",
@@ -714,15 +606,6 @@
   },
   {
    "date": "2026-04-03",
-   "time": "21:30",
-   "name": "米雇用統計",
-   "country": "US",
-   "note": "March 2026分",
-   "source": "us_empsit",
-   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
-  },
-  {
-   "date": "2026-04-03",
    "time": "終日",
    "name": "米国市場 休場(Good Friday)",
    "country": "US",
@@ -756,24 +639,6 @@
    "note": "550A・上場承認 2026/03/06",
    "source": "ipo",
    "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
-  },
-  {
-   "date": "2026-04-10",
-   "time": "21:30",
-   "name": "米CPI",
-   "country": "US",
-   "note": "March 2026分",
-   "source": "us_cpi",
-   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
-  },
-  {
-   "date": "2026-04-14",
-   "time": "21:30",
-   "name": "米PPI",
-   "country": "US",
-   "note": "March 2026分",
-   "source": "us_ppi",
-   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2026-04-21",
@@ -848,33 +713,6 @@
    "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
   },
   {
-   "date": "2026-05-08",
-   "time": "21:30",
-   "name": "米雇用統計",
-   "country": "US",
-   "note": "April 2026分",
-   "source": "us_empsit",
-   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
-  },
-  {
-   "date": "2026-05-12",
-   "time": "21:30",
-   "name": "米CPI",
-   "country": "US",
-   "note": "April 2026分",
-   "source": "us_cpi",
-   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
-  },
-  {
-   "date": "2026-05-13",
-   "time": "21:30",
-   "name": "米PPI",
-   "country": "US",
-   "note": "April 2026分",
-   "source": "us_ppi",
-   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
-  },
-  {
    "date": "2026-05-15",
    "time": "08:30",
    "name": "日本雇用統計(労働力調査)",
@@ -918,33 +756,6 @@
    "note": "575A・上場承認 2026/05/01",
    "source": "ipo",
    "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
-  },
-  {
-   "date": "2026-06-05",
-   "time": "21:30",
-   "name": "米雇用統計",
-   "country": "US",
-   "note": "May 2026分",
-   "source": "us_empsit",
-   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
-  },
-  {
-   "date": "2026-06-10",
-   "time": "21:30",
-   "name": "米CPI",
-   "country": "US",
-   "note": "May 2026分",
-   "source": "us_cpi",
-   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
-  },
-  {
-   "date": "2026-06-11",
-   "time": "21:30",
-   "name": "米PPI",
-   "country": "US",
-   "note": "May 2026分",
-   "source": "us_ppi",
-   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2026-06-16",
@@ -1028,15 +839,6 @@
    "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
-   "date": "2026-07-02",
-   "time": "21:30",
-   "name": "米雇用統計",
-   "country": "US",
-   "note": "June 2026分",
-   "source": "us_empsit",
-   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
-  },
-  {
    "date": "2026-07-03",
    "time": "終日",
    "name": "米国市場 休場(Independence Day)",
@@ -1044,24 +846,6 @@
    "note": "米国市場は終日休場(振替)",
    "source": "us_holiday",
    "url": "https://www.nyse.com/trade/hours-calendars"
-  },
-  {
-   "date": "2026-07-14",
-   "time": "21:30",
-   "name": "米CPI",
-   "country": "US",
-   "note": "June 2026分",
-   "source": "us_cpi",
-   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
-  },
-  {
-   "date": "2026-07-15",
-   "time": "21:30",
-   "name": "米PPI",
-   "country": "US",
-   "note": "June 2026分",
-   "source": "us_ppi",
-   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2026-07-15",
@@ -1145,15 +929,6 @@
    "url": "https://www.jpx.co.jp/listing/stocks/new/index.html"
   },
   {
-   "date": "2026-08-07",
-   "time": "21:30",
-   "name": "米雇用統計",
-   "country": "US",
-   "note": "July 2026分",
-   "source": "us_empsit",
-   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
-  },
-  {
    "date": "2026-08-10",
    "time": "08:30",
    "name": "日本雇用統計(労働力調査)",
@@ -1161,24 +936,6 @@
    "note": null,
    "source": "jp_empsit",
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
-  },
-  {
-   "date": "2026-08-12",
-   "time": "21:30",
-   "name": "米CPI",
-   "country": "US",
-   "note": "July 2026分",
-   "source": "us_cpi",
-   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
-  },
-  {
-   "date": "2026-08-13",
-   "time": "21:30",
-   "name": "米PPI",
-   "country": "US",
-   "note": "July 2026分",
-   "source": "us_ppi",
-   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2026-08-21",
@@ -1199,15 +956,6 @@
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
   },
   {
-   "date": "2026-09-04",
-   "time": "21:30",
-   "name": "米雇用統計",
-   "country": "US",
-   "note": "August 2026分",
-   "source": "us_empsit",
-   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
-  },
-  {
    "date": "2026-09-07",
    "time": "終日",
    "name": "米国市場 休場(Labor Day)",
@@ -1215,24 +963,6 @@
    "note": "米国市場は終日休場",
    "source": "us_holiday",
    "url": "https://www.nyse.com/trade/hours-calendars"
-  },
-  {
-   "date": "2026-09-10",
-   "time": "21:30",
-   "name": "米PPI",
-   "country": "US",
-   "note": "August 2026分",
-   "source": "us_ppi",
-   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
-  },
-  {
-   "date": "2026-09-11",
-   "time": "21:30",
-   "name": "米CPI",
-   "country": "US",
-   "note": "August 2026分",
-   "source": "us_cpi",
-   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
    "date": "2026-09-11",
@@ -1379,24 +1109,6 @@
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
   },
   {
-   "date": "2026-10-02",
-   "time": "21:30",
-   "name": "米雇用統計",
-   "country": "US",
-   "note": "September 2026分",
-   "source": "us_empsit",
-   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
-  },
-  {
-   "date": "2026-10-14",
-   "time": "21:30",
-   "name": "米CPI",
-   "country": "US",
-   "note": "September 2026分",
-   "source": "us_cpi",
-   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
-  },
-  {
    "date": "2026-10-14",
    "time": "21:30頃",
    "name": "決算 ASML",
@@ -1404,15 +1116,6 @@
    "note": "ASML・日程確定(Yahoo)",
    "source": "kessan",
    "url": "https://finance.yahoo.com/quote/ASML/"
-  },
-  {
-   "date": "2026-10-15",
-   "time": "21:30",
-   "name": "米PPI",
-   "country": "US",
-   "note": "September 2026分",
-   "source": "us_ppi",
-   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2026-10-15",
@@ -1838,6 +1541,33 @@
    "url": "https://www.nyse.com/trade/hours-calendars"
   },
   {
+   "date": "2027-01-08",
+   "time": "22:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "December 2026分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2027-01-13",
+   "time": "22:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "December 2026分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2027-01-14",
+   "time": "22:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "December 2026分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
    "date": "2027-01-18",
    "time": "終日",
    "name": "米国市場 休場(Martin Luther King, Jr. Day)",
@@ -1883,6 +1613,24 @@
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
   },
   {
+   "date": "2027-02-05",
+   "time": "22:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "January 2027分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2027-02-11",
+   "time": "22:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "January 2027分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
    "date": "2027-02-12",
    "time": "08:30",
    "name": "日本雇用統計(労働力調査)",
@@ -1890,6 +1638,15 @@
    "note": null,
    "source": "jp_empsit",
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2027-02-12",
+   "time": "22:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "January 2027分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2027-02-15",
@@ -1917,6 +1674,33 @@
    "note": null,
    "source": "jp_empsit",
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
+  },
+  {
+   "date": "2027-03-05",
+   "time": "22:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "February 2027分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2027-03-10",
+   "time": "22:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "February 2027分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2027-03-12",
+   "time": "22:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "February 2027分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2027-03-18",
@@ -1964,6 +1748,33 @@
    "url": "https://www.stat.go.jp/data/roudou/pdf/kohyo26.pdf"
   },
   {
+   "date": "2027-04-02",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "March 2027分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2027-04-13",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "March 2027分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2027-04-14",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "March 2027分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
    "date": "2027-04-28",
    "time": "昼頃",
    "name": "日銀 金融政策決定会合",
@@ -1982,6 +1793,33 @@
    "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
   },
   {
+   "date": "2027-05-07",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "April 2027分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2027-05-12",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "April 2027分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2027-05-13",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "April 2027分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
    "date": "2027-05-31",
    "time": "終日",
    "name": "米国市場 休場(Memorial Day)",
@@ -1991,6 +1829,15 @@
    "url": "https://www.nyse.com/trade/hours-calendars"
   },
   {
+   "date": "2027-06-04",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "May 2027分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
    "date": "2027-06-10",
    "time": "03:00",
    "name": "FOMC 政策金利発表",
@@ -1998,6 +1845,24 @@
    "note": "June 8-9* の最終日 14:00 ET",
    "source": "fomc",
    "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2027-06-10",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "May 2027分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2027-06-11",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "May 2027分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2027-06-11",
@@ -2018,6 +1883,15 @@
    "url": "https://www.nyse.com/trade/hours-calendars"
   },
   {
+   "date": "2027-07-02",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "June 2027分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
    "date": "2027-07-05",
    "time": "終日",
    "name": "米国市場 休場(Independence Day)",
@@ -2025,6 +1899,24 @@
    "note": "米国市場は終日休場(振替)",
    "source": "us_holiday",
    "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2027-07-14",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "June 2027分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2027-07-15",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "June 2027分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2027-07-22",
@@ -2045,6 +1937,42 @@
    "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
   },
   {
+   "date": "2027-08-06",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "July 2027分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2027-08-10",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "July 2027分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
+   "date": "2027-08-11",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "July 2027分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2027-09-03",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "August 2027分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
    "date": "2027-09-06",
    "time": "終日",
    "name": "米国市場 休場(Labor Day)",
@@ -2052,6 +1980,24 @@
    "note": "米国市場は終日休場",
    "source": "us_holiday",
    "url": "https://www.nyse.com/trade/hours-calendars"
+  },
+  {
+   "date": "2027-09-10",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "August 2027分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
+   "date": "2027-09-14",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "August 2027分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
    "date": "2027-09-16",
@@ -2072,6 +2018,33 @@
    "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
   },
   {
+   "date": "2027-10-08",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "September 2027分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2027-10-14",
+   "time": "21:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "September 2027分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2027-10-15",
+   "time": "21:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "September 2027分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
    "date": "2027-10-28",
    "time": "03:00",
    "name": "FOMC 政策金利発表",
@@ -2090,6 +2063,33 @@
    "url": "https://www.boj.or.jp/mopo/mpmsche_minu/index.htm"
   },
   {
+   "date": "2027-11-05",
+   "time": "21:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "October 2027分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2027-11-10",
+   "time": "22:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "October 2027分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2027-11-12",
+   "time": "22:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "October 2027分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
+  },
+  {
    "date": "2027-11-25",
    "time": "終日",
    "name": "米国市場 休場(Thanksgiving Day)",
@@ -2099,6 +2099,15 @@
    "url": "https://www.nyse.com/trade/hours-calendars"
   },
   {
+   "date": "2027-12-03",
+   "time": "22:30",
+   "name": "米雇用統計",
+   "country": "US",
+   "note": "November 2027分",
+   "source": "us_empsit",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
    "date": "2027-12-09",
    "time": "04:00",
    "name": "FOMC 政策金利発表",
@@ -2106,6 +2115,24 @@
    "note": "December 7-8* の最終日 14:00 ET",
    "source": "fomc",
    "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "date": "2027-12-10",
+   "time": "22:30",
+   "name": "米CPI",
+   "country": "US",
+   "note": "November 2027分",
+   "source": "us_cpi",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2027-12-15",
+   "time": "22:30",
+   "name": "米PPI",
+   "country": "US",
+   "note": "November 2027分",
+   "source": "us_ppi",
+   "url": "https://www.bls.gov/schedule/news_release/ppi.htm"
   },
   {
    "date": "2027-12-17",
